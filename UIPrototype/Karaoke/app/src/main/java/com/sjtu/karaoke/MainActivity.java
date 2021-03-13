@@ -1,9 +1,11 @@
 package com.sjtu.karaoke;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 
 import android.os.Bundle;
+import android.view.MenuItem;
 
 import com.ismaeldivita.chipnavigation.ChipNavigationBar;
 import com.sjtu.karaoke.fragment.AccountFragment;
@@ -36,5 +38,10 @@ public class MainActivity extends AppCompatActivity {
         });
 
         chipNavigationBar.setItemSelected(R.id.viewSongs, true);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        return false;
     }
 }

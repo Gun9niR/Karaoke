@@ -3,6 +3,7 @@ package com.sjtu.karaoke.fragment;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -59,19 +60,6 @@ public class ViewSongsFragment extends Fragment {
         super.onCreate(savedInstanceState);
         songNames = getResources().getStringArray(R.array.song_names);
         singers = getResources().getStringArray(R.array.singers);
-        setHasOptionsMenu(true);
-    }
-
-    @Override
-    public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
-        inflater.inflate(R.menu.view_songs_menu, menu);
-        super.onCreateOptionsMenu(menu, inflater);
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        Toast.makeText(getActivity().getApplicationContext(), "search", Toast.LENGTH_SHORT);
-        return true;
     }
 
     @Override
@@ -125,6 +113,16 @@ public class ViewSongsFragment extends Fragment {
         songList.setLayoutManager(layoutManager);
         songList.setAdapter(adapter);
         songList.setNestedScrollingEnabled(false);
+
+        // set up toolbar
+        Toolbar toolbar = view.findViewById(R.id.toolbarViewSongs);
+        toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                
+                return true;
+            }
+        });
         return view;
     }
 }
