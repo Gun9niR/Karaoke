@@ -15,8 +15,8 @@
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:menu="@menu/view_songs_menu"
-        app:title="View songs" />
+        app:title="View songs"
+        app:menu="@menu/view_songs_menu"/>
 
     <ScrollView
         android:layout_width="match_parent"
