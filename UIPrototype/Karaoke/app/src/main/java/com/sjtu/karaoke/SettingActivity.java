@@ -18,6 +18,8 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.sjtu.karaoke.adapter.SettingAdapter;
+
 public class SettingActivity extends AppCompatActivity {
     private String[] settingItems = {"清空本地缓存", "关于"};
 
@@ -49,26 +51,5 @@ public class SettingActivity extends AppCompatActivity {
                 }
             }
         });
-    }
-
-    class SettingAdapter extends ArrayAdapter<String> {
-        Context context;
-
-        SettingAdapter(Context c, String[] settingItems) {
-            super(c, R.layout.setting_row, R.id.settingName, settingItems);
-            this.context = c;
-        }
-
-        @NonNull
-        @Override
-        public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
-            LayoutInflater layoutInflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
-            @SuppressLint("ViewHolder") View row = layoutInflater.inflate(R.layout.setting_row, parent, false);
-            TextView settingItem = row.findViewById(R.id.settingName);
-
-            settingItem.setText(settingItems[position]);
-            return row;
-        }
-
     }
 }

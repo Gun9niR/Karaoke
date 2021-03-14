@@ -1,17 +1,3 @@
 <resources>
     <string name="app_name">Karaoke</string>
-
-    <string-array name="song_names">
-        <item>Attention</item>
-        <item>Dangerously</item>
-        <item>Back to December</item>
-        <item>Back to December</item>
-    </string-array>
-
-    <string-array name="singers">
-        <item>Charlie Puth</item>
-        <item>Charlie Puth</item>
-        <item>Taylor Swift</item>
-        <item>Taylor Swift</item>
-    </string-array>
 </resources>

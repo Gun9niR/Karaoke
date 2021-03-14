@@ -1,5 +1,6 @@
 package com.sjtu.karaoke.fragment;
 
+import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -13,14 +14,13 @@ import androidx.viewpager2.widget.ViewPager2;
 
 import android.os.Handler;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
+import com.sjtu.karaoke.Data;
 import com.sjtu.karaoke.R;
+import com.sjtu.karaoke.SearchActivity;
 import com.sjtu.karaoke.adapter.CarouselAdapter;
 import com.sjtu.karaoke.adapter.SongListAdapter;
 
@@ -34,7 +34,6 @@ import java.util.List;
  */
 public class ViewSongsFragment extends Fragment {
 
-    static final int CAROUSEL_INTERVAL = 3000;
     // carousel
     private ViewPager2 carousel;
     private final Handler carouselHandler = new Handler();
@@ -44,9 +43,7 @@ public class ViewSongsFragment extends Fragment {
             carousel.setCurrentItem(carousel.getCurrentItem() + 1);
         }
     };
-
-    String[] songNames, singers;
-    int[] images = { R.drawable.voice_notes, R.drawable.nine_track_mind, R.drawable.speak_now, R.drawable.speak_now };
+    static final int CAROUSEL_INTERVAL = 3000;
 
     public ViewSongsFragment() { }
 
@@ -58,8 +55,6 @@ public class ViewSongsFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        songNames = getResources().getStringArray(R.array.song_names);
-        singers = getResources().getStringArray(R.array.singers);
     }
 
     @Override
@@ -108,7 +103,10 @@ public class ViewSongsFragment extends Fragment {
 
         RecyclerView songList = (RecyclerView) view.findViewById(R.id.songList);
 
-        SongListAdapter adapter = new SongListAdapter(songNames, singers, images);
+        // get song data
+        List<Data.Song> songs = Data.songs;
+
+        SongListAdapter adapter = new SongListAdapter(songs);
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getContext());
         songList.setLayoutManager(layoutManager);
         songList.setAdapter(adapter);
@@ -119,7 +117,9 @@ public class ViewSongsFragment extends Fragment {
         toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem item) {
-
+                // go to search activity
+                Intent intent = new Intent(getActivity(), SearchActivity.class);
+                startActivity(intent);
                 return true;
             }
         });
