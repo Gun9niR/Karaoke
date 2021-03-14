@@ -1,6 +1,7 @@
 package com.sjtu.karaoke.fragment;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -18,6 +19,7 @@ import android.widget.Toast;
 
 import com.sjtu.karaoke.MainActivity;
 import com.sjtu.karaoke.R;
+import com.sjtu.karaoke.SettingActivity;
 
 import java.util.Objects;
 
@@ -63,7 +65,9 @@ public class AccountFragment extends Fragment {
         toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem item) {
-
+                // go to setting activity
+                Intent intent = new Intent(getActivity(), SettingActivity.class);
+                startActivity(intent);
                 return true;
             }
         });

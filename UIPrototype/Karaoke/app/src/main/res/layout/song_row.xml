@@ -25,7 +25,7 @@
         android:layout_marginStart="16dp"
         android:layout_marginTop="16dp"
         android:text="Song name"
-        android:textSize="23sp"
+        android:textSize="18sp"
         app:layout_constraintStart_toEndOf="@+id/cover"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -33,7 +33,7 @@
         android:id="@+id/singer"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
+        android:layout_marginStart="14dp"
         android:layout_marginTop="8dp"
         android:text="Singer"
         android:textSize="15sp"
@@ -42,7 +42,7 @@
 
     <Button
         android:id="@+id/btnSing"
-        android:layout_width="100dp"
+        android:layout_width="80dp"
         android:layout_height="wrap_content"
         android:layout_marginEnd="16dp"
         android:text="K歌"
