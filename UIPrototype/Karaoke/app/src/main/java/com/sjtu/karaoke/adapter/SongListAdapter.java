@@ -2,6 +2,7 @@ package com.sjtu.karaoke.adapter;
 
 import android.app.Dialog;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.ColorSpace;
 import android.graphics.drawable.ColorDrawable;
@@ -18,6 +19,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.sjtu.karaoke.Data;
+import com.sjtu.karaoke.LrcActivity;
 import com.sjtu.karaoke.R;
 
 import java.util.ArrayList;
@@ -72,10 +74,20 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.ViewHo
                 chooseModeDialog.setContentView(R.layout.mode_dialogue);
                 chooseModeDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
                 ImageButton closeButton = chooseModeDialog.findViewById(R.id.btnClose);
+                Button btnMvMode = chooseModeDialog.findViewById(R.id.btnMvMode);
+
                 closeButton.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
                         chooseModeDialog.dismiss();
+                    }
+                });
+
+                btnMvMode.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        Intent intent = new Intent(context, LrcActivity.class);
+                        context.startActivity(intent);
                     }
                 });
                 chooseModeDialog.show();
