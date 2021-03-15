@@ -70,7 +70,7 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.ViewHo
                 // declare dialog
                 Dialog chooseModeDialog = new Dialog(context);
                 chooseModeDialog.setContentView(R.layout.mode_dialogue);
-
+                chooseModeDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
                 ImageButton closeButton = chooseModeDialog.findViewById(R.id.btnClose);
                 closeButton.setOnClickListener(new View.OnClickListener() {
                     @Override
