@@ -38,6 +38,8 @@ public class MainActivity extends AppCompatActivity {
         });
 
         chipNavigationBar.setItemSelected(R.id.viewSongs, true);
+
+
     }
 
     @Override
