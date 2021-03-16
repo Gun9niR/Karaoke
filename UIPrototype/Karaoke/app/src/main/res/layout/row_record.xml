@@ -6,7 +6,7 @@
     android:layout_height="wrap_content">
 
     <ImageView
-        android:id="@+id/cover"
+        android:id="@+id/recordCover"
         android:layout_width="75dp"
         android:layout_height="75dp"
         android:layout_marginStart="16dp"
@@ -19,36 +19,46 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
-        android:id="@+id/songName"
+        android:id="@+id/recordName"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_marginTop="16dp"
-        android:text="Song name"
+        android:text="Record name"
         android:textSize="18sp"
-        app:layout_constraintStart_toEndOf="@+id/cover"
+        app:layout_constraintStart_toEndOf="@+id/recordCover"
         app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
-        android:id="@+id/singer"
+        android:id="@+id/recordTime"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="14dp"
-        android:layout_marginTop="8dp"
-        android:text="Singer"
+        android:layout_marginStart="16dp"
+        android:text="Record time"
         android:textSize="15sp"
-        app:layout_constraintStart_toEndOf="@+id/cover"
-        app:layout_constraintTop_toBottomOf="@+id/songName" />
+        app:layout_constraintBottom_toBottomOf="@+id/recordCover"
+        app:layout_constraintStart_toEndOf="@+id/recordCover" />
 
-    <Button
-        android:id="@+id/btnSing"
-        android:layout_width="80dp"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="16dp"
-        android:text="K歌"
-        app:cornerRadius="30dp"
+    <ImageButton
+        android:id="@+id/btnPlay"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_marginEnd="32dp"
+        android:src="@drawable/ic_play"
+        android:background="@android:color/transparent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <ImageButton
+        android:id="@+id/btnShare"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_marginEnd="8dp"
+        android:background="@android:color/transparent"
+        android:src="@drawable/ic_share"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/btnPlay"
         app:layout_constraintTop_toTopOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

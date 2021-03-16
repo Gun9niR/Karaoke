@@ -20,7 +20,7 @@ public class SettingAdapter extends ArrayAdapter<String> {
     String[] settingItems;
 
     public SettingAdapter(Context c, String[] settingItems) {
-        super(c, R.layout.setting_row, R.id.settingName, settingItems);
+        super(c, R.layout.row_setting, R.id.settingName, settingItems);
         this.context = c;
         this.settingItems = settingItems;
     }
@@ -29,7 +29,7 @@ public class SettingAdapter extends ArrayAdapter<String> {
     @Override
     public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
         LayoutInflater layoutInflater = (LayoutInflater) context.getSystemService(LAYOUT_INFLATER_SERVICE);
-        @SuppressLint("ViewHolder") View row = layoutInflater.inflate(R.layout.setting_row, parent, false);
+        @SuppressLint("ViewHolder") View row = layoutInflater.inflate(R.layout.row_setting, parent, false);
         TextView settingItem = row.findViewById(R.id.settingName);
 
         settingItem.setText(settingItems[position]);

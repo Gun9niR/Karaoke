@@ -1,6 +1,9 @@
 package com.sjtu.karaoke;
 
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.List;
 
 public class Data {
@@ -23,4 +26,24 @@ public class Data {
         add(new Song("Back to December", "Taylor Swift", R.drawable.speak_now));
     }};
 
+    public static class Record {
+        public String recordName;
+        public Calendar recordTime;
+        public int recordCover;
+
+        public Record(String recordName, Calendar recordTime, int recordCover) {
+            this.recordName = recordName;
+            this.recordTime = recordTime;
+            this.recordCover = recordCover;
+        }
+
+        public static String getRecordTimeStr(Calendar recordTime) {
+            return recordTime.get(Calendar.YEAR) + "." + recordTime.get(Calendar.MONTH)+ "." + recordTime.get(Calendar.DATE);
+        }
+
+    }
+
+    public static List<Record> records = new ArrayList<Record>() {{
+       add(new Record("Attention", new GregorianCalendar(2021, Calendar.FEBRUARY, 15), R.drawable.voice_notes));
+    }};
 }
