@@ -15,8 +15,10 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.Toast;
 
+import com.sjtu.karaoke.LocalRecordActivity;
 import com.sjtu.karaoke.MainActivity;
 import com.sjtu.karaoke.R;
 import com.sjtu.karaoke.SettingActivity;
@@ -69,6 +71,15 @@ public class AccountFragment extends Fragment {
                 Intent intent = new Intent(getActivity(), SettingActivity.class);
                 startActivity(intent);
                 return true;
+            }
+        });
+
+        Button btnLocalRecord = view.findViewById(R.id.btnLocalRecord);
+        btnLocalRecord.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(getContext(), LocalRecordActivity.class);
+                startActivity(intent);
             }
         });
         return view;
