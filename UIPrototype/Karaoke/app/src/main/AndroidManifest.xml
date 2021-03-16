@@ -9,6 +9,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Karaoke">
+        <activity android:name=".LrcActivity"></activity>
         <activity android:name=".SearchActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"

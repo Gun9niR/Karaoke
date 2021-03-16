@@ -15,6 +15,7 @@ import com.sjtu.karaoke.adapter.SongListAdapter;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class SearchActivity extends AppCompatActivity {
     private List<Data.Song> songs;
@@ -27,9 +28,9 @@ public class SearchActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbarSearch);
         // set up back button
         setSupportActionBar(toolbar);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setHomeButtonEnabled(true);
-
+        getSupportActionBar().setDisplayShowTitleEnabled(false);
         // set up list
         RecyclerView songSearchList = (RecyclerView) findViewById(R.id.songSearchList);
 
