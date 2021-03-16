@@ -2,6 +2,7 @@ package com.sjtu.karaoke;
 
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 
 import android.content.res.AssetFileDescriptor;
 import android.media.MediaPlayer;
@@ -26,6 +27,8 @@ public class LrcActivity extends AppCompatActivity {
         setContentView(R.layout.activity_lrc);
 
         LrcView lrcView = findViewById(R.id.lrcRoller);
+        lrcView.setHighLineColor(ContextCompat.getColor(this, R.color.purple_500));
+
         String lrc = null;
         try {
             InputStream stream = getAssets().open("Attention.lrc");
@@ -37,6 +40,7 @@ public class LrcActivity extends AppCompatActivity {
         }
 
         lrcView.setLrc(lrc);
+
         AssetFileDescriptor afd = null;
         try {
             afd = getAssets().openFd("Attention.mp3");

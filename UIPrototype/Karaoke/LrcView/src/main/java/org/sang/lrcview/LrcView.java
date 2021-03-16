@@ -34,10 +34,12 @@ public class LrcView extends View {
 
     public void setHighLineColor(int highLineColor) {
         this.highLineColor = highLineColor;
+        hPaint.setColor(highLineColor);
     }
 
     public void setLrcColor(int lrcColor) {
         this.lrcColor = lrcColor;
+        gPaint.setColor(lrcColor);
     }
 
     public void setMode(int mode) {
