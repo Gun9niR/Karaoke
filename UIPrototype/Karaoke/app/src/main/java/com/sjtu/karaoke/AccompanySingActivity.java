@@ -22,6 +22,7 @@ import android.widget.Toast;
 import android.widget.VideoView;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import org.sang.lrcview.LrcView;
 import org.w3c.dom.Text;
@@ -32,11 +33,16 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.stream.Collectors;
 
+import static android.widget.Toast.*;
+
 public class AccompanySingActivity extends AppCompatActivity {
 
     VideoView videoView;
+    LrcView lrcView;
     ProgressBar mProgressBar, mScoreBar;
     TextView scoreRecorder;
+    FloatingActionButton  fab;
+    Integer duration;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,6 +72,14 @@ public class AccompanySingActivity extends AppCompatActivity {
         String videoPath = "android.resource://" + getPackageName() + "/" + R.raw.attention;
         Uri uri = Uri.parse(videoPath);
         videoView.setVideoURI(uri);
+        videoView.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+
+            public void onPrepared(MediaPlayer mp) {
+                duration = videoView.getDuration();
+                Toast.makeText(getApplicationContext(), duration.toString(), Toast.LENGTH_SHORT).show();
+                mp.setVolume(0, 0);
+            }
+        });
 
         MediaController mediaController = new MediaController(this);
         videoView.setMediaController(mediaController);
@@ -76,8 +90,6 @@ public class AccompanySingActivity extends AppCompatActivity {
         mProgressBar = (ProgressBar) findViewById(R.id.progressBar);
         mProgressBar.setProgress(0);
         mProgressBar.setMax(100);
-
-        new MyAsync().execute();
 
         // score bar
 
@@ -93,53 +105,26 @@ public class AccompanySingActivity extends AppCompatActivity {
 //        int padding = scoreRecorder.getCompoundPaddingRight();
 //        mScoreBar.offsetLeftAndRight(padding);
 
+        // LrcView
+        lrcView = findViewById(R.id.lrcRoller);
+        fab = findViewById(R.id.fab);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                new MyAsync().execute();
+            }
+        });
     }
     
 
     private class MyAsync extends AsyncTask<Void, Integer, Void> {
 
-        int duration = 0;
         int current = 0;
 
         @RequiresApi(api = Build.VERSION_CODES.N)
         @Override
         protected Void doInBackground(Void... params) {
 
-            rollLyrics();
-            videoView.start();
-            videoView.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
-
-                public void onPrepared(MediaPlayer mp) {
-                    duration = videoView.getDuration();
-                }
-            });
-
-            do {
-                current = videoView.getCurrentPosition();
-//                System.out.println("duration - " + duration + " current- "
-//                        + current);
-                try {
-                    publishProgress((int) (current * 100 / duration));
-                    if(mProgressBar.getProgress() >= 100){
-                        break;
-                    }
-                } catch (Exception e) {
-                }
-            } while (mProgressBar.getProgress() <= 100);
-
-            return null;
-        }
-
-        @Override
-        protected void onProgressUpdate(Integer... values) {
-            super.onProgressUpdate(values);
-//            System.out.println(values[0]);
-            mProgressBar.setProgress(values[0]);
-        }
-
-        @RequiresApi(api = Build.VERSION_CODES.N)
-        private void rollLyrics() {
-            LrcView lrcView = findViewById(R.id.lrcRoller);
             lrcView.setHighLineColor(ContextCompat.getColor(getApplicationContext(), R.color.purple_500));
 
             String lrc = null;
@@ -171,9 +156,34 @@ public class AccompanySingActivity extends AppCompatActivity {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            player.start();
             lrcView.setPlayer(player);
             lrcView.init();
+
+            player.start();
+            videoView.start();
+
+
+            do {
+                current = videoView.getCurrentPosition();
+//                System.out.println("duration - " + duration + " current- "
+//                        + current);
+                try {
+                    publishProgress((int) (current * 100 / duration));
+                    if(mProgressBar.getProgress() >= 100){
+                        break;
+                    }
+                } catch (Exception e) {
+                }
+            } while (mProgressBar.getProgress() <= 100);
+
+            return null;
+        }
+
+        @Override
+        protected void onProgressUpdate(Integer... values) {
+            super.onProgressUpdate(values);
+//            System.out.println(values[0]);
+            mProgressBar.setProgress(values[0]);
         }
     }
 
