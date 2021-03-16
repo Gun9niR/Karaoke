@@ -1,12 +1,16 @@
 package com.sjtu.karaoke;
 
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.content.ContextCompat;
 
+import android.content.res.AssetFileDescriptor;
 import android.graphics.drawable.Drawable;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -14,11 +18,19 @@ import android.view.View;
 import android.widget.MediaController;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 import android.widget.VideoView;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
+import org.sang.lrcview.LrcView;
 import org.w3c.dom.Text;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.stream.Collectors;
 
 public class AccompanySingActivity extends AppCompatActivity {
 
@@ -89,9 +101,11 @@ public class AccompanySingActivity extends AppCompatActivity {
         int duration = 0;
         int current = 0;
 
+        @RequiresApi(api = Build.VERSION_CODES.N)
         @Override
         protected Void doInBackground(Void... params) {
 
+            rollLyrics();
             videoView.start();
             videoView.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
 
@@ -102,8 +116,8 @@ public class AccompanySingActivity extends AppCompatActivity {
 
             do {
                 current = videoView.getCurrentPosition();
-                System.out.println("duration - " + duration + " current- "
-                        + current);
+//                System.out.println("duration - " + duration + " current- "
+//                        + current);
                 try {
                     publishProgress((int) (current * 100 / duration));
                     if(mProgressBar.getProgress() >= 100){
@@ -119,8 +133,47 @@ public class AccompanySingActivity extends AppCompatActivity {
         @Override
         protected void onProgressUpdate(Integer... values) {
             super.onProgressUpdate(values);
-            System.out.println(values[0]);
+//            System.out.println(values[0]);
             mProgressBar.setProgress(values[0]);
+        }
+
+        @RequiresApi(api = Build.VERSION_CODES.N)
+        private void rollLyrics() {
+            LrcView lrcView = findViewById(R.id.lrcRoller);
+            lrcView.setHighLineColor(ContextCompat.getColor(getApplicationContext(), R.color.purple_500));
+
+            String lrc = null;
+            try {
+                InputStream stream = getAssets().open("Attention.lrc");
+
+                lrc = new BufferedReader(new InputStreamReader(stream))
+                        .lines().collect(Collectors.joining("\n"));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            lrcView.setLrc(lrc);
+
+            AssetFileDescriptor afd = null;
+            try {
+                afd = getAssets().openFd("Attention.mp3");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            MediaPlayer player = new MediaPlayer();
+            try {
+                player.setDataSource(afd.getFileDescriptor(),afd.getStartOffset(),afd.getLength());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            try {
+                player.prepare();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            player.start();
+            lrcView.setPlayer(player);
+            lrcView.init();
         }
     }
 

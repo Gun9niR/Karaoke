@@ -63,14 +63,6 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.ViewHo
         holder.singer.setText(songs.get(position).singer);
         holder.image.setImageResource(songs.get(position).image);
 
-//         holder.btnSing.setOnClickListener(new View.OnClickListener() {
-//             @Override
-//             public void onClick(View v) {
-//                 Intent intent = new Intent(context, AccompanySingActivity.class);
-//                 context.startActivity(intent);
-//             }
-//         });
-
         // set button onClick listener
         holder.btnSing.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -95,7 +87,7 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.ViewHo
                 btnMvMode.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-                        Intent intent = new Intent(context, LrcActivity.class);
+                        Intent intent = new Intent(context, AccompanySingActivity.class);
                         context.startActivity(intent);
                     }
                 });
