@@ -1,20 +1,29 @@
 package com.sjtu.karaoke.adapter;
 
+import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
+
 import android.graphics.ColorSpace;
+import android.graphics.drawable.ColorDrawable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+
+import android.widget.ImageButton;
+
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.sjtu.karaoke.AccompanySingActivity;
 import com.sjtu.karaoke.Data;
+import com.sjtu.karaoke.LrcActivity;
 import com.sjtu.karaoke.R;
 
 import java.util.ArrayList;
@@ -23,17 +32,18 @@ import java.util.List;
 public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.ViewHolder> {
     List<Data.Song> songs;
     Context context;
+
     public class ViewHolder extends RecyclerView.ViewHolder {
         TextView songName, singer;
         ImageView image;
         Button btnSing;
+
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
             songName = (TextView) itemView.findViewById(R.id.songName);
             singer = (TextView) itemView.findViewById(R.id.singer);
             image = (ImageView) itemView.findViewById(R.id.cover);
             btnSing = (Button) itemView.findViewById(R.id.btnSing);
-            // get the button also ?
         }
     }
 
@@ -55,14 +65,46 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.ViewHo
         holder.songName.setText(songs.get(position).songName);
         holder.singer.setText(songs.get(position).singer);
         holder.image.setImageResource(songs.get(position).image);
+
+//         holder.btnSing.setOnClickListener(new View.OnClickListener() {
+//             @Override
+//             public void onClick(View v) {
+//                 Intent intent = new Intent(context, AccompanySingActivity.class);
+//                 context.startActivity(intent);
+//             }
+//         });
+
+        // set button onClick listener
         holder.btnSing.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(context, AccompanySingActivity.class);
-                context.startActivity(intent);
+            public void onClick(View view) {
+                // get the song to sing
+                Data.Song selectedSong = songs.get(position);
+
+                // declare dialog
+                Dialog chooseModeDialog = new Dialog(context);
+                chooseModeDialog.setContentView(R.layout.mode_dialogue);
+                chooseModeDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+                ImageButton closeButton = chooseModeDialog.findViewById(R.id.btnClose);
+                Button btnMvMode = chooseModeDialog.findViewById(R.id.btnMvMode);
+
+                closeButton.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        chooseModeDialog.dismiss();
+                    }
+                });
+
+                btnMvMode.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        Intent intent = new Intent(context, LrcActivity.class);
+                        context.startActivity(intent);
+                    }
+                });
+                chooseModeDialog.show();
             }
         });
-        // set button onClick listener ?
     }
 
     @Override

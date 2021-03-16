@@ -15,8 +15,15 @@
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:title="View songs"
-        app:menu="@menu/view_songs_menu"/>
+        app:menu="@menu/view_songs_menu">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="浏览歌曲"
+            android:layout_gravity="center"
+            android:id="@+id/toolbarViewSongsTitle"
+            style="@style/TextAppearance.AppCompat.Widget.ActionBar.Title.Inverse"/>
+    </androidx.appcompat.widget.Toolbar>
 
     <ScrollView
         android:layout_width="match_parent"

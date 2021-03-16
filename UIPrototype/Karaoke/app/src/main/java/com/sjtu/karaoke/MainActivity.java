@@ -39,9 +39,6 @@ public class MainActivity extends AppCompatActivity {
         });
 
         chipNavigationBar.setItemSelected(R.id.viewSongs, true);
-
-        Intent intent = new Intent(this, AccompanySingActivity.class);
-        startActivity(intent);
     }
 
     @Override
