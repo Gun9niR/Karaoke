@@ -4,13 +4,16 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
+
 import android.graphics.ColorSpace;
 import android.graphics.drawable.ColorDrawable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+
 import android.widget.ImageButton;
+
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -18,6 +21,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.sjtu.karaoke.AccompanySingActivity;
 import com.sjtu.karaoke.Data;
 import com.sjtu.karaoke.LrcActivity;
 import com.sjtu.karaoke.R;
@@ -61,6 +65,14 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.ViewHo
         holder.songName.setText(songs.get(position).songName);
         holder.singer.setText(songs.get(position).singer);
         holder.image.setImageResource(songs.get(position).image);
+
+//         holder.btnSing.setOnClickListener(new View.OnClickListener() {
+//             @Override
+//             public void onClick(View v) {
+//                 Intent intent = new Intent(context, AccompanySingActivity.class);
+//                 context.startActivity(intent);
+//             }
+//         });
 
         // set button onClick listener
         holder.btnSing.setOnClickListener(new View.OnClickListener() {
