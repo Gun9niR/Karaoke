@@ -57,6 +57,7 @@ public class LrcView extends View {
      */
     public void setLrc(String lrc) {
         list = LrcUtil.parseStr2List(lrc);
+        invalidate();
     }
 
     public LrcView(Context context) {

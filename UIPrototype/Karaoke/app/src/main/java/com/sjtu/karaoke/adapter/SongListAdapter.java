@@ -21,7 +21,6 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.sjtu.karaoke.AccompanySingActivity;
 import com.sjtu.karaoke.Data;
-import com.sjtu.karaoke.LrcActivity;
 import com.sjtu.karaoke.R;
 
 import java.util.List;
@@ -89,6 +88,8 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.ViewHo
                     public void onClick(View view) {
                         Intent intent = new Intent(context, AccompanySingActivity.class);
                         context.startActivity(intent);
+
+                        // todo: pass song name, accompany file name, MV file name to the activity
                     }
                 });
                 chooseModeDialog.show();
