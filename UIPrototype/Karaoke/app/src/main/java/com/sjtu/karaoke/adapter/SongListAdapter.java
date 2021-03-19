@@ -21,6 +21,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.sjtu.karaoke.AccompanySingActivity;
 import com.sjtu.karaoke.Data;
+import com.sjtu.karaoke.InstrumentSingActivity;
 import com.sjtu.karaoke.R;
 
 import java.util.List;
@@ -40,6 +41,7 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.ViewHo
             singer = (TextView) itemView.findViewById(R.id.singer);
             image = (ImageView) itemView.findViewById(R.id.cover);
             btnSing = (Button) itemView.findViewById(R.id.btnSing);
+
         }
     }
 
@@ -75,6 +77,7 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.ViewHo
                 chooseModeDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
                 ImageButton closeButton = chooseModeDialog.findViewById(R.id.btnClose);
                 Button btnMvMode = chooseModeDialog.findViewById(R.id.btnMvMode);
+                Button btnInsMode = chooseModeDialog.findViewById(R.id.btnInstrumentMode);
 
                 closeButton.setOnClickListener(new View.OnClickListener() {
                     @Override
@@ -92,6 +95,15 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.ViewHo
                         // todo: pass song name, accompany file name, MV file name to the activity
                     }
                 });
+
+                btnInsMode.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        Intent intent = new Intent(context, InstrumentSingActivity.class);
+                        context.startActivity(intent);
+                    }
+                });
+
                 chooseModeDialog.show();
             }
         });

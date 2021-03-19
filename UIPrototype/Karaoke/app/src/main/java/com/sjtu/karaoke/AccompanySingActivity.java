@@ -1,26 +1,32 @@
 package com.sjtu.karaoke;
 
-import android.content.res.AssetFileDescriptor;
-import android.graphics.drawable.Drawable;
-import android.media.MediaPlayer;
-import android.net.Uri;
-import android.os.Build;
-import android.os.Bundle;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
-import android.view.View;
-import android.widget.MediaController;
-import android.widget.ProgressBar;
-import android.widget.TextView;
-import android.widget.Toast;
-import android.widget.VideoView;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
+
+import android.content.Intent;
+
+import android.content.res.AssetFileDescriptor;
+import android.graphics.drawable.Drawable;
+import android.media.MediaPlayer;
+import android.net.Uri;
+import android.os.Build;
+
+import android.os.Bundle;
+import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
+import android.view.View;
+import android.view.WindowManager;
+import android.widget.MediaController;
+import android.widget.ProgressBar;
+import android.widget.TextView;
+
+import android.widget.Toast;
+import android.widget.VideoView;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -33,11 +39,17 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.stream.Collectors;
 
-import static android.widget.Toast.LENGTH_SHORT;
-
 public class AccompanySingActivity extends AppCompatActivity {
 
     private static final int UPDATE_INTERVAL = 100;
+
+    private enum State {
+        PAUSE, PLAYING, UNSTARTED
+    }
+
+    private enum SingMode {
+        WITH, WITHOUT
+    }
 
     VideoView videoView;
     LrcView lrcView;
@@ -49,12 +61,12 @@ public class AccompanySingActivity extends AppCompatActivity {
     State state;
     SingMode singMode;
     Thread progressBarUpdater;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
 
+        super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_accompany_sing);
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
         initToolbar();
 
@@ -133,6 +145,16 @@ public class AccompanySingActivity extends AppCompatActivity {
         videoView.start();
         fab.setImageResource(R.drawable.ic_pause);
         state = State.PLAYING;
+
+        accompanyPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+
+            @Override
+            public void onCompletion(MediaPlayer accompanyPlayer) {
+                Intent intent = new Intent(getApplicationContext(), SingResultActivity.class);
+                startActivity(intent);
+            }
+
+        });
     }
 
     private void pauseAllPlayers() {
@@ -167,7 +189,7 @@ public class AccompanySingActivity extends AppCompatActivity {
                         switch (item.getItemId()) {
                             case R.id.singingMode:
                                 if (singMode == SingMode.WITH) {
-                                    item.setTitle("伴奏");
+                                    item.setTitle("伴唱");
                                     singMode = SingMode.WITHOUT;
                                 } else {
                                     item.setTitle("原唱");
@@ -206,16 +228,27 @@ public class AccompanySingActivity extends AppCompatActivity {
         lrcView.setHighLineColor(ContextCompat.getColor(getApplicationContext(), R.color.purple_500));
     }
 
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+//        Toast.makeText(getApplicationContext(), item.getTitle(), Toast.LENGTH_SHORT).show();
+        Intent intent;
+
+        if (item.getItemId() == R.id.finish)
+            intent = new Intent(this, SingResultActivity.class);
+        else
+            intent = new Intent(this, MainActivity.class);
+
+        startActivity(intent);
+
+        return true;
+    }
+
     private void initVideoView() {
         videoView = findViewById(R.id.video_view);
-        videoView.setClickable(false);
-        MediaController mediaController = new MediaController(this);
-        videoView.setMediaController(mediaController);
-        mediaController.setAnchorView(videoView);
     }
 
     private void initToolbar() {
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbarSing);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbarAccompanySing);
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayShowTitleEnabled(false);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -256,7 +289,7 @@ public class AccompanySingActivity extends AppCompatActivity {
         videoView.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
             public void onPrepared(MediaPlayer mp) {
                 duration = videoView.getDuration();
-                mp.setVolume(0, 0);
+//                mp.setVolume(0, 0);
             }
         });
 
@@ -275,12 +308,6 @@ public class AccompanySingActivity extends AppCompatActivity {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.sing_menu, menu);
         return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        Toast.makeText(getApplicationContext(), "Finish", LENGTH_SHORT).show();
-        return false;
     }
 
     @RequiresApi(api = Build.VERSION_CODES.N)
@@ -322,45 +349,4 @@ public class AccompanySingActivity extends AppCompatActivity {
         lrcView.setPlayer(accompanyPlayer);
         lrcView.init();
     }
-
-    private enum State {
-        PAUSE, PLAYING, UNSTARTED
-    }
-
-    private enum SingMode {
-        WITH, WITHOUT
-    }
-
-//    private class AsyncPlayer extends AsyncTask<Void, Integer, Void> {
-//
-//        int current;
-//
-//        @RequiresApi(api = Build.VERSION_CODES.N)
-//        @Override
-//        protected Void doInBackground(Void... params) {
-//            current = 0;
-//            accompanyPlayer.start();
-//            videoView.start();
-//            do {
-//                current = videoView.getCurrentPosition();
-////                System.out.println("duration - " + duration + " current- "
-////                        + current);
-//                try {
-//                    publishProgress((int) (current * 100 / duration));
-//                    if (mProgressBar.getProgress() >= 100) {
-//                        break;
-//                    }
-//                } catch (Exception e) {
-//                }
-//            } while (mProgressBar.getProgress() <= 100);
-//
-//            return null;
-//        }
-//
-//        @Override
-//        protected void onProgressUpdate(Integer... values) {
-//            super.onProgressUpdate(values);
-//            mProgressBar.setProgress(values[0]);
-//        }
-//    }
 }
