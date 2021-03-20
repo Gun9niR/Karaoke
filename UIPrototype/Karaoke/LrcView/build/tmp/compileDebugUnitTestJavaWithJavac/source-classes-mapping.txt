@@ -1,2 +1,0 @@
-org/sang/lrcview/ExampleUnitTest.java
- org.sang.lrcview.ExampleUnitTest
