@@ -1,16 +1,13 @@
 package com.sjtu.karaoke;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.RequiresApi;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
-import androidx.core.content.ContextCompat;
-
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.res.AssetFileDescriptor;
 import android.graphics.drawable.Drawable;
+import android.media.AudioAttributes;
+import android.media.AudioManager;
 import android.media.MediaPlayer;
+import android.media.SoundPool;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.Menu;
@@ -19,7 +16,12 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.ProgressBar;
-import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.core.content.ContextCompat;
 
 import org.sang.lrcview.LrcView;
 
@@ -27,22 +29,24 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-public class InstrumentSingActivity extends AppCompatActivity {
+public class InstrumentSingActivity<Soundpool> extends AppCompatActivity {
 
+    private static final int CHORD_NUM = 3;
     Toolbar toolbar;
     List<ProgressBar> instrumentBtns;
     MediaPlayer accompanyPlayer;
     LrcView lrcView;
-    private Menu menu;
+    SoundPool chordPlayer;
+    // todo: change to hashmap
+    List<Integer> chords;
 
+    @RequiresApi(api = Build.VERSION_CODES.N)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
@@ -52,24 +56,65 @@ public class InstrumentSingActivity extends AppCompatActivity {
 
         initToolbar();
 
+        accompanyPlayer = new MediaPlayer();
+        initMediaPlayer(accompanyPlayer, "Attention.mp3");
+
+        initSoundPool();
+
         initInstrumentBtns();
 
-        initLrcView();
+        initLrcView("Attention.lrc");
 
         initBtns();
 
-//        int n = instrumentBtns.size();
-//        for (int i = n-1; i >= 0; --i) {
-//            ProgressBar btn = instrumentBtns.get(i);
-//            setBtnClickEvent(btn);
-//        }
+        startAllPlayers();
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.N)
-    @Override
-    protected void onStart() {
-        super.onStart();
-        setUpLrcView();
+    private void initSoundPool() {
+        chordPlayer = new SoundPool.Builder()
+                .setMaxStreams(CHORD_NUM)
+                .build();
+        chords = new ArrayList<>();
+
+        loadChord("1.wav");
+        loadChord("3.wav");
+        loadChord("5.wav");
+    }
+
+    private void loadChord(String fileName) {
+        AssetFileDescriptor afd = null;
+        try {
+            afd = getAssets().openFd(fileName);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        chords.add(chordPlayer.load(afd,1));
+    }
+
+    private void initMediaPlayer(MediaPlayer player, String filename) {
+
+        // player points to the same instance of media player as the global variable
+        AssetFileDescriptor afd = null;
+        try {
+            afd = getAssets().openFd(filename);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        try {
+            player.setDataSource(afd.getFileDescriptor(),afd.getStartOffset(),afd.getLength());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        try {
+            player.prepare();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void startAllPlayers() {
         accompanyPlayer.start();
 
         accompanyPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
@@ -79,7 +124,6 @@ public class InstrumentSingActivity extends AppCompatActivity {
                 Intent intent = new Intent(getApplicationContext(), SingResultActivity.class);
                 startActivity(intent);
             }
-
         });
     }
 
@@ -87,6 +131,9 @@ public class InstrumentSingActivity extends AppCompatActivity {
     protected void onStop() {
         super.onStop();
         accompanyPlayer.stop();
+        accompanyPlayer.release();
+
+        chordPlayer.release();
     }
 
     private void initToolbar() {
@@ -120,23 +167,24 @@ public class InstrumentSingActivity extends AppCompatActivity {
             instrumentBtn.setProgressDrawable(draw);
         }
 
+        instrumentBtns.get(0).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                for (Integer i: chords) {
+                    chordPlayer.play(i, 1, 1, 0, 0, 1);
+                }
+            }
+        });
     }
-
-    private void initLrcView() {
-        lrcView = findViewById(R.id.lrcRoller);
-        lrcView.setHighLineColor(ContextCompat.getColor(getApplicationContext(), R.color.purple_500));
-    }
-
-    private void initBtns() {
-
-    }
-
 
     @RequiresApi(api = Build.VERSION_CODES.N)
-    private void setUpLrcView() {
+    private void initLrcView(String fileName) {
+        lrcView = findViewById(R.id.lrcRoller);
+        lrcView.setHighLineColor(ContextCompat.getColor(getApplicationContext(), R.color.purple_500));
+
         String lrc = null;
         try {
-            InputStream stream = getAssets().open("Attention.lrc");
+            InputStream stream = getAssets().open(fileName);
 
             lrc = new BufferedReader(new InputStreamReader(stream))
                     .lines().collect(Collectors.joining("\n"));
@@ -145,38 +193,11 @@ public class InstrumentSingActivity extends AppCompatActivity {
         }
 
         lrcView.setLrc(lrc);
-
-        AssetFileDescriptor afd = null;
-        try {
-            afd = getAssets().openFd("Attention.mp3");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        accompanyPlayer = new MediaPlayer();
-        try {
-            accompanyPlayer.setDataSource(afd.getFileDescriptor(), afd.getStartOffset(), afd.getLength());
-        } catch (IOException e) {
-            e.printStackTrace();accompanyPlayer.seekTo(0);
-            accompanyPlayer.pause();
-        }
-        try {
-            accompanyPlayer.prepare();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        accompanyPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-
-            @Override
-            public void onCompletion(MediaPlayer accompanyPlayer) {
-                Intent intent = new Intent(getApplicationContext(), SingResultActivity.class);
-                startActivity(intent);
-            }
-
-        });
-
         lrcView.setPlayer(accompanyPlayer);
         lrcView.init();
+    }
+
+    private void initBtns() {
 
     }
 

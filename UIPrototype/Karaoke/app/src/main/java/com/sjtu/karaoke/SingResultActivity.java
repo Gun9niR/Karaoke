@@ -54,8 +54,8 @@ public class SingResultActivity extends AppCompatActivity {
 
         accompanyPlayer = new MediaPlayer();
         voicePlayer = new MediaPlayer();
-        initMediaPlayer(accompanyPlayer, "Attention.mp3");
-        initMediaPlayer(voicePlayer, "Attention.mp3");
+        initMediaPlayer(accompanyPlayer, "Accompany.wav");
+        initMediaPlayer(voicePlayer, "Accompany.wav");
 
         initRunnable();
 
@@ -63,7 +63,6 @@ public class SingResultActivity extends AppCompatActivity {
 
         initTitle();
 
-        /*===============================*/
         initBottomNavbar();
 
         initPlaySeekbar();
@@ -273,7 +272,6 @@ public class SingResultActivity extends AppCompatActivity {
 
         accompanyPlayer.start();
         voicePlayer.start();
-
     }
 
 
@@ -281,7 +279,9 @@ public class SingResultActivity extends AppCompatActivity {
     protected void onStop() {
         super.onStop();
         accompanyPlayer.stop();
+        accompanyPlayer.release();
         voicePlayer.stop();
+        voicePlayer.release();
     }
 
     @SuppressLint("DefaultLocale")
