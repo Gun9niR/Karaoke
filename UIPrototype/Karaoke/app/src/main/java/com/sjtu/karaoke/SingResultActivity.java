@@ -65,9 +65,7 @@ public class SingResultActivity extends AppCompatActivity {
 
         initTuneSeekbar();
 
-        startPlayers();
-
-        //syncedCommand(accompanyPlayer, voicePlayer, MP_COMMAND.START);
+        startAllPlayers();
     }
 
     private void initRunnable() {
@@ -175,9 +173,7 @@ public class SingResultActivity extends AppCompatActivity {
             public void onClick(View v) {
                 btnPlay.setVisibility(View.GONE);
                 btnPause.setVisibility(View.VISIBLE);
-                voicePlayer.start();
-                accompanyPlayer.start();
-                handler.postDelayed(runnable, 0);
+                startAllPlayers();
             }
         });
 
@@ -186,10 +182,14 @@ public class SingResultActivity extends AppCompatActivity {
             public void onClick(View v) {
                 btnPause.setVisibility(View.GONE);
                 btnPlay.setVisibility(View.VISIBLE);
-                syncedCommand(voicePlayer, accompanyPlayer, MP_COMMAND.PAUSE);
-                handler.removeCallbacks(runnable);
+                pauseAllPlayers();
             }
         }));
+    }
+
+    private void pauseAllPlayers() {
+        syncedCommand(voicePlayer, accompanyPlayer, MP_COMMAND.PAUSE);
+        handler.removeCallbacks(runnable);
     }
 
     private void initTuneSeekbar() {
@@ -241,17 +241,22 @@ public class SingResultActivity extends AppCompatActivity {
         });
     }
 
-    private void startPlayers() {
+    private void startAllPlayers() {
         handler.postDelayed(runnable, 0);
 
         voicePlayer.start();
         accompanyPlayer.start();
     }
 
-
     @Override
     protected void onStop() {
         super.onStop();
+        btnPause.callOnClick();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
         handler.removeCallbacks(runnable);
 
         terminateMediaPlayer(voicePlayer);
