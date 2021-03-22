@@ -6,6 +6,7 @@ import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -47,12 +48,13 @@ public class AccompanySingActivity extends AppCompatActivity {
     Integer duration;
     State state;
     SingMode singMode;
-    Thread progressBarUpdater;
+    Handler handler = new Handler();
+    Runnable progressBarUpdater;
 
     @RequiresApi(api = Build.VERSION_CODES.N)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-
+        System.out.println("OnCreate");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_accompany_sing);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -78,6 +80,7 @@ public class AccompanySingActivity extends AppCompatActivity {
 
         initState();
 
+        initProgressBarUpdater();
         /**
          * todo: store song name, accompany file name and mv file name (if any)
          * when choosing a song from ViewSongsFragment, above data will be present (in the Intent)
@@ -85,6 +88,20 @@ public class AccompanySingActivity extends AppCompatActivity {
          */
     }
 
+    private void initProgressBarUpdater() {
+        progressBarUpdater = new Runnable() {
+            @Override
+            public void run() {
+                mProgressBar.setProgress(accompanyPlayer.getCurrentPosition());
+                handler.postDelayed(this, 500);
+            }
+        };
+    }
+
+    protected void onStart() {
+        super.onStart();
+        System.out.println("Onstart");
+    }
     private void initState() {
         state = State.UNSTARTED;
         singMode = SingMode.WITHOUT;
@@ -102,42 +119,17 @@ public class AccompanySingActivity extends AppCompatActivity {
                 } else {
                     startAllPlayers();
                     // todo: do some async task, setting progress bar and score bar
-                    startUpdateProgressBar();
                 }
             }
         });
     }
 
     private void startUpdateProgressBar() {
-        progressBarUpdater = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                int current;
-                int progress;
-
-                do {
-                    current = videoView.getCurrentPosition();
-                    progress = (int) (current * 100 / duration);
-
-                    if (progress >= 100) {
-                        break;
-                    }
-
-                    mProgressBar.setProgress(progress);
-                    try {
-                        Thread.sleep(UPDATE_INTERVAL);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                } while (progress <= 100 && !Thread.currentThread().isInterrupted());
-            }
-        });
-
-        progressBarUpdater.start();
+        handler.postDelayed(progressBarUpdater, 0);
     }
 
     private void stopUpdateProgressBar() {
-        progressBarUpdater.interrupt();
+        handler.removeCallbacks(progressBarUpdater);
     }
 
     private void startAllPlayers() {
@@ -155,6 +147,8 @@ public class AccompanySingActivity extends AppCompatActivity {
             }
 
         });
+
+        startUpdateProgressBar();
     }
 
     private void pauseAllPlayers() {
@@ -162,6 +156,7 @@ public class AccompanySingActivity extends AppCompatActivity {
         videoView.pause();
         fab.setImageResource(R.drawable.ic_fab_play);
         state = State.PAUSE;
+        handler.removeCallbacks(progressBarUpdater);
     }
 
     private void initScoreBar() {
@@ -174,7 +169,7 @@ public class AccompanySingActivity extends AppCompatActivity {
 
     private void initProgressBar() {
         mProgressBar = (ProgressBar) findViewById(R.id.progressBar);
-        mProgressBar.setMax(100);
+        mProgressBar.setMax(accompanyPlayer.getDuration());
         mProgressBar.setProgress(0);
     }
 
@@ -206,7 +201,7 @@ public class AccompanySingActivity extends AppCompatActivity {
                                     lrcView.init();
 
                                     restartAllPlayers();
-                                    stopUpdateProgressBar();
+
                                 }
                                 break;
                         }
@@ -222,6 +217,7 @@ public class AccompanySingActivity extends AppCompatActivity {
         videoView.pause();
         videoView.seekTo(0);
         fab.setImageResource(R.drawable.ic_fab_play);
+        stopUpdateProgressBar();
         state = State.UNSTARTED;
     }
 
@@ -247,7 +243,6 @@ public class AccompanySingActivity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-//        Toast.makeText(getApplicationContext(), item.getTitle(), Toast.LENGTH_SHORT).show();
         Intent intent;
 
         if (item.getItemId() == R.id.finish)
@@ -284,6 +279,16 @@ public class AccompanySingActivity extends AppCompatActivity {
     @Override
     protected void onStop() {
         super.onStop();
+        System.out.println("OnStop");
+        if (this.state == State.PLAYING) {
+            pauseAllPlayers();
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        System.out.println("OnDestroy");
         lrcView.alertPlayerReleased();
         videoView.stopPlayback();
 
