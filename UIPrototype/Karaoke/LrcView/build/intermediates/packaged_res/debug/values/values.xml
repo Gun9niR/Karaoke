@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="green">#31c17d</color>
+    <string name="app_name">LrcView</string>
+    <declare-styleable name="LrcView">
+        <attr format="enum" name="lrcMode">
+            <enum name="KARAOKE" value="1"/>
+        </attr>
+        <attr format="color|reference" name="hignLineColor"/>
+        <attr format="color|reference" name="lrcColor"/>
+    </declare-styleable>
+</resources>

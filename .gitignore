@@ -1,1 +1,4 @@
 .DS_Store
+UIPrototype/WebUpload/client/node_modules
+UIPrototype/WebUpload/.vscode
+
