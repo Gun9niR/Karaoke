@@ -65,7 +65,7 @@ public class SingResultActivity extends AppCompatActivity {
 
         initTuneSeekbar();
 
-        startPlayers();
+        startAllPlayers();
 
         //syncedCommand(accompanyPlayer, voicePlayer, MP_COMMAND.START);
     }
@@ -241,7 +241,7 @@ public class SingResultActivity extends AppCompatActivity {
         });
     }
 
-    private void startPlayers() {
+    private void startAllPlayers() {
         handler.postDelayed(runnable, 0);
 
         voicePlayer.start();
