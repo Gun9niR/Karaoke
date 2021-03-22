@@ -4,7 +4,6 @@ import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.res.AssetFileDescriptor;
 import android.graphics.drawable.Drawable;
-
 import android.media.MediaPlayer;
 import android.media.SoundPool;
 import android.os.Build;
@@ -28,7 +27,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -107,8 +105,25 @@ public class InstrumentSingActivity<Soundpool> extends AppCompatActivity {
     }
 
     @Override
+    protected void onRestart() {
+        super.onRestart();
+        startAllPlayers();
+    }
+
+    @Override
     protected void onStop() {
         super.onStop();
+        pauseAllPlayers();
+    }
+
+    private void pauseAllPlayers() {
+        accompanyPlayer.pause();
+        // todo: pause soundpool
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
         lrcView.alertPlayerReleased();
 
         terminateMediaPlayer(accompanyPlayer);

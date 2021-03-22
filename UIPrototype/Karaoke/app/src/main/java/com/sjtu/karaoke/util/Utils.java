@@ -3,14 +3,12 @@ package com.sjtu.karaoke.util;
 import android.content.Context;
 import android.content.res.AssetFileDescriptor;
 import android.media.MediaPlayer;
-import android.provider.MediaStore;
 
 import java.io.IOException;
 
 public class Utils {
     public static void terminateMediaPlayer(MediaPlayer mediaPlayer) {
         if (mediaPlayer != null) {
-            mediaPlayer.stop();
             mediaPlayer.reset();
             mediaPlayer.release();
         }
