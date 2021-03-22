@@ -33,6 +33,9 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.stream.Collectors;
 
+import static com.sjtu.karaoke.util.Utils.loadAndPrepareMediaplayer;
+import static com.sjtu.karaoke.util.Utils.terminateMediaPlayer;
+
 public class AccompanySingActivity extends AppCompatActivity {
 
     private static final int UPDATE_INTERVAL = 100;
@@ -56,7 +59,7 @@ public class AccompanySingActivity extends AppCompatActivity {
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
         accompanyPlayer = new MediaPlayer();
-        initMediaPlayer(accompanyPlayer, "Attention.mp3");
+        loadAndPrepareMediaplayer(this, accompanyPlayer, "Attention.mp3");
         // todo: voicePlayer
 
         initToolbar();
@@ -81,29 +84,6 @@ public class AccompanySingActivity extends AppCompatActivity {
          * when choosing a song from ViewSongsFragment, above data will be present (in the Intent)
          * whereas returning from sing result, they will be absent, so setup the previous song
          */
-    }
-
-    private void initMediaPlayer(MediaPlayer player, String filename) {
-
-        // player points to the same instance of media player as the global variable
-        AssetFileDescriptor afd = null;
-        try {
-            afd = getAssets().openFd(filename);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        try {
-            player.setDataSource(afd.getFileDescriptor(), afd.getStartOffset(), afd.getLength());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        try {
-            player.prepare();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
     private void initState() {
@@ -307,8 +287,8 @@ public class AccompanySingActivity extends AppCompatActivity {
         super.onStop();
         lrcView.alertPlayerReleased();
         videoView.stopPlayback();
-        accompanyPlayer.stop();
-        accompanyPlayer.release();
+
+        terminateMediaPlayer(accompanyPlayer);
     }
 
     @Override

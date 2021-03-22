@@ -34,6 +34,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.sjtu.karaoke.util.Utils.loadAndPrepareMediaplayer;
+import static com.sjtu.karaoke.util.Utils.terminateMediaPlayer;
+
 public class InstrumentSingActivity<Soundpool> extends AppCompatActivity {
 
     private static final int CHORD_NUM = 3;
@@ -56,7 +59,7 @@ public class InstrumentSingActivity<Soundpool> extends AppCompatActivity {
         initToolbar();
 
         accompanyPlayer = new MediaPlayer();
-        initMediaPlayer(accompanyPlayer, "Attention.mp3");
+        loadAndPrepareMediaplayer(this, accompanyPlayer, "Attention.mp3");
 
         initSoundPool();
 
@@ -90,29 +93,6 @@ public class InstrumentSingActivity<Soundpool> extends AppCompatActivity {
         chords.add(chordPlayer.load(afd,1));
     }
 
-    private void initMediaPlayer(MediaPlayer player, String filename) {
-
-        // player points to the same instance of media player as the global variable
-        AssetFileDescriptor afd = null;
-        try {
-            afd = getAssets().openFd(filename);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        try {
-            player.setDataSource(afd.getFileDescriptor(),afd.getStartOffset(),afd.getLength());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        try {
-            player.prepare();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
     private void startAllPlayers() {
         accompanyPlayer.start();
 
@@ -131,8 +111,7 @@ public class InstrumentSingActivity<Soundpool> extends AppCompatActivity {
         super.onStop();
         lrcView.alertPlayerReleased();
 
-        accompanyPlayer.stop();
-        accompanyPlayer.release();
+        terminateMediaPlayer(accompanyPlayer);
 
         chordPlayer.release();
     }
