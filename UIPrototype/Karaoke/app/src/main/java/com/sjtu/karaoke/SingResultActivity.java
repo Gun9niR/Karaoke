@@ -54,9 +54,8 @@ public class SingResultActivity extends AppCompatActivity {
 
         accompanyPlayer = new MediaPlayer();
         voicePlayer = new MediaPlayer();
-        initMediaPlayer(voicePlayer, "Accompany.wav");
-        initMediaPlayer(accompanyPlayer, "Voice.wav");
-
+        initMediaPlayer(accompanyPlayer, "accompany.mp3");
+        initMediaPlayer(voicePlayer, "voice.m4a");
 
         initRunnable();
 
@@ -140,7 +139,7 @@ public class SingResultActivity extends AppCompatActivity {
     private void initBottomNavbar() {
 
 
-        bottomNavbarSing = findViewById(R.id.bottomNavigationView);
+        bottomNavbarSing = findViewById(R.id.bottomNavigationViewResult);
         bottomNavbarSing.setBackground(null);
         bottomNavbarSing.getMenu().getItem(1).setEnabled(false);
 
@@ -206,8 +205,8 @@ public class SingResultActivity extends AppCompatActivity {
             public void onClick(View v) {
                 btnPlay.setVisibility(View.GONE);
                 btnPause.setVisibility(View.VISIBLE);
-                accompanyPlayer.start();
                 voicePlayer.start();
+                accompanyPlayer.start();
                 handler.postDelayed(runnable, 0);
             }
         });
@@ -217,8 +216,7 @@ public class SingResultActivity extends AppCompatActivity {
             public void onClick(View v) {
                 btnPause.setVisibility(View.GONE);
                 btnPlay.setVisibility(View.VISIBLE);
-                accompanyPlayer.pause();
-                voicePlayer.pause();
+                syncedCommand(voicePlayer, accompanyPlayer, MP_COMMAND.PAUSE);
                 handler.removeCallbacks(runnable);
             }
         }));
@@ -273,15 +271,11 @@ public class SingResultActivity extends AppCompatActivity {
         });
     }
 
-    int gap;
-    boolean synced = false;
-
-    private void
-    startPlayers() {
+    private void startPlayers() {
         handler.postDelayed(runnable, 0);
 
-        accompanyPlayer.start();
         voicePlayer.start();
+        accompanyPlayer.start();
     }
 
 
@@ -289,9 +283,9 @@ public class SingResultActivity extends AppCompatActivity {
     protected void onStop() {
         super.onStop();
         handler.removeCallbacks(runnable);
+        voicePlayer.stop();
         accompanyPlayer.stop();
         accompanyPlayer.release();
-        voicePlayer.stop();
         voicePlayer.release();
     }
 

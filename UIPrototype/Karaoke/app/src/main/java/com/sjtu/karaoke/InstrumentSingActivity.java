@@ -4,8 +4,7 @@ import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.res.AssetFileDescriptor;
 import android.graphics.drawable.Drawable;
-import android.media.AudioAttributes;
-import android.media.AudioManager;
+
 import android.media.MediaPlayer;
 import android.media.SoundPool;
 import android.os.Build;

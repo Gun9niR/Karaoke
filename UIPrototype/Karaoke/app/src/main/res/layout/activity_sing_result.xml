@@ -153,7 +153,7 @@
     </LinearLayout>
 
     <include
-        layout="@layout/bottom_navbar_sing"
+        layout="@layout/bottom_navbar_result"
         android:id="@+id/bottomNavbarResult"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
