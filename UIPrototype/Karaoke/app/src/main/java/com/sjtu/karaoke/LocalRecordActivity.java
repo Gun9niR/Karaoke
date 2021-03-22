@@ -60,8 +60,10 @@ public class LocalRecordActivity extends AppCompatActivity {
     @Override
     protected void onStop() {
         super.onStop();
-        recordPlayer.stop();
-        recordPlayer.release();
+        if (recordPlayer != null) {
+            recordPlayer.stop();
+            recordPlayer.release();
+        }
     }
 
     public void playRecord(Data.Record record) {

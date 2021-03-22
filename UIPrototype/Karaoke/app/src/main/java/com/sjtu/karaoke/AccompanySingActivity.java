@@ -305,6 +305,7 @@ public class AccompanySingActivity extends AppCompatActivity {
     @Override
     protected void onStop() {
         super.onStop();
+        lrcView.alertPlayerReleased();
         videoView.stopPlayback();
         accompanyPlayer.stop();
         accompanyPlayer.release();

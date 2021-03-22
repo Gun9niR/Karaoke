@@ -130,6 +130,8 @@ public class InstrumentSingActivity<Soundpool> extends AppCompatActivity {
     @Override
     protected void onStop() {
         super.onStop();
+        lrcView.alertPlayerReleased();
+
         accompanyPlayer.stop();
         accompanyPlayer.release();
 

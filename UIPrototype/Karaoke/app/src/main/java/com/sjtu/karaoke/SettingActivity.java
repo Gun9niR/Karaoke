@@ -33,6 +33,7 @@ public class SettingActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setHomeButtonEnabled(true);
+        getSupportActionBar().setDisplayShowTitleEnabled(false);
 
         ListView listView = findViewById(R.id.listSetting);
         SettingAdapter listAdapter = new SettingAdapter(getApplicationContext(), settingItems);
