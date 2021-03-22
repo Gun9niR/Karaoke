@@ -8,6 +8,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.content.res.AssetFileDescriptor;
 import android.media.MediaPlayer;
 import android.os.Bundle;
+import android.os.Handler;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
@@ -23,25 +24,52 @@ import java.util.Objects;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
+import static com.sjtu.karaoke.util.Utils.loadAndPrepareMediaplayer;
+import static com.sjtu.karaoke.util.Utils.terminateMediaPlayer;
+
 public class LocalRecordActivity extends AppCompatActivity {
 
     MediaPlayer recordPlayer;
     private enum State { PAUSE, PLAYING, UNSTARTED};
     private State state = State.UNSTARTED;
-    Thread recordProgressUpdater;
+    int duration;
+    Handler handler = new Handler();
+    Runnable runnable;
+    SeekBar seekbarRecordProgress;
+    boolean playerReleased;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_local_record);
 
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbarLocalRecord);
-        // set up back button
-        setSupportActionBar(toolbar);
-        Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
-        getSupportActionBar().setHomeButtonEnabled(true);
-        getSupportActionBar().setDisplayShowTitleEnabled(false);
+        initToolbar();
 
+        initLocalRecordList();
+
+        initRunnable();
+
+        ImageButton btnPlayRecord = findViewById(R.id.btnPlayRecord);
+        btnPlayRecord.setEnabled(false);
+        seekbarRecordProgress = findViewById(R.id.seekbarRecordProgress);
+        seekbarRecordProgress.setEnabled(false);
+
+        playerReleased = true;
+    }
+
+    private void initRunnable() {
+        runnable = new Runnable() {
+            @Override
+            public void run() {
+                if (!playerReleased) {
+                    seekbarRecordProgress.setProgress(recordPlayer.getCurrentPosition());
+                    handler.postDelayed(this, 500);
+                }
+            }
+        };
+    }
+
+    private void initLocalRecordList() {
         RecyclerView localRecordList = (RecyclerView) findViewById(R.id.localRecordList);
 
         List<Data.Record> records = Data.records;
@@ -50,20 +78,23 @@ public class LocalRecordActivity extends AppCompatActivity {
         localRecordList.setLayoutManager(layoutManager);
         localRecordList.setAdapter(adapter);
         localRecordList.setNestedScrollingEnabled(false);
+    }
 
-        ImageButton btnPlayRecord = findViewById(R.id.btnPlayRecord);
-        btnPlayRecord.setEnabled(false);
-        SeekBar seekbarRecordProgress = findViewById(R.id.seekbarRecordProgress);
-        seekbarRecordProgress.setEnabled(false);
+    private void initToolbar() {
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbarLocalRecord);
+
+        setSupportActionBar(toolbar);
+        Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setHomeButtonEnabled(true);
+        getSupportActionBar().setDisplayShowTitleEnabled(false);
     }
 
     @Override
     protected void onStop() {
         super.onStop();
-        recordProgressUpdater.interrupt();
+        playerReleased = true;
         if (recordPlayer != null) {
-            recordPlayer.stop();
-            // recordPlayer.release();
+            terminateMediaPlayer(recordPlayer);
         }
     }
 
@@ -82,16 +113,12 @@ public class LocalRecordActivity extends AppCompatActivity {
     }
 
     private void initSeekbar() {
-        if (recordProgressUpdater != null) {
-            recordProgressUpdater.interrupt();
-        }
-
-        SeekBar seekbarRecordProgress = findViewById(R.id.seekbarRecordProgress);
+        handler.removeCallbacks(runnable);
         if (this.state == State.UNSTARTED) {
             seekbarRecordProgress.setEnabled(true);
         }
 
-        seekbarRecordProgress.setMax(recordPlayer.getDuration());
+        seekbarRecordProgress.setMax(duration);
         seekbarRecordProgress.setProgress(0);
 
         seekbarRecordProgress.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
@@ -113,25 +140,7 @@ public class LocalRecordActivity extends AppCompatActivity {
             }
         });
 
-        recordProgressUpdater = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                int progress;
-                do {
-                    progress = recordPlayer.getCurrentPosition();
-
-                    seekbarRecordProgress.setProgress(progress);
-                    try {
-                        Thread.sleep(500);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                } while (!Thread.currentThread().isInterrupted() && progress <= recordPlayer.getDuration());
-
-            }
-        });
-
-        recordProgressUpdater.start();
+        handler.postDelayed(runnable, 0);
     }
 
     private void initRecordTitleAndCover(Data.Record record) {
@@ -157,10 +166,12 @@ public class LocalRecordActivity extends AppCompatActivity {
                 if (state == State.PAUSE) {
                     state = State.PLAYING;
                     recordPlayer.start();
+                    handler.postDelayed(runnable, 0);
                     btnPlayRecord.setImageResource(R.drawable.ic_record_pause);
                 } else if (state == State.PLAYING) {
                     state = State.PAUSE;
                     recordPlayer.pause();
+                    handler.removeCallbacks(runnable);
                     btnPlayRecord.setImageResource(R.drawable.ic_play_record);
                 }
             }
@@ -168,30 +179,13 @@ public class LocalRecordActivity extends AppCompatActivity {
     }
 
     private void initRecordPlayer(String fileName) {
-        if (recordPlayer != null) {
-            if (recordProgressUpdater != null) {
-                recordProgressUpdater.interrupt();
-            }
-            recordPlayer.release();
-        }
+        terminateMediaPlayer(recordPlayer);
+
         recordPlayer = new MediaPlayer();
-        AssetFileDescriptor afd = null;
-        try {
-            afd = getAssets().openFd(fileName);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
 
-        try {
-            recordPlayer.setDataSource(afd.getFileDescriptor(), afd.getStartOffset(), afd.getLength());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        loadAndPrepareMediaplayer(this, recordPlayer, fileName);
 
-        try {
-            recordPlayer.prepare();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        duration = recordPlayer.getDuration();
+        playerReleased = false;
     }
 }

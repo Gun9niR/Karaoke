@@ -32,6 +32,9 @@ import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.TimeUnit;
 
+import static com.sjtu.karaoke.util.Utils.loadAndPrepareMediaplayer;
+import static com.sjtu.karaoke.util.Utils.terminateMediaPlayer;
+
 public class SingResultActivity extends AppCompatActivity {
 
     int duration;
@@ -54,8 +57,8 @@ public class SingResultActivity extends AppCompatActivity {
 
         accompanyPlayer = new MediaPlayer();
         voicePlayer = new MediaPlayer();
-        initMediaPlayer(accompanyPlayer, "accompany.mp3");
-        initMediaPlayer(voicePlayer, "voice.m4a");
+        loadAndPrepareMediaplayer(this, accompanyPlayer, "accompany.mp3");
+        loadAndPrepareMediaplayer(this, voicePlayer, "voice.m4a");
 
         initRunnable();
 
@@ -74,30 +77,6 @@ public class SingResultActivity extends AppCompatActivity {
         startPlayers();
 
         //syncedCommand(accompanyPlayer, voicePlayer, MP_COMMAND.START);
-    }
-
-    private void initMediaPlayer(MediaPlayer player, String filename) {
-
-        // player points to the same instance of media player as the global variable
-        AssetFileDescriptor afd = null;
-        try {
-            afd = getAssets().openFd(filename);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        try {
-            player.setDataSource(afd.getFileDescriptor(),afd.getStartOffset(),afd.getLength());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        player.setVolume(1, 1);
-        try {
-            player.prepare();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
     private void initRunnable() {
@@ -283,10 +262,9 @@ public class SingResultActivity extends AppCompatActivity {
     protected void onStop() {
         super.onStop();
         handler.removeCallbacks(runnable);
-        voicePlayer.stop();
-        accompanyPlayer.stop();
-        accompanyPlayer.release();
-        voicePlayer.release();
+
+        terminateMediaPlayer(voicePlayer);
+        terminateMediaPlayer(accompanyPlayer);
     }
 
     @SuppressLint("DefaultLocale")
