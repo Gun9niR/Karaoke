@@ -54,8 +54,8 @@ public class SingResultActivity extends AppCompatActivity {
 
         accompanyPlayer = new MediaPlayer();
         voicePlayer = new MediaPlayer();
-        initMediaPlayer(accompanyPlayer, "Accompany.wav");
-        initMediaPlayer(voicePlayer, "Accompany.wav");
+        initMediaPlayer(accompanyPlayer, "accompany.mp3");
+        initMediaPlayer(voicePlayer, "voice.m4a");
 
         initRunnable();
 
@@ -92,6 +92,7 @@ public class SingResultActivity extends AppCompatActivity {
             e.printStackTrace();
         }
 
+        player.setVolume(1, 1);
         try {
             player.prepare();
         } catch (IOException e) {
@@ -138,7 +139,7 @@ public class SingResultActivity extends AppCompatActivity {
     private void initBottomNavbar() {
 
 
-        bottomNavbarSing = findViewById(R.id.bottomNavigationView);
+        bottomNavbarSing = findViewById(R.id.bottomNavigationViewResult);
         bottomNavbarSing.setBackground(null);
         bottomNavbarSing.getMenu().getItem(1).setEnabled(false);
 
@@ -163,8 +164,12 @@ public class SingResultActivity extends AppCompatActivity {
         seekBarResultProgress.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                if (fromUser)
+                if (fromUser) {
                     accompanyPlayer.seekTo(progress);
+                    voicePlayer.seekTo(progress);
+                    System.out.println(convertFormat(progress));
+                }
+
                 playerPosition.setText(convertFormat((accompanyPlayer.getCurrentPosition())));
             }
 
@@ -191,6 +196,7 @@ public class SingResultActivity extends AppCompatActivity {
                 btnPause.setVisibility(View.GONE);
                 btnPlay.setVisibility(View.VISIBLE);
                 accompanyPlayer.seekTo(0);
+                voicePlayer.seekTo(0);
             }
         });
 
@@ -199,6 +205,7 @@ public class SingResultActivity extends AppCompatActivity {
             public void onClick(View v) {
                 btnPlay.setVisibility(View.GONE);
                 btnPause.setVisibility(View.VISIBLE);
+                voicePlayer.start();
                 accompanyPlayer.start();
                 handler.postDelayed(runnable, 0);
             }
@@ -209,7 +216,7 @@ public class SingResultActivity extends AppCompatActivity {
             public void onClick(View v) {
                 btnPause.setVisibility(View.GONE);
                 btnPlay.setVisibility(View.VISIBLE);
-                accompanyPlayer.pause();
+                syncedCommand(voicePlayer, accompanyPlayer, MP_COMMAND.PAUSE);
                 handler.removeCallbacks(runnable);
             }
         }));
@@ -264,23 +271,21 @@ public class SingResultActivity extends AppCompatActivity {
         });
     }
 
-    int gap;
-    boolean synced = false;
-
     private void startPlayers() {
         handler.postDelayed(runnable, 0);
 
-        accompanyPlayer.start();
         voicePlayer.start();
+        accompanyPlayer.start();
     }
 
 
     @Override
     protected void onStop() {
         super.onStop();
+        handler.removeCallbacks(runnable);
+        voicePlayer.stop();
         accompanyPlayer.stop();
         accompanyPlayer.release();
-        voicePlayer.stop();
         voicePlayer.release();
     }
 

@@ -91,7 +91,7 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.ViewHo
                     public void onClick(View view) {
                         Intent intent = new Intent(context, AccompanySingActivity.class);
                         context.startActivity(intent);
-
+                        chooseModeDialog.dismiss();
                         // todo: pass song name, accompany file name, MV file name to the activity
                     }
                 });
@@ -101,6 +101,7 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.ViewHo
                     public void onClick(View view) {
                         Intent intent = new Intent(context, InstrumentSingActivity.class);
                         context.startActivity(intent);
+                        chooseModeDialog.dismiss();
                     }
                 });
 

@@ -30,6 +30,7 @@ public class LrcView extends View {
     private int highLineColor;
     private int lrcColor;
     private int mode = 0;
+    private boolean playerReleased = false;
     public final static int KARAOKE = 1;
 
     public void setHighLineColor(int highLineColor) {
@@ -57,6 +58,7 @@ public class LrcView extends View {
      */
     public void setLrc(String lrc) {
         list = LrcUtil.parseStr2List(lrc);
+        playerReleased = false;
         invalidate();
     }
 
@@ -99,17 +101,19 @@ public class LrcView extends View {
             return;
         }
 
-        getCurrentPosition();
+        if (playerReleased == false) {
+            getCurrentPosition();
 
-        int currentMillis = player.getCurrentPosition();
-        drawLrc2(canvas, currentMillis);
-        long start = list.get(currentPosition).getStart();
-        float v = (currentMillis - start) > 500 ? currentPosition * 80 : lastPosition * 80 + (currentPosition - lastPosition) * 80 * ((currentMillis - start) / 500f);
-        setScrollY((int) v);
-        if (getScrollY() == currentPosition * 80) {
-            lastPosition = currentPosition;
+            int currentMillis = player.getCurrentPosition();
+            drawLrc2(canvas, currentMillis);
+            long start = list.get(currentPosition).getStart();
+            float v = (currentMillis - start) > 500 ? currentPosition * 80 : lastPosition * 80 + (currentPosition - lastPosition) * 80 * ((currentMillis - start) / 500f);
+            setScrollY((int) v);
+            if (getScrollY() == currentPosition * 80) {
+                lastPosition = currentPosition;
+            }
+            postInvalidateDelayed(500);
         }
-        postInvalidateDelayed(500);
     }
 
     private void drawLrc2(Canvas canvas, int currentMillis) {
@@ -144,6 +148,7 @@ public class LrcView extends View {
     public void init() {
         currentPosition = 0;
         lastPosition = 0;
+        playerReleased = false;
         setScrollY(0);
         invalidate();
     }
@@ -166,8 +171,11 @@ public class LrcView extends View {
                 }
             }
         } catch (Exception e) {
-//            e.printStackTrace();
             postInvalidateDelayed(500);
         }
+    }
+
+    public void alertPlayerReleased() {
+        playerReleased = true;
     }
 }

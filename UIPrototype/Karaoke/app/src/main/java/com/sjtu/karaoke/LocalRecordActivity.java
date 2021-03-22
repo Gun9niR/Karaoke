@@ -60,8 +60,11 @@ public class LocalRecordActivity extends AppCompatActivity {
     @Override
     protected void onStop() {
         super.onStop();
-        recordPlayer.stop();
-        recordPlayer.release();
+        recordProgressUpdater.interrupt();
+        if (recordPlayer != null) {
+            recordPlayer.stop();
+            // recordPlayer.release();
+        }
     }
 
     public void playRecord(Data.Record record) {
@@ -123,7 +126,7 @@ public class LocalRecordActivity extends AppCompatActivity {
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
-                } while (progress <= recordPlayer.getDuration() && !Thread.currentThread().isInterrupted());
+                } while (!Thread.currentThread().isInterrupted() && progress <= recordPlayer.getDuration());
 
             }
         });
@@ -166,6 +169,9 @@ public class LocalRecordActivity extends AppCompatActivity {
 
     private void initRecordPlayer(String fileName) {
         if (recordPlayer != null) {
+            if (recordProgressUpdater != null) {
+                recordProgressUpdater.interrupt();
+            }
             recordPlayer.release();
         }
         recordPlayer = new MediaPlayer();
