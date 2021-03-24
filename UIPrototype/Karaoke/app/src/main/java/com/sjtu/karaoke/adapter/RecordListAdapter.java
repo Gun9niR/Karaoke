@@ -1,13 +1,11 @@
 package com.sjtu.karaoke.adapter;
 
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -16,10 +14,10 @@ import com.sjtu.karaoke.Data;
 import com.sjtu.karaoke.LocalRecordActivity;
 import com.sjtu.karaoke.R;
 
-import java.io.IOException;
 import java.util.List;
 
 import static com.sjtu.karaoke.Data.Record.getRecordTimeStr;
+import static com.sjtu.karaoke.util.Utils.showToast;
 
 public class RecordListAdapter extends RecyclerView.Adapter<RecordListAdapter.ViewHolder> {
     List<Data.Record> records;
@@ -63,12 +61,7 @@ public class RecordListAdapter extends RecyclerView.Adapter<RecordListAdapter.Vi
             @Override
             public void onClick(View view) {
                 String message = records.get(position).recordName + "已经成功分享到微信";
-                Toast toast = Toast.makeText(context, message, Toast.LENGTH_LONG);
-                ViewGroup group = (ViewGroup) toast.getView();
-                TextView tvMessage = (TextView) group.getChildAt(0);
-                tvMessage.setText(message);
-                tvMessage.setGravity(Gravity.CENTER);
-                toast.show();
+                showToast(context, message);
             }
         });
         // set button onClick listener

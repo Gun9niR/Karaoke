@@ -1,15 +1,15 @@
 package com.sjtu.karaoke;
 
+import android.app.SearchManager;
+import android.content.Context;
+import android.os.Bundle;
+import android.view.Menu;
+
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SearchView;
 import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-
-import android.app.SearchManager;
-import android.content.Context;
-import android.os.Bundle;
-import android.view.Menu;
 
 import com.sjtu.karaoke.adapter.SongListAdapter;
 
@@ -69,6 +69,7 @@ public class SearchActivity extends AppCompatActivity {
             }
         });
 
+        menu.findItem(R.id.actionSearch).expandActionView();
         return true;
     }
 }

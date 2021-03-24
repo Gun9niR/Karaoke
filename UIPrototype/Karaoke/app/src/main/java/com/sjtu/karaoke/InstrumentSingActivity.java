@@ -212,12 +212,12 @@ public class InstrumentSingActivity<Soundpool> extends AppCompatActivity {
             retry();
             return true;
         }
-        else if (item.getItemId() == R.id.finish)
+        else if (item.getItemId() == R.id.finish) {
             intent = new Intent(this, SingResultActivity.class);
-        else
-            intent = new Intent(this, MainActivity.class);
-
-        startActivity(intent);
+            startActivity(intent);
+        } else {
+            onBackPressed();
+        }
 
         return true;
     }

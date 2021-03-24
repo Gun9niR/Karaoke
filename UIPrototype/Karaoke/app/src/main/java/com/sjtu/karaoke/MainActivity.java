@@ -1,12 +1,11 @@
 package com.sjtu.karaoke;
 
+import android.os.Bundle;
+import android.view.MenuItem;
+
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
-
-import android.content.Intent;
-import android.os.Bundle;
-import android.view.MenuItem;
 
 import com.ismaeldivita.chipnavigation.ChipNavigationBar;
 import com.sjtu.karaoke.fragment.AccountFragment;
@@ -21,8 +20,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         ChipNavigationBar chipNavigationBar = findViewById(R.id.chipNavigation);
-        // default fragment: plaza fragment
-        // set item selection listener
+
         chipNavigationBar.setOnItemSelectedListener(new ChipNavigationBar.OnItemSelectedListener() {
             @Override
             public void onItemSelected(int i) {
