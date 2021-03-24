@@ -1,24 +1,16 @@
 package com.sjtu.karaoke;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
+import android.os.Bundle;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ListView;
+
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
-import android.annotation.SuppressLint;
-import android.content.Context;
-import android.os.Bundle;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.ImageView;
-import android.widget.ListView;
-import android.widget.TextView;
-import android.widget.Toast;
-
 import com.sjtu.karaoke.adapter.SettingAdapter;
+
+import static com.sjtu.karaoke.util.Utils.showToast;
 
 public class SettingActivity extends AppCompatActivity {
     private String[] settingItems = {"清空本地缓存", "关于"};
@@ -44,10 +36,10 @@ public class SettingActivity extends AppCompatActivity {
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                 switch(i) {
                     case 0:
-                        Toast.makeText(getApplicationContext(), "clear", Toast.LENGTH_SHORT).show();
+                        showToast(getApplicationContext(), "clear");
                         break;
                     case 1:
-                        Toast.makeText(getApplicationContext(), "about", Toast.LENGTH_SHORT).show();
+                        showToast(getApplicationContext(), "about");
                         break;
                 }
             }
