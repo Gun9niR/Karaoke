@@ -8,22 +8,26 @@ import android.os.Handler;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.style.ForegroundColorSpan;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.TimeUnit;
 
 import static com.sjtu.karaoke.util.Utils.loadAndPrepareMediaplayer;
+import static com.sjtu.karaoke.util.Utils.saveFile;
 import static com.sjtu.karaoke.util.Utils.terminateMediaPlayer;
 
 public class SingResultActivity extends AppCompatActivity {
@@ -31,7 +35,7 @@ public class SingResultActivity extends AppCompatActivity {
     int duration;
 
     Toolbar toolbar;
-    BottomNavigationView bottomNavbarSing;
+    BottomNavigationView bottomNavbarResult;
     TextView titleText, playerPosition, playerDuration;
     SeekBar seekBarResultProgress,  seekbarTuneVoice, seekbarTuneAccompany;
     ImageView btnPlay, btnPause;
@@ -66,6 +70,18 @@ public class SingResultActivity extends AppCompatActivity {
         initTuneSeekbar();
 
         startAllPlayers();
+
+        initFab();
+    }
+
+    private void initFab() {
+        FloatingActionButton fabSave = findViewById(R.id.fabSave);
+        fabSave.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                saveFile(SingResultActivity.this, "1.txt");
+            }
+        });
     }
 
     private void initRunnable() {
@@ -105,12 +121,24 @@ public class SingResultActivity extends AppCompatActivity {
     }
 
     private void initBottomNavbar() {
+        bottomNavbarResult = findViewById(R.id.bottomNavigationViewResult);
+        bottomNavbarResult.setBackground(null);
+        bottomNavbarResult.getMenu().getItem(1).setEnabled(false);
 
-
-        bottomNavbarSing = findViewById(R.id.bottomNavigationViewResult);
-        bottomNavbarSing.setBackground(null);
-        bottomNavbarSing.getMenu().getItem(1).setEnabled(false);
-
+        bottomNavbarResult.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
+            @Override
+            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                int id = item.getItemId();
+                switch(id) {
+                    case R.id.resultRetry:
+                        onBackPressed();
+                        break;
+                    case R.id.resultShare:
+                        break;
+                }
+                return false;
+            }
+        });
     }
 
 

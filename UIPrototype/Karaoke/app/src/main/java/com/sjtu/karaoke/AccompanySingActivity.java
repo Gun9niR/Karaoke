@@ -245,12 +245,13 @@ public class AccompanySingActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         Intent intent;
 
-        if (item.getItemId() == R.id.finish)
+        if (item.getItemId() == R.id.finish) {
             intent = new Intent(this, SingResultActivity.class);
-        else
-            intent = new Intent(this, MainActivity.class);
-
-        startActivity(intent);
+            startActivity(intent);
+        }
+        else {
+            onBackPressed();
+        }
 
         return true;
     }
