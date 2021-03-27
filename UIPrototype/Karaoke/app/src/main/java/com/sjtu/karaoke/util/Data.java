@@ -1,8 +1,9 @@
-package com.sjtu.karaoke;
+package com.sjtu.karaoke.util;
+
+import com.sjtu.karaoke.R;
 
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
 

@@ -98,10 +98,6 @@ public class AccompanySingActivity extends AppCompatActivity {
         };
     }
 
-    protected void onStart() {
-        super.onStart();
-        System.out.println("Onstart");
-    }
     private void initState() {
         state = State.UNSTARTED;
         singMode = SingMode.WITHOUT;
@@ -192,17 +188,9 @@ public class AccompanySingActivity extends AppCompatActivity {
                                     singMode = SingMode.WITH;
                                 }
                                 break;
-                            case R.id.singingRetry:
-                                if (state != State.UNSTARTED) {
-                                    // todo: clear record, reset score, progress bar, terminate async
-                                    mProgressBar.setProgress(0, true);
-                                    mScoreBar.setProgress(0, true);
-
-                                    lrcView.init();
-
-                                    restartAllPlayers();
-
-                                }
+                            case R.id.singingFinish:
+                                Intent intent = new Intent(getApplicationContext(), SingResultActivity.class);
+                                startActivity(intent);
                                 break;
                         }
                         return false;
@@ -241,13 +229,19 @@ public class AccompanySingActivity extends AppCompatActivity {
         lrcView.init();
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.N)
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        Intent intent;
+        if (item.getItemId() == R.id.retry) {
+            if (state != State.UNSTARTED) {
+                // todo: clear record, reset score, progress bar, terminate async
+                mProgressBar.setProgress(0, true);
+                mScoreBar.setProgress(0, true);
 
-        if (item.getItemId() == R.id.finish) {
-            intent = new Intent(this, SingResultActivity.class);
-            startActivity(intent);
+                lrcView.init();
+
+                restartAllPlayers();
+            }
         }
         else {
             onBackPressed();

@@ -2,6 +2,11 @@ package com.sjtu.karaoke.fragment;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.view.LayoutInflater;
+import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.widget.Toolbar;
@@ -12,17 +17,11 @@ import androidx.viewpager2.widget.CompositePageTransformer;
 import androidx.viewpager2.widget.MarginPageTransformer;
 import androidx.viewpager2.widget.ViewPager2;
 
-import android.os.Handler;
-import android.view.LayoutInflater;
-import android.view.MenuItem;
-import android.view.View;
-import android.view.ViewGroup;
-
-import com.sjtu.karaoke.Data;
 import com.sjtu.karaoke.R;
 import com.sjtu.karaoke.SearchActivity;
 import com.sjtu.karaoke.adapter.CarouselAdapter;
 import com.sjtu.karaoke.adapter.SongListAdapter;
+import com.sjtu.karaoke.util.Data;
 
 import java.util.ArrayList;
 import java.util.List;

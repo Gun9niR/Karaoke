@@ -18,9 +18,9 @@ import androidx.core.app.ActivityCompat;
 import java.io.File;
 import java.io.IOException;
 
-import static com.sjtu.karaoke.Constants.FILE_SAVE_DIR;
-import static com.sjtu.karaoke.Constants.PERMISSIONS_STORAGE;
-import static com.sjtu.karaoke.Constants.REQUEST_EXTERNAL_STORAGE;
+import static com.sjtu.karaoke.util.Constants.FILE_SAVE_DIR;
+import static com.sjtu.karaoke.util.Constants.PERMISSIONS_STORAGE;
+import static com.sjtu.karaoke.util.Constants.REQUEST_EXTERNAL_STORAGE;
 
 public class Utils {
     public static void terminateMediaPlayer(MediaPlayer mediaPlayer) {

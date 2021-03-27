@@ -11,7 +11,7 @@
         android:title="" />
 
     <item
-        android:id="@+id/singingRetry"
-        android:icon="@drawable/ic_retry"
-        android:title="重唱" />
+        android:id="@+id/singingFinish"
+        android:icon="@drawable/ic_finish"
+        android:title="完成" />
 </menu>

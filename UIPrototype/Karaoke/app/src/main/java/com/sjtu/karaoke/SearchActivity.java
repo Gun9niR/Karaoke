@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.sjtu.karaoke.adapter.SongListAdapter;
+import com.sjtu.karaoke.util.Data;
 
 import java.util.ArrayList;
 import java.util.List;

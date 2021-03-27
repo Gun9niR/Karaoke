@@ -1,4 +1,4 @@
-package com.sjtu.karaoke;
+package com.sjtu.karaoke.util;
 
 import android.Manifest;
 

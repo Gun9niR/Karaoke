@@ -10,13 +10,13 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.sjtu.karaoke.Data;
+import com.sjtu.karaoke.util.Data;
 import com.sjtu.karaoke.LocalRecordActivity;
 import com.sjtu.karaoke.R;
 
 import java.util.List;
 
-import static com.sjtu.karaoke.Data.Record.getRecordTimeStr;
+import static com.sjtu.karaoke.util.Data.Record.getRecordTimeStr;
 import static com.sjtu.karaoke.util.Utils.showToast;
 
 public class RecordListAdapter extends RecyclerView.Adapter<RecordListAdapter.ViewHolder> {

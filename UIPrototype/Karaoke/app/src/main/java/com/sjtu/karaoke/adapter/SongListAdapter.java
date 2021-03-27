@@ -20,7 +20,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.sjtu.karaoke.AccompanySingActivity;
-import com.sjtu.karaoke.Data;
+import com.sjtu.karaoke.util.Data;
 import com.sjtu.karaoke.InstrumentSingActivity;
 import com.sjtu.karaoke.R;
 

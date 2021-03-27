@@ -2,9 +2,9 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
-        android:title="Finish"
-        android:id="@+id/finish"
-        android:icon="@drawable/ic_finish"
+        android:title="Retry"
+        android:id="@+id/retry"
+        android:icon="@drawable/ic_retry"
         app:showAsAction="always"
         />
 </menu>
