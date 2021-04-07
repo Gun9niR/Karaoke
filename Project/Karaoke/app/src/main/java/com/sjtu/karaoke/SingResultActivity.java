@@ -64,7 +64,7 @@ public class SingResultActivity extends AppCompatActivity {
 
         accompanyPlayer = new MediaPlayer();
         voicePlayer = new MediaPlayer();
-        loadAndPrepareMediaplayer(this, accompanyPlayer, "accompany.mp3");
+        loadAndPrepareMediaplayer(this, accompanyPlayer, "Accompany.mp3");
         loadAndPrepareMediaplayer(this, voicePlayer, "voice.m4a");
 
         initRunnable();

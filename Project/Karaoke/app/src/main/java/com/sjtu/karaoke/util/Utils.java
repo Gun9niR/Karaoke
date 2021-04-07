@@ -19,6 +19,8 @@ import java.io.File;
 import java.io.IOException;
 
 import static com.sjtu.karaoke.util.Constants.FILE_SAVE_DIR;
+import static com.sjtu.karaoke.util.Constants.GET_RECORD_AUDIO;
+import static com.sjtu.karaoke.util.Constants.PERMISSIONS_RECORDER;
 import static com.sjtu.karaoke.util.Constants.PERMISSIONS_STORAGE;
 import static com.sjtu.karaoke.util.Constants.REQUEST_EXTERNAL_STORAGE;
 
@@ -80,6 +82,17 @@ public class Utils {
             }
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+
+    public static void verifyRecorderPermissions(Activity activity) {
+        boolean permission = (ActivityCompat.checkSelfPermission(activity, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED)
+                || (ActivityCompat.checkSelfPermission(activity, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)
+                || (ActivityCompat.checkSelfPermission(activity, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED);
+        if (permission) {
+            ActivityCompat.requestPermissions(activity, PERMISSIONS_RECORDER,
+                    GET_RECORD_AUDIO);
         }
     }
 

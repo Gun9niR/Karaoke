@@ -22,6 +22,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
 
+import com.dreamfish.record.AudioRecorder;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
@@ -35,6 +36,7 @@ import java.util.stream.Collectors;
 
 import static com.sjtu.karaoke.util.Utils.loadAndPrepareMediaplayer;
 import static com.sjtu.karaoke.util.Utils.terminateMediaPlayer;
+import static com.sjtu.karaoke.util.Utils.verifyRecorderPermissions;
 
 /*
  * @ClassName: AccompanySingActivity
@@ -62,6 +64,7 @@ public class AccompanySingActivity extends AppCompatActivity {
     SingMode singMode;
     Handler handler = new Handler();
     Runnable progressBarUpdater;
+    AudioRecorder voiceRecorder;
 
     @RequiresApi(api = Build.VERSION_CODES.N)
     @Override
@@ -75,8 +78,11 @@ public class AccompanySingActivity extends AppCompatActivity {
         loadAndPrepareMediaplayer(this, accompanyPlayer, "Attention.mp3");
         // todo: voicePlayer
 
+        verifyRecorderPermissions(this);
+
         initToolbar();
 
+        initVoiceRecorder();
         // todo: read by file name
         initVideoView();
 
@@ -98,6 +104,13 @@ public class AccompanySingActivity extends AppCompatActivity {
          * when choosing a song from ViewSongsFragment, above data will be present (in the Intent)
          * whereas returning from sing result, they will be absent, so setup the previous song
          */
+    }
+
+    // todo: change to file name
+    private void initVoiceRecorder() {
+        voiceRecorder = AudioRecorder.getInstance();
+
+        voiceRecorder.createDefaultAudio("Attention");
     }
 
     private void initProgressBarUpdater() {
@@ -122,14 +135,27 @@ public class AccompanySingActivity extends AppCompatActivity {
             public void onClick(View view) {
                 if (state == State.PLAYING) {
                     pauseAllPlayers();
+                    pauseRecording();
+                    // todo: pause recording
                 } else if (state == State.PAUSE) {
                     startAllPlayers();
+                    startRecording();
+                    // todo: start recording
                 } else {
                     startAllPlayers();
+                    startRecording();
                     // todo: do some async task, setting progress bar and score bar
                 }
             }
         });
+    }
+
+    private void pauseRecording() {
+        voiceRecorder.pauseRecord();
+    }
+
+    private void startRecording() {
+        voiceRecorder.startRecord(null);
     }
 
     private void startUpdateProgressBar() {
@@ -201,6 +227,8 @@ public class AccompanySingActivity extends AppCompatActivity {
                                 }
                                 break;
                             case R.id.singingFinish:
+                                voiceRecorder.stopRecord();
+                                state = State.UNSTARTED;
                                 Intent intent = new Intent(getApplicationContext(), SingResultActivity.class);
                                 startActivity(intent);
                                 break;
@@ -289,6 +317,13 @@ public class AccompanySingActivity extends AppCompatActivity {
         System.out.println("OnStop");
         if (this.state == State.PLAYING) {
             pauseAllPlayers();
+            pauseRecording();
+        } else if (this.state == State.UNSTARTED) {
+            lrcView.alertPlayerReleased();
+            videoView.stopPlayback();
+            voiceRecorder.release();
+            terminateMediaPlayer(accompanyPlayer);
+            handler.removeCallbacks(progressBarUpdater);
         }
     }
 
@@ -298,8 +333,9 @@ public class AccompanySingActivity extends AppCompatActivity {
         System.out.println("OnDestroy");
         lrcView.alertPlayerReleased();
         videoView.stopPlayback();
-
+        voiceRecorder.release();
         terminateMediaPlayer(accompanyPlayer);
+        handler.removeCallbacks(progressBarUpdater);
     }
 
     @Override
