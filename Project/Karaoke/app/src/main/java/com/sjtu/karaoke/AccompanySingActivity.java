@@ -65,6 +65,7 @@ public class AccompanySingActivity extends AppCompatActivity {
     Handler handler = new Handler();
     Runnable progressBarUpdater;
     AudioRecorder voiceRecorder;
+    BottomNavigationView bottomNavigationView;
 
     @RequiresApi(api = Build.VERSION_CODES.N)
     @Override
@@ -74,36 +75,38 @@ public class AccompanySingActivity extends AppCompatActivity {
         setContentView(R.layout.activity_accompany_sing);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
-        accompanyPlayer = new MediaPlayer();
-        loadAndPrepareMediaplayer(this, accompanyPlayer, "Attention.mp3");
-        // todo: voicePlayer
-
         verifyRecorderPermissions(this);
 
+        // UI-related initialization
         initToolbar();
-
-        initVoiceRecorder();
-        // todo: read by file name
-        initVideoView();
-
-        initLrcView("Attention.lrc");
-
-        initBottomNavbar();
-
-        initProgressBar();
-
-        initScoreBar();
-
-        initFab();
-
         initState();
-
-        initProgressBarUpdater();
         /**
          * todo: store song name, accompany file name and mv file name (if any)
          * when choosing a song from ViewSongsFragment, above data will be present (in the Intent)
          * whereas returning from sing result, they will be absent, so setup the previous song
          */
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        // return from sing result activity or from main activity, initialize all players
+        if (state == State.UNSTARTED) {
+            initVoiceRecorder();
+            // todo: read by file name
+            // todo: voicePlayer
+            // Player-related initialization
+            accompanyPlayer = new MediaPlayer();
+            loadAndPrepareMediaplayer(this, accompanyPlayer, "Attention.mp3");
+            initVideoView();
+            initLrcView("Attention.lrc");
+            initProgressBar();
+            initScoreBar();
+            initFab();
+            initState();
+            initProgressBarUpdater();
+            initBottomNavbar();
+        }
     }
 
     // todo: change to file name
@@ -130,13 +133,12 @@ public class AccompanySingActivity extends AppCompatActivity {
 
     private void initFab() {
         fab = findViewById(R.id.fabPlayPause);
+        fab.setImageResource(R.drawable.ic_fab_play);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 if (state == State.PLAYING) {
-                    pauseAllPlayers();
-                    pauseRecording();
-                    // todo: pause recording
+                    pause();
                 } else if (state == State.PAUSE) {
                     startAllPlayers();
                     startRecording();
@@ -144,10 +146,16 @@ public class AccompanySingActivity extends AppCompatActivity {
                 } else {
                     startAllPlayers();
                     startRecording();
+                    enableFinishButton();
                     // todo: do some async task, setting progress bar and score bar
                 }
             }
         });
+    }
+
+    private void enableFinishButton() {
+        MenuItem finishButton = bottomNavigationView.getMenu().getItem(2);
+        finishButton.setEnabled(true);
     }
 
     private void pauseRecording() {
@@ -208,9 +216,13 @@ public class AccompanySingActivity extends AppCompatActivity {
     }
 
     private void initBottomNavbar() {
-        BottomNavigationView bottomNavigationView = findViewById(R.id.bottomNavigationView);
+        bottomNavigationView = findViewById(R.id.bottomNavigationView);
         bottomNavigationView.setBackground(null);
+        // 禁用中间的占位item
         bottomNavigationView.getMenu().getItem(1).setEnabled(false);
+        // 禁用完成，因为录音还没有开始
+        disableFinishButton();
+
         bottomNavigationView.setOnNavigationItemSelectedListener(
                 new BottomNavigationView.OnNavigationItemSelectedListener() {
                     @RequiresApi(api = Build.VERSION_CODES.N)
@@ -227,7 +239,6 @@ public class AccompanySingActivity extends AppCompatActivity {
                                 }
                                 break;
                             case R.id.singingFinish:
-                                voiceRecorder.stopRecord();
                                 state = State.UNSTARTED;
                                 Intent intent = new Intent(getApplicationContext(), SingResultActivity.class);
                                 startActivity(intent);
@@ -237,6 +248,10 @@ public class AccompanySingActivity extends AppCompatActivity {
                     }
                 }
         );
+    }
+
+    private void disableFinishButton() {
+        bottomNavigationView.getMenu().getItem(2).setEnabled(false);
     }
 
     private void restartAllPlayers() {
@@ -314,28 +329,34 @@ public class AccompanySingActivity extends AppCompatActivity {
     @Override
     protected void onStop() {
         super.onStop();
-        System.out.println("OnStop");
+        System.out.println("AccompanySing OnStop");
+        // 在播放时退出app，暂停播放和录音
         if (this.state == State.PLAYING) {
-            pauseAllPlayers();
-            pauseRecording();
+            // 在播放时退出app
+            pause();
         } else if (this.state == State.UNSTARTED) {
+            // 完成键只有在开始录音后，state变为非UNSTARTE才可以点，所以能进入这里必然是录音结束
             lrcView.alertPlayerReleased();
             videoView.stopPlayback();
-            voiceRecorder.release();
+            voiceRecorder.stopRecord();
             terminateMediaPlayer(accompanyPlayer);
             handler.removeCallbacks(progressBarUpdater);
         }
     }
 
+    private void pause() {
+        // change of state is done in pauseAllPlayers
+        pauseAllPlayers();
+        pauseRecording();
+    }
+
+    /*
+     * onDestroy() is not called when hitting finish or close the app
+     */
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        System.out.println("OnDestroy");
-        lrcView.alertPlayerReleased();
-        videoView.stopPlayback();
-        voiceRecorder.release();
-        terminateMediaPlayer(accompanyPlayer);
-        handler.removeCallbacks(progressBarUpdater);
+        System.out.println("AccompanySing OnDestroy");
     }
 
     @Override

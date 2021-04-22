@@ -25,7 +25,7 @@ public class AudioRecorder {
     //采用频率
     //44100是目前的标准，但是某些设备仍然支持22050，16000，11025
     //采样频率一般共分为22.05KHz、44.1KHz、48KHz三个等级
-    private final static int AUDIO_SAMPLE_RATE = 44100;
+    private final static int AUDIO_SAMPLE_RATE = 16000;
     //声道 单声道
     private final static int AUDIO_CHANNEL = AudioFormat.CHANNEL_IN_MONO;
     //编码
@@ -82,8 +82,9 @@ public class AudioRecorder {
      */
     public void createDefaultAudio(String fileName) {
         // 获得缓冲区字节大小
+        // todo: set buffer size so that it is large enough to hold the bytes of any fucking sentence
         bufferSizeInBytes = AudioRecord.getMinBufferSize(AUDIO_SAMPLE_RATE,
-                AUDIO_CHANNEL, AUDIO_ENCODING);
+                AUDIO_CHANNEL, AUDIO_ENCODING) * 100;
         audioRecord = new AudioRecord(AUDIO_INPUT, AUDIO_SAMPLE_RATE, AUDIO_CHANNEL, AUDIO_ENCODING, bufferSizeInBytes);
         this.fileName = fileName;
         status = Status.STATUS_READY;
@@ -228,8 +229,10 @@ public class AudioRecorder {
         status = Status.STATUS_START;
         while (status == Status.STATUS_START) {
             readsize = audioRecord.read(audiodata, 0, bufferSizeInBytes);
+            System.out.println("Read " + readsize + " bytes from recorder");
             if (AudioRecord.ERROR_INVALID_OPERATION != readsize && fos != null) {
                 try {
+                    // writes very fucking fast
                     fos.write(audiodata);
                     if (listener != null) {
                         //用于拓展业务

@@ -6,7 +6,6 @@ import android.content.Context;
 import android.content.pm.PackageManager;
 import android.content.res.AssetFileDescriptor;
 import android.media.MediaPlayer;
-import android.os.Environment;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.ViewGroup;
@@ -18,11 +17,12 @@ import androidx.core.app.ActivityCompat;
 import java.io.File;
 import java.io.IOException;
 
-import static com.sjtu.karaoke.util.Constants.FILE_SAVE_DIR;
+import static com.sjtu.karaoke.util.Constants.BASE_DIRECTORY;
 import static com.sjtu.karaoke.util.Constants.GET_RECORD_AUDIO;
 import static com.sjtu.karaoke.util.Constants.PERMISSIONS_RECORDER;
 import static com.sjtu.karaoke.util.Constants.PERMISSIONS_STORAGE;
 import static com.sjtu.karaoke.util.Constants.REQUEST_EXTERNAL_STORAGE;
+import static com.sjtu.karaoke.util.Constants.WAV_DIRECTORY;
 
 /*
  * @ClassName: Utils
@@ -41,6 +41,11 @@ public class Utils {
     }
 
     public static void loadAndPrepareMediaplayer(Context context, MediaPlayer mediaPlayer, String fileName) {
+        // todo: change to load from local storage, discard this method
+        if (mediaPlayer == null) {
+            return;
+        }
+
         AssetFileDescriptor afd = null;
         try {
             afd = context.getAssets().openFd(fileName);
@@ -61,10 +66,29 @@ public class Utils {
         }
     }
 
+    public static void loadWAVAndPrepareMediaPlayer(MediaPlayer mediaPlayer, String fileName) {
+        if (mediaPlayer == null) {
+            return;
+        }
+
+        System.out.println(WAV_DIRECTORY + fileName);
+        try {
+            mediaPlayer.setDataSource(WAV_DIRECTORY + fileName);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        try {
+            mediaPlayer.prepare();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     public static void saveFile(Activity activity, String fileName) {
         verifyStoragePermissions(activity);
-        String filePath = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS) + FILE_SAVE_DIR;
-        showToast(activity, "文件已保存至" + filePath + "/" + fileName);
+        String filePath = BASE_DIRECTORY;
+        showToast(activity, "文件已保存至" + filePath + fileName);
         try {
             File file = new File(filePath, fileName);
             file.getParentFile().mkdirs();
@@ -104,4 +128,6 @@ public class Utils {
         tvMessage.setGravity(Gravity.CENTER);
         toast.show();
     }
+
+    public static trimWav(String from, String to, )
 }

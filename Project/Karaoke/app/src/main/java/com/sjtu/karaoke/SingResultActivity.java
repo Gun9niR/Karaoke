@@ -27,6 +27,7 @@ import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.TimeUnit;
 
 import static com.sjtu.karaoke.util.Utils.loadAndPrepareMediaplayer;
+import static com.sjtu.karaoke.util.Utils.loadWAVAndPrepareMediaPlayer;
 import static com.sjtu.karaoke.util.Utils.saveFile;
 import static com.sjtu.karaoke.util.Utils.terminateMediaPlayer;
 
@@ -63,10 +64,11 @@ public class SingResultActivity extends AppCompatActivity {
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
         accompanyPlayer = new MediaPlayer();
-        voicePlayer = new MediaPlayer();
         loadAndPrepareMediaplayer(this, accompanyPlayer, "Accompany.mp3");
-        loadAndPrepareMediaplayer(this, voicePlayer, "voice.m4a");
+        voicePlayer = new MediaPlayer();
+        loadWAVAndPrepareMediaPlayer(voicePlayer, "Attention.wav");
 
+        // todo: 将伴奏截成和人声一样长的文件
         initRunnable();
 
         initToolBar();
@@ -91,6 +93,7 @@ public class SingResultActivity extends AppCompatActivity {
         fabSave.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                // todo: 合成音频文件
                 saveFile(SingResultActivity.this, "1.txt");
             }
         });
@@ -101,7 +104,7 @@ public class SingResultActivity extends AppCompatActivity {
         runnable = new Runnable() {
             @Override
             public void run() {
-                seekBarResultProgress.setProgress(accompanyPlayer.getCurrentPosition());
+                seekBarResultProgress.setProgress(voicePlayer.getCurrentPosition());
                 handler.postDelayed(this, 500);
             }
         };
@@ -155,7 +158,7 @@ public class SingResultActivity extends AppCompatActivity {
 
 
     private void initPlaySeekbar() {
-        duration =  accompanyPlayer.getDuration();
+        duration =  voicePlayer.getDuration();
         // seekbar text
 
         playerPosition = findViewById(R.id.playerPosition);
@@ -178,7 +181,7 @@ public class SingResultActivity extends AppCompatActivity {
                     System.out.println(convertFormat(progress));
                 }
 
-                playerPosition.setText(convertFormat((accompanyPlayer.getCurrentPosition())));
+                playerPosition.setText(convertFormat((voicePlayer.getCurrentPosition())));
             }
 
             @Override
@@ -198,7 +201,7 @@ public class SingResultActivity extends AppCompatActivity {
         btnPlay = findViewById(R.id.resultPlay);
         btnPause = findViewById(R.id.resultPause);
 
-        accompanyPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+        voicePlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
             @Override
             public void onCompletion(MediaPlayer mp) {
                 btnPause.setVisibility(View.GONE);
