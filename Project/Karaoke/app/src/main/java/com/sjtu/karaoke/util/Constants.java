@@ -24,5 +24,9 @@ public class Constants {
 
     public static final String WAV_DIRECTORY = BASE_DIRECTORY + "wav/";
 
+    public static final String PCM_DIRECTORY = BASE_DIRECTORY + "pcm/";
+
     public static final String ACCOMPANY_DIRECTORY = BASE_DIRECTORY + "accompany/";
+
+    public static final String RECORD_DIRECTORY = BASE_DIRECTORY + "record/";
 }

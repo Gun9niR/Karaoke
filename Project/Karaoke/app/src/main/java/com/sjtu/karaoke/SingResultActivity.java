@@ -26,12 +26,12 @@ import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.TimeUnit;
 
-import static com.sjtu.karaoke.util.Constants.WAV_DIRECTORY;
 import static com.sjtu.karaoke.util.Utils.getAccompanyFullPath;
 import static com.sjtu.karaoke.util.Utils.getTrimmedAccompanyFullPath;
-import static com.sjtu.karaoke.util.Utils.getWAVDuration;
+import static com.sjtu.karaoke.util.Utils.getVoiceFullPath;
 import static com.sjtu.karaoke.util.Utils.loadFileAndPrepareMediaPlayer;
-import static com.sjtu.karaoke.util.Utils.saveFile;
+import static com.sjtu.karaoke.util.Utils.mergeWAVs;
+import static com.sjtu.karaoke.util.Utils.showToast;
 import static com.sjtu.karaoke.util.Utils.terminateMediaPlayer;
 import static com.sjtu.karaoke.util.Utils.trimWav;
 
@@ -49,8 +49,6 @@ import static com.sjtu.karaoke.util.Utils.trimWav;
 
 public class SingResultActivity extends AppCompatActivity {
 
-    int duration;
-
     Toolbar toolbar;
     BottomNavigationView bottomNavbarResult;
     TextView titleText, playerPosition, playerDuration;
@@ -63,43 +61,44 @@ public class SingResultActivity extends AppCompatActivity {
     float voiceVolume = 1;
     float accompanyVolume = 1;
 
+    boolean isFileSaved = false;
+
+    // record name, file name should be the same
+    // todo: change file name
+    String fileName = "Attention.wav";
+    String trimmedAccompanyFullPath;
+    String voiceFullPath;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_sing_result);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
-        voicePlayer = new MediaPlayer();
-        loadFileAndPrepareMediaPlayer(voicePlayer, WAV_DIRECTORY + "Attention.wav");
-        // trim accompany
-        String trimmedAccompanyPath = getTrimmedAccompanyFullPath("Attention.wav");
-        System.out.println("Original duration: " + getWAVDuration(WAV_DIRECTORY + "Attention.wav"));
+        getFilePaths();
 
-        trimWav(getAccompanyFullPath("Attention.wav"), trimmedAccompanyPath, 0, voicePlayer.getDuration());
-        System.out.println("Trimmed length: " + getWAVDuration(trimmedAccompanyPath));
+        voicePlayer = new MediaPlayer();
+        loadFileAndPrepareMediaPlayer(voicePlayer, voiceFullPath);
+        // trim accompany
+        trimWav(getAccompanyFullPath(fileName), trimmedAccompanyFullPath, 0, voicePlayer.getDuration());
 
         accompanyPlayer = new MediaPlayer();
-        loadFileAndPrepareMediaPlayer(accompanyPlayer, trimmedAccompanyPath);
+        loadFileAndPrepareMediaPlayer(accompanyPlayer, trimmedAccompanyFullPath);
 
-        // todo: 将伴奏截成和人声一样长的文件
         initRunnable();
-
         initToolBar();
-
         initTitle();
-
         initBottomNavbar();
-
         initPlaySeekbar();
-
         initButtonControl();
-
         initTuneSeekbar();
-
         startAllPlayers();
-
         initFab();
+    }
+
+    private void getFilePaths() {
+        trimmedAccompanyFullPath = getTrimmedAccompanyFullPath(fileName);
+        voiceFullPath = getVoiceFullPath(fileName);
     }
 
     private void initFab() {
@@ -107,14 +106,21 @@ public class SingResultActivity extends AppCompatActivity {
         fabSave.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                // todo: 合成音频文件，删除原唱文件
-                saveFile(SingResultActivity.this, "1.txt");
+                if (isFileSaved) {
+                    showToast(getApplicationContext(), "文件已经保存");
+                }
+                // merge two .wav files, and put under .../Karaoke/record/
+                mergeWAVs(fileName, trimmedAccompanyFullPath, voiceFullPath, accompanyVolume, voiceVolume);
+
+//                deleteFile(trimmedAccompanyFullPath);
+//                deleteFile(voiceFullPath);
+
+
             }
         });
     }
 
     private void initRunnable() {
-
         runnable = new Runnable() {
             @Override
             public void run() {
@@ -172,7 +178,8 @@ public class SingResultActivity extends AppCompatActivity {
 
 
     private void initPlaySeekbar() {
-        duration =  voicePlayer.getDuration();
+        // duration in ms
+        int duration =  voicePlayer.getDuration();
         // seekbar text
 
         playerPosition = findViewById(R.id.playerPosition);
@@ -254,10 +261,11 @@ public class SingResultActivity extends AppCompatActivity {
         seekbarTuneVoice = findViewById(R.id.seekbarTuneVoice);
         seekbarTuneVoice.setMax(100);
         seekbarTuneVoice.setProgress(100);
-
+        voicePlayer.setVolume(1, 1);
         seekbarTuneAccompany = findViewById(R.id.seekbarTuneAccompany);
         seekbarTuneAccompany.setMax(100);
         seekbarTuneAccompany.setProgress(100);
+        accompanyPlayer.setVolume(1, 1);
 
         seekbarTuneVoice.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override

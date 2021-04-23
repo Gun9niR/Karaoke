@@ -14,19 +14,25 @@ import android.widget.Toast;
 
 import androidx.core.app.ActivityCompat;
 
+import com.arthenica.mobileffmpeg.FFmpeg;
 import com.sjtu.karaoke.waveditor.WavHeader;
 import com.sjtu.karaoke.waveditor.WavReader;
 import com.sjtu.karaoke.waveditor.WavWriter;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import static com.sjtu.karaoke.util.Constants.ACCOMPANY_DIRECTORY;
 import static com.sjtu.karaoke.util.Constants.BASE_DIRECTORY;
 import static com.sjtu.karaoke.util.Constants.GET_RECORD_AUDIO;
+import static com.sjtu.karaoke.util.Constants.PCM_DIRECTORY;
 import static com.sjtu.karaoke.util.Constants.PERMISSIONS_RECORDER;
 import static com.sjtu.karaoke.util.Constants.PERMISSIONS_STORAGE;
+import static com.sjtu.karaoke.util.Constants.RECORD_DIRECTORY;
 import static com.sjtu.karaoke.util.Constants.REQUEST_EXTERNAL_STORAGE;
+import static com.sjtu.karaoke.util.Constants.WAV_DIRECTORY;
 
 /*
  * @ClassName: Utils
@@ -90,10 +96,9 @@ public class Utils {
 
     public static void saveFile(Activity activity, String fileName) {
         verifyStoragePermissions(activity);
-        String filePath = BASE_DIRECTORY;
-        showToast(activity, "文件已保存至" + filePath + fileName);
+        showToast(activity, "文件已保存至" + BASE_DIRECTORY + fileName);
         try {
-            File file = new File(filePath, fileName);
+            File file = new File(BASE_DIRECTORY, fileName);
             file.getParentFile().mkdirs();
             file.createNewFile();
         } catch (Exception e) {
@@ -101,7 +106,22 @@ public class Utils {
         }
     }
 
-    private static void verifyStoragePermissions(Activity activity) {
+    public static void makeDirectories() {
+        List<File> dirs = new ArrayList<>();
+        dirs.add(new File(BASE_DIRECTORY));
+        dirs.add(new File(PCM_DIRECTORY));
+        dirs.add(new File(WAV_DIRECTORY));
+        dirs.add(new File(RECORD_DIRECTORY));
+        dirs.add(new File(ACCOMPANY_DIRECTORY));
+
+        for (File dir: dirs) {
+            if(!dir.exists()) {
+                dir.mkdir();
+            }
+        }
+    }
+
+    public static void verifyStoragePermissions(Activity activity) {
         try {
             int permission = ActivityCompat.checkSelfPermission(activity, Manifest.permission.WRITE_EXTERNAL_STORAGE);
             if (permission != PackageManager.PERMISSION_GRANTED) {
@@ -198,5 +218,31 @@ public class Utils {
     public static String getTrimmedAccompanyFullPath(String fileName) {
         String newFileName = fileName.substring(0, fileName.lastIndexOf(".")) + "-trim.wav";
         return ACCOMPANY_DIRECTORY + newFileName;
+    }
+
+    public static String getVoiceFullPath(String fileName) {
+        return WAV_DIRECTORY + fileName;
+    }
+
+    public static void mergeWAVs(String fileName, String trimmedAccompanyFullPath, String voiceFullPath,
+                                 float accompanyVolume, float voiceVolume) {
+        String resultPath = RECORD_DIRECTORY + fileName;
+
+        FFmpeg.execute("-y" +
+                " -i " + trimmedAccompanyFullPath +
+                " -i " + voiceFullPath +
+                " -filter_complex" +
+                " \"[0]volume=" + accompanyVolume * 2 + "[a];" +
+                "[1]volume=" + voiceVolume * 2 + "[b];" +
+                "[a][b]amix=inputs=2:duration=longest:dropout_transition=1\" " + resultPath);
+    }
+
+    public static void deleteFile(String fullPath) {
+        File file = new File(fullPath);
+
+        if (file.exists()) {
+            //noinspection ResultOfMethodCallIgnored
+            file.delete();
+        }
     }
 }

@@ -11,6 +11,10 @@ import com.ismaeldivita.chipnavigation.ChipNavigationBar;
 import com.sjtu.karaoke.fragment.AccountFragment;
 import com.sjtu.karaoke.fragment.ViewSongsFragment;
 
+import static com.sjtu.karaoke.util.Utils.makeDirectories;
+import static com.sjtu.karaoke.util.Utils.verifyRecorderPermissions;
+import static com.sjtu.karaoke.util.Utils.verifyStoragePermissions;
+
 /*
  * @ClassName: MainActivity
  * @Author: guozh
@@ -26,6 +30,10 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        verifyStoragePermissions(this);
+        verifyRecorderPermissions(this);
+        makeDirectories();
 
         ChipNavigationBar chipNavigationBar = findViewById(R.id.chipNavigation);
 

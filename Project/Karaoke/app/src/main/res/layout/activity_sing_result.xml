@@ -76,6 +76,8 @@
             android:thumbTint="@color/purple_500"
             android:progressBackgroundTint="@color/purple_200"
             android:progressTint="@color/purple_700"
+            android:paddingEnd="16dp"
+            android:paddingStart="16dp"
             tools:visibility="visible" />
 
         <TextView
@@ -116,6 +118,8 @@
             android:thumbTint="@color/purple_500"
             android:progressBackgroundTint="@color/purple_500"
             android:progressTint="@color/purple_700"
+            android:paddingEnd="16dp"
+            android:paddingStart="16dp"
             tools:visibility="visible" />
 
 
@@ -148,6 +152,8 @@
             android:thumbTint="@color/purple_500"
             android:progressBackgroundTint="@color/purple_500"
             android:progressTint="@color/purple_700"
+            android:paddingEnd="16dp"
+            android:paddingStart="16dp"
             tools:visibility="visible" />
 
     </LinearLayout>
