@@ -15,6 +15,9 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
+import static com.dreamfish.record.AudioRecorder.AUDIO_SAMPLE_RATE;
+import static com.dreamfish.record.AudioRecorder.NUM_OF_CHANNEL;
+
 /**
  * @author chenmy0709
  * @version V001R001C01B001
@@ -47,9 +50,9 @@ public class PcmToWav {
         header.fileLength = TOTAL_SIZE + (44 - 8);
         header.FmtHdrLeth = 16;
         header.BitsPerSample = 16;
-        header.Channels = 2;
+        header.Channels = NUM_OF_CHANNEL;
         header.FormatTag = 0x0001;
-        header.SamplesPerSec = 8000;
+        header.SamplesPerSec = AUDIO_SAMPLE_RATE;
         header.BlockAlign = (short) (header.Channels * header.BitsPerSample / 8);
         header.AvgBytesPerSec = header.BlockAlign * header.SamplesPerSec;
         header.DataHdrLeth = TOTAL_SIZE;
@@ -133,9 +136,9 @@ public class PcmToWav {
         header.fileLength = TOTAL_SIZE + (44 - 8);
         header.FmtHdrLeth = 16;
         header.BitsPerSample = 16;
-        header.Channels = 2;
+        header.Channels = NUM_OF_CHANNEL;
         header.FormatTag = 0x0001;
-        header.SamplesPerSec = 8000;
+        header.SamplesPerSec = AUDIO_SAMPLE_RATE;
         header.BlockAlign = (short) (header.Channels * header.BitsPerSample / 8);
         header.AvgBytesPerSec = header.BlockAlign * header.SamplesPerSec;
         header.DataHdrLeth = TOTAL_SIZE;

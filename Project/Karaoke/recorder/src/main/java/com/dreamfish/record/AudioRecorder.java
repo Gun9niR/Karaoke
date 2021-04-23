@@ -25,9 +25,10 @@ public class AudioRecorder {
     //采用频率
     //44100是目前的标准，但是某些设备仍然支持22050，16000，11025
     //采样频率一般共分为22.05KHz、44.1KHz、48KHz三个等级
-    private final static int AUDIO_SAMPLE_RATE = 16000;
+    public final static int AUDIO_SAMPLE_RATE = 44100;
     //声道 单声道
-    private final static int AUDIO_CHANNEL = AudioFormat.CHANNEL_IN_MONO;
+    private final static int AUDIO_CHANNEL = AudioFormat.CHANNEL_IN_STEREO;
+    public final static int NUM_OF_CHANNEL = 2;
     //编码
     private final static int AUDIO_ENCODING = AudioFormat.ENCODING_PCM_16BIT;
     // 缓冲区字节大小
@@ -82,9 +83,8 @@ public class AudioRecorder {
      */
     public void createDefaultAudio(String fileName) {
         // 获得缓冲区字节大小
-        // todo: set buffer size so that it is large enough to hold the bytes of any fucking sentence
         bufferSizeInBytes = AudioRecord.getMinBufferSize(AUDIO_SAMPLE_RATE,
-                AUDIO_CHANNEL, AUDIO_ENCODING) * 100;
+                AUDIO_CHANNEL, AUDIO_ENCODING);
         audioRecord = new AudioRecord(AUDIO_INPUT, AUDIO_SAMPLE_RATE, AUDIO_CHANNEL, AUDIO_ENCODING, bufferSizeInBytes);
         this.fileName = fileName;
         status = Status.STATUS_READY;
@@ -258,19 +258,15 @@ public class AudioRecorder {
      * @param filePaths
      */
     private void mergePCMFilesToWAVFile(final List<String> filePaths) {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                if (PcmToWav.mergePCMFilesToWAVFile(filePaths, FileUtil.getWavFileAbsolutePath(fileName))) {
-                    //操作成功
-                } else {
-                    //操作失败
-                    Log.e("AudioRecorder", "mergePCMFilesToWAVFile fail");
-                    throw new IllegalStateException("mergePCMFilesToWAVFile fail");
-                }
-                fileName = null;
-            }
-        }).start();
+        // synchronous task
+        if (PcmToWav.mergePCMFilesToWAVFile(filePaths, FileUtil.getWavFileAbsolutePath(fileName))) {
+            //操作成功
+        } else {
+            //操作失败
+            Log.e("AudioRecorder", "mergePCMFilesToWAVFile fail");
+            throw new IllegalStateException("mergePCMFilesToWAVFile fail");
+        }
+        fileName = null;
     }
 
     /**

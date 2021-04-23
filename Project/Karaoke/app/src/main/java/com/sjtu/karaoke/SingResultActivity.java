@@ -26,10 +26,14 @@ import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.TimeUnit;
 
-import static com.sjtu.karaoke.util.Utils.loadAndPrepareMediaplayer;
-import static com.sjtu.karaoke.util.Utils.loadWAVAndPrepareMediaPlayer;
+import static com.sjtu.karaoke.util.Constants.WAV_DIRECTORY;
+import static com.sjtu.karaoke.util.Utils.getAccompanyFullPath;
+import static com.sjtu.karaoke.util.Utils.getTrimmedAccompanyFullPath;
+import static com.sjtu.karaoke.util.Utils.getWAVDuration;
+import static com.sjtu.karaoke.util.Utils.loadFileAndPrepareMediaPlayer;
 import static com.sjtu.karaoke.util.Utils.saveFile;
 import static com.sjtu.karaoke.util.Utils.terminateMediaPlayer;
+import static com.sjtu.karaoke.util.Utils.trimWav;
 
 /*
  * @ClassName: SingResultActivity
@@ -56,6 +60,9 @@ public class SingResultActivity extends AppCompatActivity {
     Handler handler = new Handler();
     Runnable runnable;
 
+    float voiceVolume = 1;
+    float accompanyVolume = 1;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
@@ -63,10 +70,17 @@ public class SingResultActivity extends AppCompatActivity {
         setContentView(R.layout.activity_sing_result);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
-        accompanyPlayer = new MediaPlayer();
-        loadAndPrepareMediaplayer(this, accompanyPlayer, "Accompany.mp3");
         voicePlayer = new MediaPlayer();
-        loadWAVAndPrepareMediaPlayer(voicePlayer, "Attention.wav");
+        loadFileAndPrepareMediaPlayer(voicePlayer, WAV_DIRECTORY + "Attention.wav");
+        // trim accompany
+        String trimmedAccompanyPath = getTrimmedAccompanyFullPath("Attention.wav");
+        System.out.println("Original duration: " + getWAVDuration(WAV_DIRECTORY + "Attention.wav"));
+
+        trimWav(getAccompanyFullPath("Attention.wav"), trimmedAccompanyPath, 0, voicePlayer.getDuration());
+        System.out.println("Trimmed length: " + getWAVDuration(trimmedAccompanyPath));
+
+        accompanyPlayer = new MediaPlayer();
+        loadFileAndPrepareMediaPlayer(accompanyPlayer, trimmedAccompanyPath);
 
         // todo: 将伴奏截成和人声一样长的文件
         initRunnable();
@@ -93,7 +107,7 @@ public class SingResultActivity extends AppCompatActivity {
         fabSave.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                // todo: 合成音频文件
+                // todo: 合成音频文件，删除原唱文件
                 saveFile(SingResultActivity.this, "1.txt");
             }
         });
@@ -239,18 +253,18 @@ public class SingResultActivity extends AppCompatActivity {
 
         seekbarTuneVoice = findViewById(R.id.seekbarTuneVoice);
         seekbarTuneVoice.setMax(100);
-        seekbarTuneVoice.setProgress(80);
+        seekbarTuneVoice.setProgress(100);
 
         seekbarTuneAccompany = findViewById(R.id.seekbarTuneAccompany);
         seekbarTuneAccompany.setMax(100);
-        seekbarTuneAccompany.setProgress(70);
+        seekbarTuneAccompany.setProgress(100);
 
         seekbarTuneVoice.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                float volume = (float)progress / 100;
+                voiceVolume = (float)progress / 100;
                 if (fromUser)
-                    voicePlayer.setVolume(volume, volume);
+                    voicePlayer.setVolume(voiceVolume, voiceVolume);
             }
 
             @Override
@@ -267,9 +281,9 @@ public class SingResultActivity extends AppCompatActivity {
         seekbarTuneAccompany.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                float volume = (float)progress / 100;
+                accompanyVolume = (float)progress / 100;
                 if (fromUser)
-                    accompanyPlayer.setVolume(volume, volume);
+                    accompanyPlayer.setVolume(accompanyVolume, accompanyVolume);
             }
 
             @Override

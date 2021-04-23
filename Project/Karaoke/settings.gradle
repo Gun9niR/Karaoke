@@ -1,3 +1,5 @@
+include ':WavEditor'
+include ':waveditor'
 include ':recorder'
 include ':LrcView'
 include ':app'

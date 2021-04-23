@@ -14,15 +14,19 @@ import android.widget.Toast;
 
 import androidx.core.app.ActivityCompat;
 
+import com.sjtu.karaoke.waveditor.WavHeader;
+import com.sjtu.karaoke.waveditor.WavReader;
+import com.sjtu.karaoke.waveditor.WavWriter;
+
 import java.io.File;
 import java.io.IOException;
 
+import static com.sjtu.karaoke.util.Constants.ACCOMPANY_DIRECTORY;
 import static com.sjtu.karaoke.util.Constants.BASE_DIRECTORY;
 import static com.sjtu.karaoke.util.Constants.GET_RECORD_AUDIO;
 import static com.sjtu.karaoke.util.Constants.PERMISSIONS_RECORDER;
 import static com.sjtu.karaoke.util.Constants.PERMISSIONS_STORAGE;
 import static com.sjtu.karaoke.util.Constants.REQUEST_EXTERNAL_STORAGE;
-import static com.sjtu.karaoke.util.Constants.WAV_DIRECTORY;
 
 /*
  * @ClassName: Utils
@@ -66,14 +70,13 @@ public class Utils {
         }
     }
 
-    public static void loadWAVAndPrepareMediaPlayer(MediaPlayer mediaPlayer, String fileName) {
+    public static void loadFileAndPrepareMediaPlayer(MediaPlayer mediaPlayer, String fileName) {
         if (mediaPlayer == null) {
             return;
         }
 
-        System.out.println(WAV_DIRECTORY + fileName);
         try {
-            mediaPlayer.setDataSource(WAV_DIRECTORY + fileName);
+            mediaPlayer.setDataSource(fileName);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -129,5 +132,71 @@ public class Utils {
         toast.show();
     }
 
-    public static trimWav(String from, String to, )
+
+    /**
+     *
+     * @param from 原文件名，不包含路径
+     * @param to 目标文件名，不包含路径
+     * @param start 开始时间 ms
+     * @param end 结束时间 ms
+     */
+    public static void trimWav(String from, String to, int start, int end) {
+        System.out.println("========== Trimming" + from + " ==========");
+        try {
+            //创建原始音频文件流
+            WavReader reader = new WavReader(from);
+            //读取header
+            WavHeader header = reader.getHeader();
+            //创建裁剪文件输出文件流
+            WavWriter writer = new WavWriter(to);
+            writer.writeHeader(header);
+            //BYTE_PER_READ 指的是每次读取的字节数，可以自定义
+            byte[] buffer = new byte[WavReader.BUFFER_LENGTH];
+            int size = -1;
+            //移动至裁剪起点
+            reader.moveToStart(start);
+            //获取裁剪时间段对应的字节大小
+            int dataSize = reader.getIntervalSize(end - start);
+            int sizeCount = 0;
+            while (true) {
+                size = reader.readData(buffer, 0, buffer.length);
+                //当到达裁剪时间段大小时候结束读取
+                if (size < 0 || sizeCount >= dataSize) {
+                    //在close时候写入实际音频数据大小
+                    writer.closeFile();
+                    reader.closeFile();
+                    return;
+                }
+                //写入音频数据到裁剪文件
+                writer.writeData(buffer, 0, size);
+                //计算读取的字节数，注意，因为BYTE_PER_READ的原因，读取的字节数和实际的音频大小未必相同，
+                //不能把它直接当作实际音频数据大小
+                sizeCount += size;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        System.out.println("========== Trimming " + from + " finished ==========");
+    }
+
+    public static double getWAVDuration(String fullPath) {
+        WavReader wavReader = new WavReader(fullPath);
+        wavReader.getHeader();
+        return wavReader.getDuration();
+    }
+
+    public static String getAccompanyFullPath(String fileName) {
+        return ACCOMPANY_DIRECTORY + fileName;
+    }
+
+    /**
+     * Append -trim to the filePath given
+     * @param fileName
+     * @return
+     */
+    public static String getTrimmedAccompanyFullPath(String fileName) {
+        String newFileName = fileName.substring(0, fileName.lastIndexOf(".")) + "-trim.wav";
+        return ACCOMPANY_DIRECTORY + newFileName;
+    }
 }

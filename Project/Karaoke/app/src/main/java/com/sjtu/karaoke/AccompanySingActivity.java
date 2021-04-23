@@ -240,6 +240,8 @@ public class AccompanySingActivity extends AppCompatActivity {
                                 break;
                             case R.id.singingFinish:
                                 state = State.UNSTARTED;
+                                // it has to be placed here, to wait for the merging to complete
+                                voiceRecorder.stopRecord();
                                 Intent intent = new Intent(getApplicationContext(), SingResultActivity.class);
                                 startActivity(intent);
                                 break;
@@ -338,7 +340,6 @@ public class AccompanySingActivity extends AppCompatActivity {
             // 完成键只有在开始录音后，state变为非UNSTARTE才可以点，所以能进入这里必然是录音结束
             lrcView.alertPlayerReleased();
             videoView.stopPlayback();
-            voiceRecorder.stopRecord();
             terminateMediaPlayer(accompanyPlayer);
             handler.removeCallbacks(progressBarUpdater);
         }

@@ -23,4 +23,6 @@ public class Constants {
     public static final String BASE_DIRECTORY = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS) + FILE_SAVE_DIR;
 
     public static final String WAV_DIRECTORY = BASE_DIRECTORY + "wav/";
+
+    public static final String ACCOMPANY_DIRECTORY = BASE_DIRECTORY + "accompany/";
 }
