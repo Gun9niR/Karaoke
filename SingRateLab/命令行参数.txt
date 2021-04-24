@@ -1,0 +1,1 @@
+./f0analysis sentence.wav -t -s 50 -o sentence.txt

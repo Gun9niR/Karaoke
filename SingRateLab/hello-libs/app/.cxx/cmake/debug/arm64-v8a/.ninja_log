@@ -1,0 +1,23 @@
+# ninja log v5
+0	614	640613339	CMakeFiles/hello-libs.dir/hello-libs.cpp.o	1a2d4dbcbdc9ddba
+615	1395	640613340	C:/Academic/UnderGraduate/Sophomore-2/Principle and Practice of Software Engineering/project/android/hello-libs/app/build/intermediates/cmake/debug/obj/arm64-v8a/libhello-libs.so	b3dce239dcec09b1
+5	220	640691449	CMakeFiles/WORLD.dir/tools/audioio.cpp.o	8865f2744ac4d0f0
+2	221	640691449	CMakeFiles/WORLD.dir/tools/parameterio.cpp.o	7b66f9f17c62c65d
+221	416	640691449	C:/Academic/UnderGraduate/Sophomore-2/Principle and Practice of Software Engineering/project/android/hello-libs/app/build/intermediates/cmake/debug/obj/arm64-v8a/libWORLD.so	ae0ef970b1c42b66
+7	462	640691450	CMakeFiles/hello-libs.dir/hello-libs.cpp.o	43b4a7ba931d0824
+463	605	640691450	C:/Academic/UnderGraduate/Sophomore-2/Principle and Practice of Software Engineering/project/android/hello-libs/app/build/intermediates/cmake/debug/obj/arm64-v8a/libhello-libs.so	1e0d61ac20ec576
+10	341	640693034	CMakeFiles/WORLD.dir/f0analysis.cpp.o	fcb5b2625ea8c824
+8	434	640693034	CMakeFiles/WORLD.dir/cheaptrick.cpp.o	166d8b335d8e47af
+13	439	640693034	CMakeFiles/WORLD.dir/dio.cpp.o	9af9e064490a614e
+2	457	640693034	CMakeFiles/WORLD.dir/common.cpp.o	c33500a73b6d9da4
+5	458	640693034	CMakeFiles/WORLD.dir/codec.cpp.o	a1333586881af919
+30	459	640693034	CMakeFiles/WORLD.dir/stonemask.cpp.o	afcb803e7d793133
+23	460	640693034	CMakeFiles/WORLD.dir/matlabfunctions.cpp.o	e344a5a67ef4314a
+20	628	640693035	CMakeFiles/WORLD.dir/fft.cpp.o	9828980e83c3f2c8
+439	695	640693035	CMakeFiles/WORLD.dir/synthesis.cpp.o	3177dd10f5957216
+341	714	640693035	CMakeFiles/WORLD.dir/harvest.cpp.o	5873056c0a0aa5ae
+434	715	640693035	CMakeFiles/WORLD.dir/synthesisrealtime.cpp.o	e75c9e4dcb6ae545
+17	728	640693035	CMakeFiles/WORLD.dir/d4c.cpp.o	8f387da374503168
+26	767	640693035	CMakeFiles/WORLD.dir/hello-libs.cpp.o	54a37467d6aa611a
+767	905	640693035	C:/Academic/UnderGraduate/Sophomore-2/Principle and Practice of Software Engineering/project/android/hello-libs/app/build/intermediates/cmake/debug/obj/arm64-v8a/libWORLD.so	c3078dc0286af65d
+0	12	0	clean	a9b7fdbfddce7f13
