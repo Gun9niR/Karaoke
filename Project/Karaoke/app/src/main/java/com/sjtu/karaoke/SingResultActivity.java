@@ -1,7 +1,9 @@
 package com.sjtu.karaoke;
 
 import android.annotation.SuppressLint;
+import android.app.Dialog;
 import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
@@ -26,6 +28,7 @@ import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.TimeUnit;
 
+import static com.sjtu.karaoke.util.Utils.deleteOneFile;
 import static com.sjtu.karaoke.util.Utils.getAccompanyFullPath;
 import static com.sjtu.karaoke.util.Utils.getTrimmedAccompanyFullPath;
 import static com.sjtu.karaoke.util.Utils.getVoiceFullPath;
@@ -110,12 +113,14 @@ public class SingResultActivity extends AppCompatActivity {
                     showToast(getApplicationContext(), "文件已经保存");
                 }
                 // merge two .wav files, and put under .../Karaoke/record/
+                Dialog loadingDialog = new Dialog(SingResultActivity.this);
+                loadingDialog.setContentView(R.layout.dialog_loading);
+                loadingDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+                loadingDialog.show();
                 mergeWAVs(fileName, trimmedAccompanyFullPath, voiceFullPath, accompanyVolume, voiceVolume);
-
-//                deleteFile(trimmedAccompanyFullPath);
-//                deleteFile(voiceFullPath);
-
-
+                loadingDialog.dismiss();
+                showToast(getApplicationContext(), fileName + "已成功保存");
+                isFileSaved = true;
             }
         });
     }
@@ -316,6 +321,8 @@ public class SingResultActivity extends AppCompatActivity {
     @Override
     protected void onStop() {
         super.onStop();
+        deleteOneFile(trimmedAccompanyFullPath);
+        deleteOneFile(voiceFullPath);
         btnPause.callOnClick();
     }
 

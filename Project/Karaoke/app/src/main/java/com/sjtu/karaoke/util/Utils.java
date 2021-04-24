@@ -235,9 +235,11 @@ public class Utils {
                 " \"[0]volume=" + accompanyVolume * 2 + "[a];" +
                 "[1]volume=" + voiceVolume * 2 + "[b];" +
                 "[a][b]amix=inputs=2:duration=longest:dropout_transition=1\" " + resultPath);
+
+
     }
 
-    public static void deleteFile(String fullPath) {
+    public static void deleteOneFile(String fullPath) {
         File file = new File(fullPath);
 
         if (file.exists()) {
