@@ -42,9 +42,9 @@ public class LrcUtil {
                 lrcBean.setStart(startTime);
                 lrcBean.setLrc(text);
                 if (text.equals("") || text.equals("(music)")) {
-                    lrcBean.setShouldSing(false);
+                    lrcBean.setShouldRate(false);
                 } else {
-                    lrcBean.setShouldSing(true);
+                    lrcBean.setShouldRate(true);
                 }
                 list.add(lrcBean);
                 if (list.size() > 1) {

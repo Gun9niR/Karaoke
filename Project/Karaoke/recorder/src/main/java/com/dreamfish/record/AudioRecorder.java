@@ -7,6 +7,8 @@ import android.media.MediaRecorder;
 import android.text.TextUtils;
 import android.util.Log;
 
+import org.sang.lrcview.bean.LrcBean;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -94,7 +96,7 @@ public class AudioRecorder {
 
         // initialize lrc list, assuming the lrc file is not empty
         this.lrcs = lrcs;
-        ListIterator<LrcBean> lrcIterator = lrcs.listIterator();
+        lrcIterator = lrcs.listIterator();
         currentLrc = lrcIterator.next();
 
         status = Status.STATUS_READY;
@@ -189,6 +191,9 @@ public class AudioRecorder {
                 }
                 //清除
                 filesName.clear();
+                if (fos != null) {
+                    fos.close();
+                }
                 //将多个pcm文件转化为wav文件
                 mergePCMFilesToWAVFile(filePaths);
 
@@ -199,7 +204,7 @@ public class AudioRecorder {
                 //Log.d("AudioRecorder", "=====makePCMFileToWAVFile======");
                 //makePCMFileToWAVFile();
             }
-        } catch (IllegalStateException e) {
+        } catch (IllegalStateException | IOException e) {
             throw new IllegalStateException(e.getMessage());
         }
 
@@ -290,21 +295,21 @@ public class AudioRecorder {
         byte[] audiodata = new byte[bufferSizeInBytes];
 
         status = Status.STATUS_START;
-        while (status == Status.STATUS_START && lrcIterator.hasNext()) {
-            if (accompanyPlayer.getCurrentPosition() > currentLrc.getEnd()) {
+        while (status == Status.STATUS_START && lrcIterator!= null && lrcIterator.hasNext()) {
+            if (currentLrc != null && accompanyPlayer.getCurrentPosition() > currentLrc.getEnd()) {
                 if (currentLrc.shouldRate()) {
-                    // todo: convert file
-                    Log.d("Recording: ", "One line finished and should be rated");
+                    // todo: convert file and rewrite rating function
+
                 }
                 currentLrc = lrcIterator.next();
                 currentFileName = fileName + filesName.size();
                 setFileOutputStream();
             } else {
                 int readsize = audioRecord.read(audiodata, 0, bufferSizeInBytes);
-                System.out.println("Read " + readsize + " bytes from recorder");
+                // System.out.println("Read " + readsize + " bytes from recorder");
                 if (AudioRecord.ERROR_INVALID_OPERATION != readsize && fos != null) {
                     try {
-                        // writes very fucking fast
+                        // writes very fucking fastf
                         fos.write(audiodata);
                         if (listener != null) {
                             //用于拓展业务

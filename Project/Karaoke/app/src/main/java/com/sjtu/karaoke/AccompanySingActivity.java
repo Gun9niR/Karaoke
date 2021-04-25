@@ -36,6 +36,7 @@ import java.io.InputStreamReader;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.sjtu.karaoke.util.Utils.getScore;
 import static com.sjtu.karaoke.util.Utils.loadAndPrepareMediaplayer;
 import static com.sjtu.karaoke.util.Utils.terminateMediaPlayer;
 import static com.sjtu.karaoke.util.Utils.verifyRecorderPermissions;
@@ -59,7 +60,7 @@ public class AccompanySingActivity extends AppCompatActivity {
     VideoView videoView;
     LrcView lrcView;
     MediaPlayer accompanyPlayer;
-    ProgressBar mProgressBar, mScoreBar;
+    ProgressBar progressBar, scoreBar;
     TextView scoreRecorder;
     FloatingActionButton fab;
     Runnable progressBarUpdater;
@@ -70,7 +71,7 @@ public class AccompanySingActivity extends AppCompatActivity {
     Integer duration;
     State state;
     SingMode singMode;
-    List<LrcBean> lrcBeans;
+    List<LrcBean> lrcs;
 
     @RequiresApi(api = Build.VERSION_CODES.N)
     @Override
@@ -98,7 +99,6 @@ public class AccompanySingActivity extends AppCompatActivity {
         super.onStart();
         // return from sing result activity or from main activity, initialize all players
         if (state == State.UNSTARTED) {
-            initVoiceRecorder();
             // todo: read by file name
             // todo: voicePlayer
             // Player-related initialization
@@ -106,6 +106,7 @@ public class AccompanySingActivity extends AppCompatActivity {
             loadAndPrepareMediaplayer(this, accompanyPlayer, "Attention.mp3");
             initVideoView();
             initLrcView("Attention.lrc");
+            initVoiceRecorder();
             initProgressBar();
             initScoreBar();
             initFab();
@@ -119,14 +120,14 @@ public class AccompanySingActivity extends AppCompatActivity {
     private void initVoiceRecorder() {
         voiceRecorder = AudioRecorder.getInstance();
 
-        voiceRecorder.createDefaultAudio("Attention", lrcBeans);
+        voiceRecorder.createDefaultAudio("Attention", lrcs);
     }
 
     private void initProgressBarUpdater() {
         progressBarUpdater = new Runnable() {
             @Override
             public void run() {
-                mProgressBar.setProgress(accompanyPlayer.getCurrentPosition());
+                progressBar.setProgress(accompanyPlayer.getCurrentPosition());
                 handler.postDelayed(this, 500);
             }
         };
@@ -208,17 +209,24 @@ public class AccompanySingActivity extends AppCompatActivity {
     }
 
     private void initScoreBar() {
-        mScoreBar = (ProgressBar) findViewById(R.id.scoreBar);
-        mScoreBar.setMax(100);
-        mScoreBar.setProgress(80);
+        scoreBar = (ProgressBar) findViewById(R.id.scoreBar);
+        int numOfLinesToRate = 0;
+
+        for (LrcBean lrc: lrcs) {
+            if (lrc.shouldRate()) {
+                ++numOfLinesToRate;
+            }
+        }
+        scoreBar.setMax(numOfLinesToRate * 100);
+        scoreBar.setProgress(0);
         Drawable draw = getDrawable(R.drawable.custom_scorebar);
-        mScoreBar.setProgressDrawable(draw);
+        scoreBar.setProgressDrawable(draw);
     }
 
     private void initProgressBar() {
-        mProgressBar = (ProgressBar) findViewById(R.id.progressBar);
-        mProgressBar.setMax(accompanyPlayer.getDuration());
-        mProgressBar.setProgress(0);
+        progressBar = (ProgressBar) findViewById(R.id.progressBar);
+        progressBar.setMax(accompanyPlayer.getDuration());
+        progressBar.setProgress(0);
     }
 
     private void initBottomNavbar() {
@@ -287,7 +295,7 @@ public class AccompanySingActivity extends AppCompatActivity {
             e.printStackTrace();
         }
 
-        lrcBeans = lrcView.setLrc(lrc);
+        lrcs = lrcView.setLrc(lrc);
 
         lrcView.setPlayer(accompanyPlayer);
         lrcView.init();
@@ -299,8 +307,8 @@ public class AccompanySingActivity extends AppCompatActivity {
         if (item.getItemId() == R.id.retry) {
             if (state != State.UNSTARTED) {
                 // todo: clear record, reset score, progress bar, terminate async
-                mProgressBar.setProgress(0, true);
-                mScoreBar.setProgress(0, true);
+                progressBar.setProgress(0, true);
+                scoreBar.setProgress(0, true);
 
                 lrcView.init();
 
@@ -372,6 +380,11 @@ public class AccompanySingActivity extends AppCompatActivity {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.sing_menu, menu);
         return true;
+    }
+
+    public void rate() {
+        int score = getScore();
+        scoreBar.setProgress(scoreBar.getProgress() + score);
     }
 
     private enum State {

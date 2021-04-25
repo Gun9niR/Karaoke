@@ -23,6 +23,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 import static com.sjtu.karaoke.util.Constants.ACCOMPANY_DIRECTORY;
 import static com.sjtu.karaoke.util.Constants.BASE_DIRECTORY;
@@ -246,5 +247,10 @@ public class Utils {
             //noinspection ResultOfMethodCallIgnored
             file.delete();
         }
+    }
+
+    public static int getScore() {
+        Random r = new Random();
+        return r.nextInt(101);
     }
 }

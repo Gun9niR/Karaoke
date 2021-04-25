@@ -81,6 +81,7 @@ public class SingResultActivity extends AppCompatActivity {
         getFilePaths();
 
         voicePlayer = new MediaPlayer();
+        System.out.println("voice full path: " + voiceFullPath);
         loadFileAndPrepareMediaPlayer(voicePlayer, voiceFullPath);
         // trim accompany
         trimWav(getAccompanyFullPath(fileName), trimmedAccompanyFullPath, 0, voicePlayer.getDuration());
@@ -321,16 +322,17 @@ public class SingResultActivity extends AppCompatActivity {
     @Override
     protected void onStop() {
         super.onStop();
-        deleteOneFile(trimmedAccompanyFullPath);
-        deleteOneFile(voiceFullPath);
+
         btnPause.callOnClick();
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        // can't really
+        deleteOneFile(trimmedAccompanyFullPath);
+        deleteOneFile(voiceFullPath);
         handler.removeCallbacks(runnable);
-
         terminateMediaPlayer(voicePlayer);
         terminateMediaPlayer(accompanyPlayer);
     }

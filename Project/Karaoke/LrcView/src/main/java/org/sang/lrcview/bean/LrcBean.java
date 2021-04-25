@@ -44,10 +44,10 @@ public class LrcBean {
     }
 
     public boolean shouldRate() {
-        return shouldSing;
+        return shouldRate;
     }
 
-    public void setShouldRate(boolean shouldSing) {
-        this.shouldSing = shouldSing;
+    public void setShouldRate(boolean shouldRate) {
+        this.shouldRate = shouldRate;
     }
 }
