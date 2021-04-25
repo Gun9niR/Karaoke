@@ -7,15 +7,12 @@ import android.media.MediaRecorder;
 import android.text.TextUtils;
 import android.util.Log;
 
-import org.sang.lrcview.bean.LrcBean;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.ListIterator;
 
 /**
  * 实现录音
@@ -50,16 +47,12 @@ public class AudioRecorder {
     //录音文件
     private List<String> filesName = new ArrayList<>();
 
-    // LrcBean文件，用于定时截断文件
-    private List<LrcBean> lrcs;
-    private ListIterator<LrcBean> lrcIterator;
-    private LrcBean currentLrc;
-
     // 当前正在输出到的pcm文件
     FileOutputStream fos = null;
     File fo = null;
     String currentFileName= null;
 
+    private boolean shouldStartNewLine = false;
     /**
      * 类级的内部类，也就是静态类的成员式内部类，该内部类的实例与外部类的实例
      * 没有绑定关系，而且只有被调用时才会装载，从而实现了延迟加载
@@ -83,7 +76,7 @@ public class AudioRecorder {
      *
      * @param fileName 文件名
      */
-    public void createDefaultAudio(String fileName, List<LrcBean> lrcs) {
+    public void createDefaultAudio(String fileName) {
         // 获得缓冲区字节大小
         bufferSizeInBytes = AudioRecord.getMinBufferSize(AUDIO_SAMPLE_RATE,
                 AUDIO_CHANNEL, AUDIO_ENCODING);
@@ -93,11 +86,6 @@ public class AudioRecorder {
         // initialize file output
         currentFileName = fileName + filesName.size();
         setFileOutputStream();
-
-        // initialize lrc list, assuming the lrc file is not empty
-        this.lrcs = lrcs;
-        lrcIterator = lrcs.listIterator();
-        currentLrc = lrcIterator.next();
 
         status = Status.STATUS_READY;
     }
@@ -137,7 +125,7 @@ public class AudioRecorder {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                writeDataTOFile(listener, accompanyPlayer);
+                writeDataTOFile(listener);
             }
         }).start();
     }
@@ -168,10 +156,6 @@ public class AudioRecorder {
             fos = null;
             fo = null;
             currentFileName = null;
-
-            lrcs = null;
-            lrcIterator = null;
-            currentLrc = null;
 
             release();
         }
@@ -230,12 +214,6 @@ public class AudioRecorder {
         status = Status.STATUS_NO_READY;
     }
 
-
-    /**
-     * 将音频信息写入文件，这个方法始终在运行，并检测state
-     *
-     * @param listener 音频流的监听
-     */
 //    private void writeDataTOFile(RecordStreamListener listener) {
 //        // todo: 根据当前时间将音频输入到不同的文件
 //        // new一个byte数组用来存一些字节数据，大小为缓冲区大小
@@ -290,20 +268,34 @@ public class AudioRecorder {
 //            Log.e("AudioRecorder", e.getMessage());
 //        }
 //    }
-    private void writeDataTOFile(RecordStreamListener listener, MediaPlayer accompanyPlayer) {
+
+    public String getLastFinishedPCMFilePath() {
+        return filesName.get(filesName.size() - 2);
+    }
+
+    public boolean shouldStartNewLine() {
+        return shouldStartNewLine;
+    }
+
+    public void setShouldStartNewLine(boolean shouldStartNewLine) {
+        this.shouldStartNewLine = shouldStartNewLine;
+    }
+
+    private void writeDataTOFile(RecordStreamListener listener) {
         // new一个byte数组用来存一些字节数据，大小为缓冲区大小
         byte[] audiodata = new byte[bufferSizeInBytes];
 
         status = Status.STATUS_START;
-        while (status == Status.STATUS_START && lrcIterator!= null && lrcIterator.hasNext()) {
-            if (currentLrc != null && accompanyPlayer.getCurrentPosition() > currentLrc.getEnd()) {
-                if (currentLrc.shouldRate()) {
-                    // todo: convert file and rewrite rating function
-
-                }
-                currentLrc = lrcIterator.next();
+        while (status == Status.STATUS_START) {
+            if (shouldStartNewLine) {
                 currentFileName = fileName + filesName.size();
+                try {
+                    fos.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
                 setFileOutputStream();
+                shouldStartNewLine = false;
             } else {
                 int readsize = audioRecord.read(audiodata, 0, bufferSizeInBytes);
                 // System.out.println("Read " + readsize + " bytes from recorder");

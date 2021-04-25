@@ -34,6 +34,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.stream.Collectors;
 
 import static com.sjtu.karaoke.util.Utils.getScore;
@@ -72,6 +73,8 @@ public class AccompanySingActivity extends AppCompatActivity {
     State state;
     SingMode singMode;
     List<LrcBean> lrcs;
+    ListIterator<LrcBean> lrcIterator;
+    LrcBean currentLrc;
 
     @RequiresApi(api = Build.VERSION_CODES.N)
     @Override
@@ -120,7 +123,7 @@ public class AccompanySingActivity extends AppCompatActivity {
     private void initVoiceRecorder() {
         voiceRecorder = AudioRecorder.getInstance();
 
-        voiceRecorder.createDefaultAudio("Attention", lrcs);
+        voiceRecorder.createDefaultAudio("Attention");
     }
 
     private void initProgressBarUpdater() {
@@ -197,7 +200,29 @@ public class AccompanySingActivity extends AppCompatActivity {
 
         });
 
+        startSplittingLines();
+
         startUpdateProgressBar();
+    }
+
+    private void startSplittingLines() {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while (state == State.PLAYING && lrcIterator.hasNext()) {
+                    if (accompanyPlayer.getCurrentPosition() > currentLrc.getEnd()) {
+                        voiceRecorder.setShouldStartNewLine(true);
+                        // wait for the recorder to finish writing current file
+                        while (voiceRecorder.shouldStartNewLine()) { }
+
+                        if (currentLrc.shouldRate()) {
+                            rate(voiceRecorder.getLastFinishedPCMFilePath());
+                        }
+                        currentLrc = lrcIterator.next();
+                    }
+                }
+            }
+        }).start();
     }
 
     private void pauseAllPlayers() {
@@ -296,6 +321,8 @@ public class AccompanySingActivity extends AppCompatActivity {
         }
 
         lrcs = lrcView.setLrc(lrc);
+        lrcIterator = lrcs.listIterator();
+        currentLrc = lrcIterator.next();
 
         lrcView.setPlayer(accompanyPlayer);
         lrcView.init();
@@ -382,9 +409,9 @@ public class AccompanySingActivity extends AppCompatActivity {
         return true;
     }
 
-    public void rate() {
+    public void rate(String fullPath) {
         int score = getScore();
-        scoreBar.setProgress(scoreBar.getProgress() + score);
+        scoreBar.setProgress(scoreBar.getProgress() + score, true);
     }
 
     private enum State {
