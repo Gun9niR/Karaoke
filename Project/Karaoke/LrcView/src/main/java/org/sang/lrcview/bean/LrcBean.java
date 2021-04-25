@@ -8,6 +8,7 @@ public class LrcBean {
     private String lrc;
     private long start;
     private long end;
+    private boolean shouldSing;
 
     public LrcBean() {
     }
@@ -40,5 +41,13 @@ public class LrcBean {
 
     public void setEnd(long end) {
         this.end = end;
+    }
+
+    public boolean shouldSing() {
+        return shouldSing;
+    }
+
+    public void setShouldSing(boolean shouldSing) {
+        this.shouldSing = shouldSing;
     }
 }

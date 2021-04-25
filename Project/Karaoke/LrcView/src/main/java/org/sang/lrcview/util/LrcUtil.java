@@ -34,12 +34,18 @@ public class LrcUtil {
 
                 String text = lrc.substring(lrc.indexOf("]") + 1);
                 if (text == null || "".equals(text)) {
+                    // 检查空行
                     text = (i == split.length - 1) ? "" : "(music)";
                 }
 
                 LrcBean lrcBean = new LrcBean();
                 lrcBean.setStart(startTime);
                 lrcBean.setLrc(text);
+                if (text.equals("") || text.equals("(music)")) {
+                    lrcBean.setShouldSing(false);
+                } else {
+                    lrcBean.setShouldSing(true);
+                }
                 list.add(lrcBean);
                 if (list.size() > 1) {
                     list.get(list.size() - 2).setEnd(startTime);

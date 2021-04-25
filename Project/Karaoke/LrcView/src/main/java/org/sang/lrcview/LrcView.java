@@ -51,15 +51,18 @@ public class LrcView extends View {
         this.player = player;
     }
 
+
     /**
-     * 标准歌词字符串
      *
-     * @param lrc
+     * @param lrc .lrc文件中的字符串
+     * @return 每句开始时间(ms)的列表
      */
-    public void setLrc(String lrc) {
+    public List<LrcBean> setLrc(String lrc) {
         list = LrcUtil.parseStr2List(lrc);
         playerReleased = false;
         invalidate();
+
+        return list;
     }
 
     public LrcView(Context context) {

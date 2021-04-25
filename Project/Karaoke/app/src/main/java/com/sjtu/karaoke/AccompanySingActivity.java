@@ -27,11 +27,13 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import org.sang.lrcview.LrcView;
+import org.sang.lrcview.bean.LrcBean;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.List;
 import java.util.stream.Collectors;
 
 import static com.sjtu.karaoke.util.Utils.loadAndPrepareMediaplayer;
@@ -53,19 +55,22 @@ import static com.sjtu.karaoke.util.Utils.verifyRecorderPermissions;
 public class AccompanySingActivity extends AppCompatActivity {
 
     private static final int UPDATE_INTERVAL = 100;
+
     VideoView videoView;
     LrcView lrcView;
     MediaPlayer accompanyPlayer;
     ProgressBar mProgressBar, mScoreBar;
     TextView scoreRecorder;
     FloatingActionButton fab;
-    Integer duration;
-    State state;
-    SingMode singMode;
-    Handler handler = new Handler();
     Runnable progressBarUpdater;
     AudioRecorder voiceRecorder;
     BottomNavigationView bottomNavigationView;
+    Handler handler = new Handler();
+
+    Integer duration;
+    State state;
+    SingMode singMode;
+    List<LrcBean> startTimes;
 
     @RequiresApi(api = Build.VERSION_CODES.N)
     @Override
@@ -281,7 +286,8 @@ public class AccompanySingActivity extends AppCompatActivity {
             e.printStackTrace();
         }
 
-        lrcView.setLrc(lrc);
+        lrcBeans = lrcView.setLrc(lrc);
+
         lrcView.setPlayer(accompanyPlayer);
         lrcView.init();
     }
