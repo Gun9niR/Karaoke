@@ -70,7 +70,7 @@ public class AccompanySingActivity extends AppCompatActivity {
     Integer duration;
     State state;
     SingMode singMode;
-    List<LrcBean> startTimes;
+    List<LrcBean> lrcBeans;
 
     @RequiresApi(api = Build.VERSION_CODES.N)
     @Override
@@ -92,6 +92,7 @@ public class AccompanySingActivity extends AppCompatActivity {
          */
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.N)
     @Override
     protected void onStart() {
         super.onStart();
@@ -118,7 +119,7 @@ public class AccompanySingActivity extends AppCompatActivity {
     private void initVoiceRecorder() {
         voiceRecorder = AudioRecorder.getInstance();
 
-        voiceRecorder.createDefaultAudio("Attention");
+        voiceRecorder.createDefaultAudio("Attention", lrcBeans);
     }
 
     private void initProgressBarUpdater() {
@@ -168,7 +169,7 @@ public class AccompanySingActivity extends AppCompatActivity {
     }
 
     private void startRecording() {
-        voiceRecorder.startRecord(null);
+        voiceRecorder.startRecord(null, accompanyPlayer);
     }
 
     private void startUpdateProgressBar() {
