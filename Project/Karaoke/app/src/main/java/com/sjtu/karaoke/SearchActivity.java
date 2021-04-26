@@ -3,6 +3,7 @@ package com.sjtu.karaoke;
 import android.app.SearchManager;
 import android.content.Context;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.view.Menu;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -12,6 +13,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.sjtu.karaoke.adapter.SongListAdapter;
+import com.sjtu.karaoke.entity.SongInfo;
 import com.sjtu.karaoke.util.Data;
 
 import java.util.ArrayList;
@@ -30,8 +32,11 @@ import java.util.Objects;
  */
 
 public class SearchActivity extends AppCompatActivity {
-    private List<Data.Song> songs;
+    private List<SongInfo> songInfo;
+    private RecyclerView songRecyclerView;
     private SongListAdapter adapter;
+    private List<SongInfo> songList;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -44,14 +49,19 @@ public class SearchActivity extends AppCompatActivity {
         getSupportActionBar().setHomeButtonEnabled(true);
         getSupportActionBar().setDisplayShowTitleEnabled(false);
         // set up list
-        RecyclerView songSearchList = (RecyclerView) findViewById(R.id.songSearchList);
+        initRecyclerView();
+    }
 
-        songs = Data.songs;
-        adapter = new SongListAdapter(songs);
+    private void initRecyclerView() {
+        songRecyclerView = findViewById(R.id.songSearchList);
+
+        // todo: read data from intent
+        songList = getIntent().getParcelableArrayListExtra("songList");
+        adapter = new SongListAdapter(songList);
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getApplicationContext());
-        songSearchList.setLayoutManager(layoutManager);
-        songSearchList.setAdapter(adapter);
-        songSearchList.setNestedScrollingEnabled(false);
+        songRecyclerView.setLayoutManager(layoutManager);
+        songRecyclerView.setAdapter(adapter);
+        songRecyclerView.setNestedScrollingEnabled(false);
     }
 
     @Override
@@ -70,9 +80,9 @@ public class SearchActivity extends AppCompatActivity {
 
             @Override
             public boolean onQueryTextChange(String newText) {
-                List<Data.Song> searchedSongs = new ArrayList<>();
-                for (Data.Song song: songs) {
-                    if (song.songName.contains(newText)) {
+                List<SongInfo> searchedSongs = new ArrayList<>();
+                for (SongInfo song: songList) {
+                    if (song.getSongName().contains(newText)) {
                         searchedSongs.add(song);
                     }
                 }

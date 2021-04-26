@@ -83,7 +83,7 @@ public class AudioRecorder {
         audioRecord = new AudioRecord(AUDIO_INPUT, AUDIO_SAMPLE_RATE, AUDIO_CHANNEL, AUDIO_ENCODING, bufferSizeInBytes);
         this.fileName = fileName;
 
-        // initialize file output
+        // initialize file name (no extension)
         currentFileName = fileName + filesName.size();
         setFileOutputStream();
 
@@ -213,61 +213,6 @@ public class AudioRecorder {
 
         status = Status.STATUS_NO_READY;
     }
-
-//    private void writeDataTOFile(RecordStreamListener listener) {
-//        // todo: 根据当前时间将音频输入到不同的文件
-//        // new一个byte数组用来存一些字节数据，大小为缓冲区大小
-//        byte[] audiodata = new byte[bufferSizeInBytes];
-//
-//        FileOutputStream fos = null;
-//        int readsize = 0;
-//        try {
-//            String currentFileName = fileName;
-//            if (status == Status.STATUS_PAUSE) {
-//                //假如是暂停录音 将文件名后面加个数字,防止重名文件内容被覆盖
-//                currentFileName += filesName.size();
-//
-//            }
-//            filesName.add(currentFileName);
-//            File file = new File(FileUtil.getPcmFileAbsolutePath(currentFileName));
-//            Log.d("File path:", FileUtil.getPcmFileAbsolutePath(currentFileName));
-//            if (file.exists()) {
-//                file.delete();
-//            }
-//            fos = new FileOutputStream(file);// 建立一个可存取字节的文件
-//        } catch (IllegalStateException e) {
-//            Log.e("AudioRecorder", e.getMessage());
-//            throw new IllegalStateException(e.getMessage());
-//        } catch (FileNotFoundException e) {
-//            Log.e("AudioRecorder", e.getMessage());
-//
-//        }
-//        //将录音状态设置成正在录音状态
-//        status = Status.STATUS_START;
-//        while (status == Status.STATUS_START) {
-//            readsize = audioRecord.read(audiodata, 0, bufferSizeInBytes);
-//            System.out.println("Read " + readsize + " bytes from recorder");
-//            if (AudioRecord.ERROR_INVALID_OPERATION != readsize && fos != null) {
-//                try {
-//                    // writes very fucking fast
-//                    fos.write(audiodata);
-//                    if (listener != null) {
-//                        //用于拓展业务
-//                        listener.recordOfByte(audiodata, 0, audiodata.length);
-//                    }
-//                } catch (IOException e) {
-//                    Log.e("AudioRecorder", e.getMessage());
-//                }
-//            }
-//        }
-//        try {
-//            if (fos != null) {
-//                fos.close();// 关闭写入流
-//            }
-//        } catch (IOException e) {
-//            Log.e("AudioRecorder", e.getMessage());
-//        }
-//    }
 
     public String getLastFinishedPCMFilePath() {
         return filesName.get(filesName.size() - 2);

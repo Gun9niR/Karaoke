@@ -32,8 +32,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.sjtu.karaoke.util.Utils.loadAndPrepareMediaplayer;
-import static com.sjtu.karaoke.util.Utils.terminateMediaPlayer;
+import static com.sjtu.karaoke.util.MediaPlayerUtil.loadAndPrepareMediaplayer;
+import static com.sjtu.karaoke.util.MediaPlayerUtil.terminateMediaPlayer;
+
 
 /*
  * @ClassName: InstrumentSingActivity

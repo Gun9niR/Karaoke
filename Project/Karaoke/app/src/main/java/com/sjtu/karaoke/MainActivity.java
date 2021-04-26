@@ -11,9 +11,9 @@ import com.ismaeldivita.chipnavigation.ChipNavigationBar;
 import com.sjtu.karaoke.fragment.AccountFragment;
 import com.sjtu.karaoke.fragment.ViewSongsFragment;
 
-import static com.sjtu.karaoke.util.Utils.makeDirectories;
-import static com.sjtu.karaoke.util.Utils.verifyRecorderPermissions;
-import static com.sjtu.karaoke.util.Utils.verifyStoragePermissions;
+import static com.sjtu.karaoke.util.MiscUtil.makeDirectories;
+import static com.sjtu.karaoke.util.MiscUtil.verifyRecorderPermissions;
+import static com.sjtu.karaoke.util.MiscUtil.verifyStoragePermissions;
 
 /*
  * @ClassName: MainActivity

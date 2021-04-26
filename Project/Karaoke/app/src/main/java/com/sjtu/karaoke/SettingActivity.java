@@ -10,7 +10,7 @@ import androidx.appcompat.widget.Toolbar;
 
 import com.sjtu.karaoke.adapter.SettingAdapter;
 
-import static com.sjtu.karaoke.util.Utils.showToast;
+import static com.sjtu.karaoke.util.MiscUtil.showToast;
 
 /*
  * @ClassName: SettingActivity

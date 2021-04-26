@@ -3,7 +3,6 @@ package com.sjtu.karaoke;
 import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
@@ -28,15 +27,17 @@ import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.TimeUnit;
 
-import static com.sjtu.karaoke.util.Utils.deleteOneFile;
-import static com.sjtu.karaoke.util.Utils.getAccompanyFullPath;
-import static com.sjtu.karaoke.util.Utils.getTrimmedAccompanyFullPath;
-import static com.sjtu.karaoke.util.Utils.getVoiceFullPath;
-import static com.sjtu.karaoke.util.Utils.loadFileAndPrepareMediaPlayer;
-import static com.sjtu.karaoke.util.Utils.mergeWAVs;
-import static com.sjtu.karaoke.util.Utils.showToast;
-import static com.sjtu.karaoke.util.Utils.terminateMediaPlayer;
-import static com.sjtu.karaoke.util.Utils.trimWav;
+import static com.sjtu.karaoke.util.Constants.PROGRESS_UPDATE_INTERVAL;
+import static com.sjtu.karaoke.util.FileUtil.deleteOneFile;
+import static com.sjtu.karaoke.util.MediaPlayerUtil.loadFileAndPrepareMediaPlayer;
+import static com.sjtu.karaoke.util.MediaPlayerUtil.terminateMediaPlayer;
+import static com.sjtu.karaoke.util.MiscUtil.getAccompanyFullPath;
+import static com.sjtu.karaoke.util.MiscUtil.getTrimmedAccompanyFullPath;
+import static com.sjtu.karaoke.util.MiscUtil.getVoiceFullPath;
+import static com.sjtu.karaoke.util.MiscUtil.showLoadingDialog;
+import static com.sjtu.karaoke.util.MiscUtil.showToast;
+import static com.sjtu.karaoke.util.WavUtil.mergeWAVs;
+import static com.sjtu.karaoke.util.WavUtil.trimWav;
 
 /*
  * @ClassName: SingResultActivity
@@ -66,10 +67,10 @@ public class SingResultActivity extends AppCompatActivity {
 
     boolean isFileSaved = false;
 
-    // record name, file name should be the same
-    // todo: change file name
-    String fileName = "Attention.wav";
+    String songName;
+    // 需要将伴奏裁减成和录音一样长的音频
     String trimmedAccompanyFullPath;
+    // 上一个activity中录制的录音
     String voiceFullPath;
 
     @Override
@@ -78,13 +79,13 @@ public class SingResultActivity extends AppCompatActivity {
         setContentView(R.layout.activity_sing_result);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
+        getSongName();
         getFilePaths();
 
         voicePlayer = new MediaPlayer();
-        System.out.println("voice full path: " + voiceFullPath);
         loadFileAndPrepareMediaPlayer(voicePlayer, voiceFullPath);
         // trim accompany
-        trimWav(getAccompanyFullPath(fileName), trimmedAccompanyFullPath, 0, voicePlayer.getDuration());
+        trimWav(getAccompanyFullPath(songName), trimmedAccompanyFullPath, 0, voicePlayer.getDuration());
 
         accompanyPlayer = new MediaPlayer();
         loadFileAndPrepareMediaPlayer(accompanyPlayer, trimmedAccompanyFullPath);
@@ -100,9 +101,13 @@ public class SingResultActivity extends AppCompatActivity {
         initFab();
     }
 
+    private void getSongName() {
+        songName = getIntent().getStringExtra("songName");
+    }
+
     private void getFilePaths() {
-        trimmedAccompanyFullPath = getTrimmedAccompanyFullPath(fileName);
-        voiceFullPath = getVoiceFullPath(fileName);
+        trimmedAccompanyFullPath = getTrimmedAccompanyFullPath(songName);
+        voiceFullPath = getVoiceFullPath(songName);
     }
 
     private void initFab() {
@@ -114,13 +119,10 @@ public class SingResultActivity extends AppCompatActivity {
                     showToast(getApplicationContext(), "文件已经保存");
                 }
                 // merge two .wav files, and put under .../Karaoke/record/
-                Dialog loadingDialog = new Dialog(SingResultActivity.this);
-                loadingDialog.setContentView(R.layout.dialog_loading);
-                loadingDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-                loadingDialog.show();
-                mergeWAVs(fileName, trimmedAccompanyFullPath, voiceFullPath, accompanyVolume, voiceVolume);
+                Dialog loadingDialog = showLoadingDialog(SingResultActivity.this, "正在生成作品...");
+                String resultFileName = mergeWAVs(songName, trimmedAccompanyFullPath, voiceFullPath, accompanyVolume, voiceVolume);
                 loadingDialog.dismiss();
-                showToast(getApplicationContext(), fileName + "已成功保存");
+                showToast(getApplicationContext(), resultFileName + "已成功保存");
                 isFileSaved = true;
             }
         });
@@ -131,34 +133,31 @@ public class SingResultActivity extends AppCompatActivity {
             @Override
             public void run() {
                 seekBarResultProgress.setProgress(voicePlayer.getCurrentPosition());
-                handler.postDelayed(this, 500);
+                handler.postDelayed(this, PROGRESS_UPDATE_INTERVAL);
             }
         };
     }
 
     private void initToolBar() {
-
         toolbar = findViewById(R.id.toolbarResult);
 
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayShowTitleEnabled(false);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setHomeButtonEnabled(true);
-
     }
 
     private void initTitle() {
-
         titleText = findViewById(R.id.toolbarResultTitle);
 
-        Spannable songName = new SpannableString("Attention");
+        Spannable songName = new SpannableString(this.songName);
         songName.setSpan(new ForegroundColorSpan(Color.WHITE), 0, songName.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
         titleText.setText(songName);
 
-        Spannable rating = new SpannableString("  SS");
-        rating.setSpan(new ForegroundColorSpan(Color.YELLOW), 0, rating.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-        titleText.append(rating);
-
+        // todo: change rank
+        Spannable rank = new SpannableString("  SS");
+        rank.setSpan(new ForegroundColorSpan(Color.YELLOW), 0, rank.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        titleText.append(rank);
     }
 
     private void initBottomNavbar() {
@@ -194,7 +193,6 @@ public class SingResultActivity extends AppCompatActivity {
         playerDuration.setText(sDuration);
 
         // seekbar
-
         seekBarResultProgress = findViewById(R.id.seekbarResultProgress);
         seekBarResultProgress.setMax(duration);
         seekBarResultProgress.setProgress(0);

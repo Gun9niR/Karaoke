@@ -24,7 +24,8 @@ public class Data {
         add(new Song("Attention", "Charlie Puth", R.drawable.voice_notes));
         add(new Song("Dangerously", "Charlie Puth", R.drawable.nine_track_mind));
         add(new Song("Back to December", "Taylor Swift", R.drawable.speak_now));
-        add(new Song("Back to December", "Taylor Swift", R.drawable.speak_now));
+        add(new Song("Dangerously", "Charlie Puth", R.drawable.nine_track_mind));
+        add(new Song("Dangerously", "Charlie Puth", R.drawable.nine_track_mind));
     }};
 
     public static class Record {

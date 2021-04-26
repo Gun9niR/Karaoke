@@ -23,8 +23,8 @@ import java.util.Objects;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
-import static com.sjtu.karaoke.util.Utils.loadAndPrepareMediaplayer;
-import static com.sjtu.karaoke.util.Utils.terminateMediaPlayer;
+import static com.sjtu.karaoke.util.MediaPlayerUtil.loadAndPrepareMediaplayer;
+import static com.sjtu.karaoke.util.MediaPlayerUtil.terminateMediaPlayer;
 
 /*
  * @ClassName: LocalRecordActivity

@@ -17,7 +17,7 @@ import com.sjtu.karaoke.R;
 import java.util.List;
 
 import static com.sjtu.karaoke.util.Data.Record.getRecordTimeStr;
-import static com.sjtu.karaoke.util.Utils.showToast;
+import static com.sjtu.karaoke.util.MiscUtil.showToast;
 
 /*
  * @ClassName: RecordListAdapter

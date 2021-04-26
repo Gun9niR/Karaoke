@@ -3,6 +3,8 @@ package com.sjtu.karaoke.fragment;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
+import android.os.Parcelable;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -13,6 +15,7 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import androidx.viewpager2.widget.CompositePageTransformer;
 import androidx.viewpager2.widget.MarginPageTransformer;
 import androidx.viewpager2.widget.ViewPager2;
@@ -21,10 +24,22 @@ import com.sjtu.karaoke.R;
 import com.sjtu.karaoke.SearchActivity;
 import com.sjtu.karaoke.adapter.CarouselAdapter;
 import com.sjtu.karaoke.adapter.SongListAdapter;
-import com.sjtu.karaoke.util.Data;
+import com.sjtu.karaoke.entity.SongInfo;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.Response;
+
+import static com.sjtu.karaoke.util.MiscUtil.getSongInfo;
+import static com.sjtu.karaoke.util.MiscUtil.showToast;
 
 /*
  * @ClassName: ViewSongsFragment
@@ -39,6 +54,7 @@ import java.util.List;
 
 public class ViewSongsFragment extends Fragment {
     // carousel
+    View view;
     private ViewPager2 carousel;
     private final Handler carouselHandler = new Handler();
     private final Runnable sliderRunnable = new Runnable() {
@@ -47,34 +63,137 @@ public class ViewSongsFragment extends Fragment {
             carousel.setCurrentItem(carousel.getCurrentItem() + 1);
         }
     };
+    private SwipeRefreshLayout swipeRefreshLayout;
+    private SwipeRefreshLayout.OnRefreshListener refreshListener;
+
+    private RecyclerView songRecyclerView;
+    private SongListAdapter adapter;
+
+    private List<SongInfo> songList;
+
     static final int CAROUSEL_INTERVAL = 3000;
 
     public ViewSongsFragment() { }
 
     public static ViewSongsFragment newInstance(String param1, String param2) {
-        ViewSongsFragment fragment = new ViewSongsFragment();
-        return fragment;
+        return new ViewSongsFragment();
     }
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-    }
+    public void onCreate(Bundle savedInstanceState) { super.onCreate(savedInstanceState); }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        View view = inflater.inflate(R.layout.fragment_view_songs, container, false);
+        view = inflater.inflate(R.layout.fragment_view_songs, container, false);
 
         // find the carousel
         carousel = (ViewPager2) view.findViewById(R.id.carousel);
 
+        initSwipeRefreshLayout();
+
+        initSongRecyclerView();
+
+        initCarousel();
+
+        // set up toolbar
+        initToolbar();
+
+        return view;
+    }
+
+    private void initSongRecyclerView() {
+        songRecyclerView = view.findViewById(R.id.songList);
+        songList = new ArrayList<>();
+        adapter = new SongListAdapter(songList);
+        songRecyclerView.setAdapter(adapter);
+        refreshListener.onRefresh();
+        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getContext());
+        songRecyclerView.setLayoutManager(layoutManager);
+        songRecyclerView.setNestedScrollingEnabled(false);
+    }
+
+    private void setSongs(List<SongInfo> songs) {
+        getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                // Stuff that updates the UI
+                adapter.setSongs(songs);
+                adapter.notifyDataSetChanged();
+            }
+        });
+
+    }
+
+    private void initToolbar() {
+        Toolbar toolbar = view.findViewById(R.id.toolbarViewSongs);
+        toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                // go to search activity
+                // put the list of SongInfo to the intent, so that SearchSongActivity won't have to get them from server again
+                Intent intent = new Intent(getActivity(), SearchActivity.class);
+                intent.putParcelableArrayListExtra("songList", (ArrayList<? extends Parcelable>) songList);
+                startActivity(intent);
+                return true;
+            }
+        });
+    }
+
+    private void initSwipeRefreshLayout() {
+        swipeRefreshLayout = view.findViewById(R.id.homepageSwipe);
+        refreshListener = new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                getSongInfo(new Callback() {
+
+                    @Override
+                    public void onFailure(Call call, IOException e) {
+                        e.printStackTrace();
+                        Looper.prepare();
+                        showToast(getActivity(), "从服务器获取数据失败，请重试!");
+                        swipeRefreshLayout.setRefreshing(false);
+                        Looper.loop();
+                    }
+
+                    @Override
+                    public void onResponse(Call call, Response response) throws IOException {
+                        try {
+                            String jsonString = response.body().string();
+                            JSONArray jsonArray = new JSONArray(jsonString);
+                            int length = jsonArray.length();
+
+                            songList = new ArrayList<>();
+                            for (int i = 0; i < length; ++i) {
+                                JSONObject songInfo = jsonArray.getJSONObject(i);
+                                songList.add(new SongInfo(
+                                        (Integer) songInfo.get("id"),
+                                        (String) songInfo.get("song_name"),
+                                        (String) songInfo.get("singer")));
+                            }
+                            setSongs(songList);
+
+                        } catch (JSONException e) {
+                            showToast(getActivity(), "从服务器获取异常数据，请重试!");
+                            e.printStackTrace();
+                        }
+
+                        swipeRefreshLayout.setRefreshing(false);
+                    }
+                });
+            }
+        };
+        swipeRefreshLayout.setOnRefreshListener(refreshListener);
+    }
+
+    private void initCarousel() {
         // prepare list of images from drawable
         List<Integer> carouselImages = new ArrayList<>();
         carouselImages.add(R.drawable.carousel_attention);
         carouselImages.add(R.drawable.carousel_dangerously);
         carouselImages.add(R.drawable.carousel_back_to_december);
+
         // set adapter
         carousel.setAdapter(new CarouselAdapter(carouselImages, carousel));
 
@@ -104,29 +223,5 @@ public class ViewSongsFragment extends Fragment {
                 carouselHandler.postDelayed(sliderRunnable, CAROUSEL_INTERVAL);
             }
         });
-
-        RecyclerView songList = (RecyclerView) view.findViewById(R.id.songList);
-
-        // get song data
-        List<Data.Song> songs = Data.songs;
-
-        SongListAdapter adapter = new SongListAdapter(songs);
-        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getContext());
-        songList.setLayoutManager(layoutManager);
-        songList.setAdapter(adapter);
-        songList.setNestedScrollingEnabled(false);
-
-        // set up toolbar
-        Toolbar toolbar = view.findViewById(R.id.toolbarViewSongs);
-        toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
-            @Override
-            public boolean onMenuItemClick(MenuItem item) {
-                // go to search activity
-                Intent intent = new Intent(getActivity(), SearchActivity.class);
-                startActivity(intent);
-                return true;
-            }
-        });
-        return view;
     }
 }

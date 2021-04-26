@@ -3,7 +3,6 @@ package com.sjtu.karaoke;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.media.MediaPlayer;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -26,10 +25,12 @@ import com.dreamfish.record.AudioRecorder;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
+import org.apache.commons.io.FilenameUtils;
 import org.sang.lrcview.LrcView;
 import org.sang.lrcview.bean.LrcBean;
 
 import java.io.BufferedReader;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -37,10 +38,17 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.stream.Collectors;
 
-import static com.sjtu.karaoke.util.Utils.getScore;
-import static com.sjtu.karaoke.util.Utils.loadAndPrepareMediaplayer;
-import static com.sjtu.karaoke.util.Utils.terminateMediaPlayer;
-import static com.sjtu.karaoke.util.Utils.verifyRecorderPermissions;
+import static com.dreamfish.record.PcmToWav.makePCMFileToWAVFile;
+import static com.sjtu.karaoke.util.Constants.PROGRESS_UPDATE_INTERVAL;
+import static com.sjtu.karaoke.util.Constants.TRIMMED_VOICE_WAV_DIRECTORY;
+import static com.sjtu.karaoke.util.MediaPlayerUtil.loadFileAndPrepareMediaPlayer;
+import static com.sjtu.karaoke.util.MediaPlayerUtil.terminateMediaPlayer;
+import static com.sjtu.karaoke.util.MiscUtil.getAccompanyFullPath;
+import static com.sjtu.karaoke.util.MiscUtil.getLyricFullPath;
+import static com.sjtu.karaoke.util.MiscUtil.getMVFullPath;
+import static com.sjtu.karaoke.util.MiscUtil.getOriginalFullPath;
+import static com.sjtu.karaoke.util.MiscUtil.getScore;
+import static com.sjtu.karaoke.util.MiscUtil.verifyRecorderPermissions;
 
 /*
  * @ClassName: AccompanySingActivity
@@ -55,25 +63,31 @@ import static com.sjtu.karaoke.util.Utils.verifyRecorderPermissions;
  */
 
 public class AccompanySingActivity extends AppCompatActivity {
-
-    private static final int UPDATE_INTERVAL = 100;
-
     VideoView videoView;
     LrcView lrcView;
     MediaPlayer accompanyPlayer;
+    MediaPlayer originalPlayer;
     ProgressBar progressBar, scoreBar;
-    TextView scoreRecorder;
     FloatingActionButton fab;
     Runnable progressBarUpdater;
     AudioRecorder voiceRecorder;
     BottomNavigationView bottomNavigationView;
     Handler handler = new Handler();
 
+    // 状态量
+    // 当前歌名
+    String songName;
+    // 歌曲的持续时间，mv和所有伴奏的声音时长一样
     Integer duration;
+    // 当前的播放状态，未开始、正在播放、暂停
     State state;
+    // 有/无原唱
     SingMode singMode;
+    // 每句话的歌词
     List<LrcBean> lrcs;
+    // 当前歌词迭代器
     ListIterator<LrcBean> lrcIterator;
+    // 当前歌词
     LrcBean currentLrc;
 
     @RequiresApi(api = Build.VERSION_CODES.N)
@@ -87,6 +101,7 @@ public class AccompanySingActivity extends AppCompatActivity {
         verifyRecorderPermissions(this);
 
         // UI-related initialization
+        initSongName();
         initToolbar();
         initState();
         /**
@@ -96,19 +111,24 @@ public class AccompanySingActivity extends AppCompatActivity {
          */
     }
 
+    private void initSongName() {
+        Intent intent = getIntent();
+        songName = intent.getStringExtra("songName");
+    }
+
     @RequiresApi(api = Build.VERSION_CODES.N)
     @Override
     protected void onStart() {
         super.onStart();
         // return from sing result activity or from main activity, initialize all players
         if (state == State.UNSTARTED) {
-            // todo: read by file name
-            // todo: voicePlayer
             // Player-related initialization
             accompanyPlayer = new MediaPlayer();
-            loadAndPrepareMediaplayer(this, accompanyPlayer, "Attention.mp3");
+            loadFileAndPrepareMediaPlayer(accompanyPlayer, getAccompanyFullPath(songName));
+            originalPlayer = new MediaPlayer();
+            loadFileAndPrepareMediaPlayer(originalPlayer, getOriginalFullPath(songName));
             initVideoView();
-            initLrcView("Attention.lrc");
+            initLrcView();
             initVoiceRecorder();
             initProgressBar();
             initScoreBar();
@@ -119,11 +139,10 @@ public class AccompanySingActivity extends AppCompatActivity {
         }
     }
 
-    // todo: change to file name
     private void initVoiceRecorder() {
         voiceRecorder = AudioRecorder.getInstance();
 
-        voiceRecorder.createDefaultAudio("Attention");
+        voiceRecorder.createDefaultAudio(songName);
     }
 
     private void initProgressBarUpdater() {
@@ -131,7 +150,7 @@ public class AccompanySingActivity extends AppCompatActivity {
             @Override
             public void run() {
                 progressBar.setProgress(accompanyPlayer.getCurrentPosition());
-                handler.postDelayed(this, 500);
+                handler.postDelayed(this, PROGRESS_UPDATE_INTERVAL);
             }
         };
     }
@@ -194,10 +213,11 @@ public class AccompanySingActivity extends AppCompatActivity {
 
             @Override
             public void onCompletion(MediaPlayer accompanyPlayer) {
+                // todo: also pass score
                 Intent intent = new Intent(getApplicationContext(), SingResultActivity.class);
+                intent.putExtra("songName", songName);
                 startActivity(intent);
             }
-
         });
 
         startSplittingLines();
@@ -306,26 +326,24 @@ public class AccompanySingActivity extends AppCompatActivity {
     }
 
     @RequiresApi(api = Build.VERSION_CODES.N)
-    private void initLrcView(String fileName) {
+    private void initLrcView() {
         lrcView = findViewById(R.id.lrcRoller);
         lrcView.setHighLineColor(ContextCompat.getColor(getApplicationContext(), R.color.purple_500));
-
-        String lrc = null;
         try {
-            InputStream stream = getAssets().open(fileName);
+            InputStream is = new FileInputStream(getLyricFullPath(songName));
 
-            lrc = new BufferedReader(new InputStreamReader(stream))
+            String lrc = new BufferedReader(new InputStreamReader(is))
                     .lines().collect(Collectors.joining("\n"));
+
+            lrcs = lrcView.setLrc(lrc);
+            lrcIterator = lrcs.listIterator();
+            currentLrc = lrcIterator.next();
+
+            lrcView.setPlayer(accompanyPlayer);
+            lrcView.init();
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-        lrcs = lrcView.setLrc(lrc);
-        lrcIterator = lrcs.listIterator();
-        currentLrc = lrcIterator.next();
-
-        lrcView.setPlayer(accompanyPlayer);
-        lrcView.init();
     }
 
     @RequiresApi(api = Build.VERSION_CODES.N)
@@ -351,9 +369,8 @@ public class AccompanySingActivity extends AppCompatActivity {
 
     private void initVideoView() {
         videoView = findViewById(R.id.video_view);
-        String videoPath = "android.resource://" + getPackageName() + "/" + R.raw.attention;
-        Uri uri = Uri.parse(videoPath);
-        videoView.setVideoURI(uri);
+        String mvFullPath = getMVFullPath(songName);
+        videoView.setVideoPath(mvFullPath);
         videoView.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
             public void onPrepared(MediaPlayer mp) {
                 duration = videoView.getDuration();
@@ -364,6 +381,8 @@ public class AccompanySingActivity extends AppCompatActivity {
 
     private void initToolbar() {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbarAccompanySing);
+        TextView title = (TextView) findViewById(R.id.toolbarAccompanySingTitle);
+        title.setText(songName);
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayShowTitleEnabled(false);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -409,9 +428,21 @@ public class AccompanySingActivity extends AppCompatActivity {
         return true;
     }
 
-    public void rate(String fullPath) {
-        int score = getScore();
+    /**
+     *
+     * @param pcmFullPath Full path to the pcm file of the recording
+     */
+    public void rate(String pcmFullPath) {
+        String trimmedVoiceFullPath = getTrimmedVoicePath(pcmFullPath);
+        makePCMFileToWAVFile(pcmFullPath, trimmedVoiceFullPath, false);
+        int score = getScore(trimmedVoiceFullPath);
         scoreBar.setProgress(scoreBar.getProgress() + score, true);
+    }
+
+    private String getTrimmedVoicePath(String pcmFullPath) {
+        // pcm path: .../Karaoke/pcm/<fileName>.pcm
+        String fileName = FilenameUtils.getBaseName(pcmFullPath);
+        return TRIMMED_VOICE_WAV_DIRECTORY + fileName + ".wav";
     }
 
     private enum State {

@@ -73,4 +73,10 @@ dependencies {
 
     // loading spin
     implementation 'com.github.ybq:Android-SpinKit:1.4.0'
+
+    // okhtttp3
+    implementation 'com.squareup.okhttp3:okhttp:3.10.0'
+
+    // file name utils
+    implementation group: 'commons-io', name: 'commons-io', version: '2.6'
 }
