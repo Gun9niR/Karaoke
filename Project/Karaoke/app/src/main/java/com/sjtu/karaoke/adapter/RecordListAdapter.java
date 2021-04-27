@@ -1,5 +1,6 @@
 package com.sjtu.karaoke.adapter;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,13 +11,20 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.sjtu.karaoke.util.Data;
 import com.sjtu.karaoke.LocalRecordActivity;
 import com.sjtu.karaoke.R;
+import com.sjtu.karaoke.entity.Record;
 
+import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.List;
 
-import static com.sjtu.karaoke.util.Data.Record.getRecordTimeStr;
+import static com.sjtu.karaoke.util.Constants.RECORD_DIRECTORY;
+import static com.sjtu.karaoke.util.FileUtil.getFullPathsInDirectory;
+import static com.sjtu.karaoke.util.FileUtil.isFilePresent;
+import static com.sjtu.karaoke.util.MiscUtil.downloadAndSetAlbumCover;
+import static com.sjtu.karaoke.util.MiscUtil.getRecordFullPath;
+import static com.sjtu.karaoke.util.MiscUtil.setImageFromFile;
 import static com.sjtu.karaoke.util.MiscUtil.showToast;
 
 /*
@@ -28,8 +36,8 @@ import static com.sjtu.karaoke.util.MiscUtil.showToast;
  */
 
 public class RecordListAdapter extends RecyclerView.Adapter<RecordListAdapter.ViewHolder> {
-    List<Data.Record> records;
-    LocalRecordActivity context;
+    List<Record> records;
+    LocalRecordActivity activity;
 
     public class ViewHolder extends RecyclerView.ViewHolder {
         TextView recordName, recordTime;
@@ -47,9 +55,18 @@ public class RecordListAdapter extends RecyclerView.Adapter<RecordListAdapter.Vi
         }
     }
 
-    public RecordListAdapter(LocalRecordActivity context, List<Data.Record> records) {
-        this.context = context;
-        this.records = records;
+    public RecordListAdapter(LocalRecordActivity activity) {
+        this.activity = activity;
+        List<String> recordFullPaths = getFullPathsInDirectory(RECORD_DIRECTORY);
+        records = new ArrayList<>();
+        for (String recordFullPath: recordFullPaths) {
+            try {
+                records.add(new Record(recordFullPath));
+            } catch (ParseException e) {
+                Log.e("Initialize records", "Incorrect record file name format!");
+                e.printStackTrace();
+            }
+        }
     }
 
     @NonNull
@@ -62,21 +79,27 @@ public class RecordListAdapter extends RecyclerView.Adapter<RecordListAdapter.Vi
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        holder.recordName.setText(records.get(position).recordName);
-        holder.recordTime.setText(getRecordTimeStr(records.get(position).recordTime));
-        holder.recordCover.setImageResource(records.get(position).recordCover);
+        Record record = records.get(position);
+        String songName = record.getSongName();
+        holder.recordName.setText(songName);
+        holder.recordTime.setText(record.getRecordTime());
+        // download it if it does not exist
+        if (isFilePresent(getRecordFullPath(songName))) {
+            setImageFromFile(record.getFullPath(), holder.recordCover);
+        } else {
+            downloadAndSetAlbumCover(record.getId(), songName, activity, holder.recordCover);
+        }
         holder.btnShare.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                String message = records.get(position).recordName + "已经成功分享到微信";
-                showToast(context, message);
+                showToast(activity, "已经成功分享到微信");
             }
         });
-        // set button onClick listener
+
         holder.btnPlay.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                context.playRecord(records.get(position));
+                activity.playRecord(record);
             }
         });
     }

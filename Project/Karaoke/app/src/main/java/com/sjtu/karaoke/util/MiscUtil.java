@@ -9,27 +9,36 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
+import android.os.Build;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.RequiresApi;
 import androidx.core.app.ActivityCompat;
 
 import com.sjtu.karaoke.R;
 
 import java.io.File;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Random;
 
+import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
+import okhttp3.Response;
 
 import static com.sjtu.karaoke.util.Constants.ACCOMPANY_DIRECTORY;
 import static com.sjtu.karaoke.util.Constants.ALBUM_COVER_DIRECTORY;
+import static com.sjtu.karaoke.util.Constants.GET_ALBUM_COVER_URL;
 import static com.sjtu.karaoke.util.Constants.GET_RECORD_AUDIO;
 import static com.sjtu.karaoke.util.Constants.GET_SONG_INFO_URL;
 import static com.sjtu.karaoke.util.Constants.LYRIC_DIRECTORY;
@@ -44,6 +53,7 @@ import static com.sjtu.karaoke.util.Constants.REQUEST_EXTERNAL_STORAGE;
 import static com.sjtu.karaoke.util.Constants.ROOT_DIRECTORY;
 import static com.sjtu.karaoke.util.Constants.TRIMMED_VOICE_WAV_DIRECTORY;
 import static com.sjtu.karaoke.util.Constants.WAV_DIRECTORY;
+import static com.sjtu.karaoke.util.FileUtil.saveFileFromResponse;
 
 /*
  * @ClassName: Utils
@@ -189,8 +199,8 @@ public class MiscUtil {
         imageView.setImageBitmap(bmp);
     }
 
-    public static String getAlbumCoverPath(String fileName) {
-        return ALBUM_COVER_DIRECTORY + fileName + ".png";
+    public static String getAlbumCoverFullPath(String songName) {
+        return ALBUM_COVER_DIRECTORY + songName + ".png";
     }
 
     public static String getRequestParamFromId(Integer id) {
@@ -211,5 +221,57 @@ public class MiscUtil {
 
     public static String getOriginalFullPath(String songName) {
         return ORIGINAL_DIRECTORY + songName + ".wav";
+    }
+
+    public static String getRecordFullPath(String songName) {
+        return RECORD_DIRECTORY + songName;
+    }
+
+    /**
+     * Get name of the record file from song name
+     * Naming strategy is: <songName>-<year>-<month>-<date>-<hour>-<minute>
+     * Time is generated after merging pcm files to wav file
+     * @param id
+     * @param songName
+     * @return Resulting record file name
+     */
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    public static String getRecordName(Integer id, String songName) {
+        Date date = new Date(System.currentTimeMillis());
+        SimpleDateFormat formatter = new SimpleDateFormat("-yyyy-MM-dd-HH-mm");
+        String dateString = formatter.format(date);
+        return id + "-" + songName + dateString;
+    }
+
+    /**
+     * Download album cover from the server.
+     * @param id
+     * @param songName
+     * @param activity The activity that contains the ImageVIew
+     * @param imageView The ImageView object to set the image
+     */
+    public static void downloadAndSetAlbumCover(Integer id, String songName, Activity activity, ImageView imageView) {
+        getRequest(GET_ALBUM_COVER_URL + "?id=" + id, new Callback() {
+
+            @Override
+            public void onFailure(Call call, IOException e) {
+                Log.e("Error when downloading file", "Failed to download album cover for " + songName);
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                // receive and save the file
+                String destPath = ALBUM_COVER_DIRECTORY + songName + ".png";
+                saveFileFromResponse(response, destPath);
+
+                // set image, should run on UI thread
+                activity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        setImageFromFile(destPath, imageView);
+                    }
+                });
+            }
+        });
     }
 }

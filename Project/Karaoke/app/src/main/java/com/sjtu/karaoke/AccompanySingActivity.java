@@ -75,6 +75,8 @@ public class AccompanySingActivity extends AppCompatActivity {
     Handler handler = new Handler();
 
     // 状态量
+    // 当前歌的id
+    Integer id;
     // 当前歌名
     String songName;
     // 歌曲的持续时间，mv和所有伴奏的声音时长一样
@@ -93,7 +95,6 @@ public class AccompanySingActivity extends AppCompatActivity {
     @RequiresApi(api = Build.VERSION_CODES.N)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        System.out.println("OnCreate");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_accompany_sing);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -108,6 +109,7 @@ public class AccompanySingActivity extends AppCompatActivity {
 
     private void initSongName() {
         Intent intent = getIntent();
+        id = intent.getIntExtra("id", 0);
         songName = intent.getStringExtra("songName");
     }
 
@@ -176,12 +178,9 @@ public class AccompanySingActivity extends AppCompatActivity {
                 } else if (state == State.PAUSE) {
                     startAllPlayers();
                     startRecording();
-                    // todo: start recording
                 } else {
                     startAllPlayers();
                     startRecording();
-                    enableFinishButton();
-                    // todo: do some async task, setting progress bar and score bar
                 }
             }
         });
@@ -210,6 +209,7 @@ public class AccompanySingActivity extends AppCompatActivity {
 
     private void startAllPlayers() {
         accompanyPlayer.start();
+        originalPlayer.start();
         videoView.start();
         fab.setImageResource(R.drawable.ic_pause);
         state = State.PLAYING;
@@ -220,6 +220,7 @@ public class AccompanySingActivity extends AppCompatActivity {
             public void onCompletion(MediaPlayer accompanyPlayer) {
                 // todo: also pass score
                 Intent intent = new Intent(getApplicationContext(), SingResultActivity.class);
+                intent.putExtra("id", id);
                 intent.putExtra("songName", songName);
                 startActivity(intent);
             }
@@ -252,6 +253,7 @@ public class AccompanySingActivity extends AppCompatActivity {
 
     private void pauseAllPlayers() {
         accompanyPlayer.pause();
+        originalPlayer.pause();
         videoView.pause();
         fab.setImageResource(R.drawable.ic_fab_play);
         state = State.PAUSE;
@@ -325,6 +327,8 @@ public class AccompanySingActivity extends AppCompatActivity {
     private void restartAllPlayers() {
         accompanyPlayer.seekTo(0);
         accompanyPlayer.pause();
+        originalPlayer.seekTo(0);
+        originalPlayer.pause();
         videoView.pause();
         videoView.seekTo(0);
         fab.setImageResource(R.drawable.ic_fab_play);

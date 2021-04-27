@@ -21,7 +21,6 @@ import androidx.viewpager2.widget.CompositePageTransformer;
 import androidx.viewpager2.widget.MarginPageTransformer;
 import androidx.viewpager2.widget.ViewPager2;
 
-import com.sjtu.karaoke.MainActivity;
 import com.sjtu.karaoke.R;
 import com.sjtu.karaoke.SearchActivity;
 import com.sjtu.karaoke.adapter.CarouselAdapter;
@@ -134,6 +133,7 @@ public class ViewSongsFragment extends Fragment {
     }
 
     private void setSongs(List<SongInfo> songs) {
+
         getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -171,7 +171,9 @@ public class ViewSongsFragment extends Fragment {
                     public void onFailure(Call call, IOException e) {
                         e.printStackTrace();
                         Looper.prepare();
-                        showToast(context, "从服务器获取数据失败，请重试!");
+                        if (context != null) {
+                            showToast(context, "从服务器获取数据失败，请重试!");
+                        }
                         swipeRefreshLayout.setRefreshing(false);
                         Looper.loop();
                     }

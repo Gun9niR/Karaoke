@@ -28,8 +28,8 @@ public class AudioRecorder {
     //采样频率一般共分为22.05KHz、44.1KHz、48KHz三个等级
     public final static int AUDIO_SAMPLE_RATE = 44100;
     //声道 单声道
-    private final static int AUDIO_CHANNEL = AudioFormat.CHANNEL_IN_STEREO;
-    public final static int NUM_OF_CHANNEL = 2;
+    private final static int AUDIO_CHANNEL = AudioFormat.CHANNEL_IN_MONO;
+    public final static int NUM_OF_CHANNEL = 1;
     //编码
     private final static int AUDIO_ENCODING = AudioFormat.ENCODING_PCM_16BIT;
     // 缓冲区字节大小

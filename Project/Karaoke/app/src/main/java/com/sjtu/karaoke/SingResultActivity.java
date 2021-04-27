@@ -2,6 +2,7 @@ package com.sjtu.karaoke;
 
 import android.annotation.SuppressLint;
 import android.app.Dialog;
+import android.content.Intent;
 import android.graphics.Color;
 import android.media.MediaPlayer;
 import android.os.Bundle;
@@ -28,10 +29,12 @@ import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.TimeUnit;
 
 import static com.sjtu.karaoke.util.Constants.PROGRESS_UPDATE_INTERVAL;
+import static com.sjtu.karaoke.util.Constants.RECORD_DIRECTORY;
 import static com.sjtu.karaoke.util.FileUtil.deleteOneFile;
 import static com.sjtu.karaoke.util.MediaPlayerUtil.loadFileAndPrepareMediaPlayer;
 import static com.sjtu.karaoke.util.MediaPlayerUtil.terminateMediaPlayer;
 import static com.sjtu.karaoke.util.MiscUtil.getAccompanyFullPath;
+import static com.sjtu.karaoke.util.MiscUtil.getRecordName;
 import static com.sjtu.karaoke.util.MiscUtil.getTrimmedAccompanyFullPath;
 import static com.sjtu.karaoke.util.MiscUtil.getVoiceFullPath;
 import static com.sjtu.karaoke.util.MiscUtil.showLoadingDialog;
@@ -67,6 +70,7 @@ public class SingResultActivity extends AppCompatActivity {
 
     boolean isFileSaved = false;
 
+    Integer id;
     String songName;
     // 需要将伴奏裁减成和录音一样长的音频
     String trimmedAccompanyFullPath;
@@ -79,7 +83,9 @@ public class SingResultActivity extends AppCompatActivity {
         setContentView(R.layout.activity_sing_result);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
-        getSongName();
+        Intent intent = getIntent();
+        id = intent.getIntExtra("id", 0);
+        songName = intent.getStringExtra("songName");
         getFilePaths();
 
         voicePlayer = new MediaPlayer();
@@ -101,10 +107,6 @@ public class SingResultActivity extends AppCompatActivity {
         initFab();
     }
 
-    private void getSongName() {
-        songName = getIntent().getStringExtra("songName");
-    }
-
     private void getFilePaths() {
         trimmedAccompanyFullPath = getTrimmedAccompanyFullPath(songName);
         voiceFullPath = getVoiceFullPath(songName);
@@ -120,10 +122,17 @@ public class SingResultActivity extends AppCompatActivity {
                 }
                 // merge two .wav files, and put under .../Karaoke/record/
                 Dialog loadingDialog = showLoadingDialog(SingResultActivity.this, "正在生成作品...");
-                String resultFileName = mergeWAVs(songName, trimmedAccompanyFullPath, voiceFullPath, accompanyVolume, voiceVolume);
-                loadingDialog.dismiss();
-                showToast(getApplicationContext(), resultFileName + "已成功保存");
-                isFileSaved = true;
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        String resultFileName = getRecordName(id, songName);
+
+                        mergeWAVs(RECORD_DIRECTORY + resultFileName, trimmedAccompanyFullPath, voiceFullPath, accompanyVolume, voiceVolume);
+                        loadingDialog.dismiss();
+                        showToast(getApplicationContext(), resultFileName + "已成功保存");
+                        isFileSaved = true;
+                    }
+                }).start();
             }
         });
     }

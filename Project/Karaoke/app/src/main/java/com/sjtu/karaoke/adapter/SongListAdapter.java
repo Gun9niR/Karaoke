@@ -5,7 +5,7 @@ import android.app.Dialog;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
-import android.util.Log;
+import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -22,33 +22,26 @@ import com.sjtu.karaoke.InstrumentSingActivity;
 import com.sjtu.karaoke.R;
 import com.sjtu.karaoke.entity.SongInfo;
 
-import java.io.IOException;
 import java.util.List;
 
-import okhttp3.Call;
-import okhttp3.Callback;
-import okhttp3.Response;
-
-import static com.sjtu.karaoke.util.Constants.ALBUM_COVER_DIRECTORY;
 import static com.sjtu.karaoke.util.Constants.GET_ACCOMPANY_URL;
-import static com.sjtu.karaoke.util.Constants.GET_ALBUM_COVER_URL;
 import static com.sjtu.karaoke.util.Constants.GET_LYRIC_URL;
 import static com.sjtu.karaoke.util.Constants.GET_MV_URL;
 import static com.sjtu.karaoke.util.Constants.GET_ORIGINAL_URL;
 import static com.sjtu.karaoke.util.Constants.GET_RATE_URL;
 import static com.sjtu.karaoke.util.FileUtil.downloadFiles;
 import static com.sjtu.karaoke.util.FileUtil.isFilePresent;
-import static com.sjtu.karaoke.util.FileUtil.saveFileFromResponse;
+import static com.sjtu.karaoke.util.MiscUtil.downloadAndSetAlbumCover;
 import static com.sjtu.karaoke.util.MiscUtil.getAccompanyFullPath;
-import static com.sjtu.karaoke.util.MiscUtil.getAlbumCoverPath;
+import static com.sjtu.karaoke.util.MiscUtil.getAlbumCoverFullPath;
 import static com.sjtu.karaoke.util.MiscUtil.getLyricFullPath;
 import static com.sjtu.karaoke.util.MiscUtil.getMVFullPath;
 import static com.sjtu.karaoke.util.MiscUtil.getOriginalFullPath;
 import static com.sjtu.karaoke.util.MiscUtil.getRateFullPath;
-import static com.sjtu.karaoke.util.MiscUtil.getRequest;
 import static com.sjtu.karaoke.util.MiscUtil.getRequestParamFromId;
 import static com.sjtu.karaoke.util.MiscUtil.setImageFromFile;
 import static com.sjtu.karaoke.util.MiscUtil.showLoadingDialog;
+import static com.sjtu.karaoke.util.MiscUtil.showToast;
 
 /*
  * @ClassName: SongListAdapter
@@ -97,7 +90,7 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.ViewHo
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         SongInfo songInfo = songs.get(position);
         String songName = songInfo.getSongName();
-        String albumCoverFullPath = getAlbumCoverPath(songName);
+        String albumCoverFullPath = getAlbumCoverFullPath(songName);
         holder.songName.setText(songName);
         holder.singer.setText(songInfo.getSinger());
 
@@ -105,7 +98,7 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.ViewHo
             // if file already exists, just set the image
             setImageFromFile(albumCoverFullPath, holder.image);
         } else {
-            downloadAndSetAlbumCover(songInfo, holder.image);
+            downloadAndSetAlbumCover(songInfo.getId(), songInfo.getSongName(), activity, holder.image);
         }
 
         // set button onClick listener
@@ -134,27 +127,37 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.ViewHo
                     @Override
                     public void onClick(View view) {
                         // 伴奏演唱模式
+                        chooseModeDialog.dismiss();
 
                         Dialog loadingDialog = showLoadingDialog(activity, "正在下载文件...");
 
-                        downloadAccompanySingFiles(selectedSong);
-
-                        loadingDialog.dismiss();
-                        chooseModeDialog.dismiss();
-
-                        Intent intent = new Intent(activity, AccompanySingActivity.class);
-                        intent.putExtra("songName", selectedSong.getSongName());
-                        activity.startActivity(intent);
-
+                        new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+                                boolean isSuccess = downloadAccompanySingFiles(selectedSong);
+                                loadingDialog.dismiss();
+                                if (isSuccess) {
+                                    Intent intent = new Intent(activity, AccompanySingActivity.class);
+                                    intent.putExtra("id", selectedSong.getId());
+                                    intent.putExtra("songName", selectedSong.getSongName());
+                                    activity.startActivity(intent);
+                                } else {
+                                    Looper.prepare();
+                                    showToast(activity, "未能成功下载文件，请重试");
+                                    Looper.loop();
+                                }
+                            }
+                        }).start();
                     }
                 });
 
                 btnInsMode.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
+                        chooseModeDialog.dismiss();
+
                         Intent intent = new Intent(activity, InstrumentSingActivity.class);
                         activity.startActivity(intent);
-                        chooseModeDialog.dismiss();
                     }
                 });
 
@@ -174,36 +177,11 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.ViewHo
     }
 
     /**
-     * Download album cover from the server.
-     * @param songInfo SongInfo object of the song whose album cover is to be downloaded
-     * @param imageView The ImageView object to set the image
+     * This method runs on the thread that calls it
+     * @param songInfo
+     * @return true if success, false if some files are not downloaded successfully
      */
-    public void downloadAndSetAlbumCover(SongInfo songInfo, ImageView imageView) {
-        getRequest(GET_ALBUM_COVER_URL + "?id=" + songInfo.getId(), new Callback() {
-
-            @Override
-            public void onFailure(Call call, IOException e) {
-                Log.e("Error when downloading file", "Failed to download album cover for " + songInfo.getSongName());
-            }
-
-            @Override
-            public void onResponse(Call call, Response response) throws IOException {
-                // receive and save the file
-                String destPath = ALBUM_COVER_DIRECTORY + songInfo.getSongName() + ".png";
-                saveFileFromResponse(response, destPath);
-
-                // set image, should run on UI thread
-                activity.runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        setImageFromFile(destPath, imageView);
-                    }
-                });
-            }
-        });
-    }
-
-    public void downloadAccompanySingFiles(SongInfo songInfo) {
+    public boolean downloadAccompanySingFiles(SongInfo songInfo) {
         Integer id = songInfo.getId();
         String songName = songInfo.getSongName();
         String requestParam = getRequestParamFromId(id);
@@ -229,6 +207,6 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.ViewHo
                 getMVFullPath(songName),
         };
 
-        downloadFiles(urls, destFullPaths);
+        return downloadFiles(urls, destFullPaths);
     }
 }

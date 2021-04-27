@@ -10,21 +10,23 @@ import java.io.IOException;
 import static com.sjtu.karaoke.util.Constants.RECORD_DIRECTORY;
 
 public class WavUtil {
-    public static String mergeWAVs(String songName, String trimmedAccompanyFullPath, String voiceFullPath,
+    /**
+     * Merge multiple pcm files into one single wav file stored at <destPath>
+     * @param destPath
+     * @param trimmedAccompanyFullPath
+     * @param voiceFullPath
+     * @param accompanyVolume
+     * @param voiceVolume
+     */
+    public static void mergeWAVs(String destPath, String trimmedAccompanyFullPath, String voiceFullPath,
                                    float accompanyVolume, float voiceVolume) {
-        // todo: check duplicate record name (multiple record of the same song)
-        String fileName = songName + ".wav";
-        String resultPath = RECORD_DIRECTORY + fileName;
-
         FFmpeg.execute("-y" +
                 " -i " + trimmedAccompanyFullPath +
                 " -i " + voiceFullPath +
                 " -filter_complex" +
                 " \"[0]volume=" + accompanyVolume * 2 + "[a];" +
                 "[1]volume=" + voiceVolume * 2 + "[b];" +
-                "[a][b]amix=inputs=2:duration=longest:dropout_transition=1\" " + resultPath);
-
-        return fileName;
+                "[a][b]amix=inputs=2:duration=longest:dropout_transition=1\" " + destPath);
     }
 
     /**
