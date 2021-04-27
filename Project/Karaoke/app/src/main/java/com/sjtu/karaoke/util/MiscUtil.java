@@ -240,7 +240,7 @@ public class MiscUtil {
         Date date = new Date(System.currentTimeMillis());
         SimpleDateFormat formatter = new SimpleDateFormat("-yyyy-MM-dd-HH-mm");
         String dateString = formatter.format(date);
-        return id + "-" + songName + dateString;
+        return id + "-" + songName + dateString + ".wav";
     }
 
     /**

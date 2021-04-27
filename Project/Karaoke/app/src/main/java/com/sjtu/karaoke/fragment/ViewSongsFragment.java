@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.os.Parcelable;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -153,7 +152,8 @@ public class ViewSongsFragment extends Fragment {
                 // go to search activity
                 // put the list of SongInfo to the intent, so that SearchSongActivity won't have to get them from server again
                 Intent intent = new Intent(context, SearchActivity.class);
-                intent.putParcelableArrayListExtra("songList", (ArrayList<? extends Parcelable>) songList);
+                ArrayList<SongInfo> songs = new ArrayList<>(songList);
+                intent.putParcelableArrayListExtra("songList", songs);
                 startActivity(intent);
                 return true;
             }

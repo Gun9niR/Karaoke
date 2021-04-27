@@ -4,10 +4,9 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 public class SongInfo implements Parcelable {
-    Integer id;
-
-    String songName;
-    String singer;
+    private Integer id;
+    private String songName;
+    private String singer;
 
     public SongInfo(Integer id, String songName, String singer) {
         this.id = id;
@@ -15,14 +14,10 @@ public class SongInfo implements Parcelable {
         this.singer = singer;
     }
 
-    protected SongInfo(Parcel in) {
-        if (in.readByte() == 0) {
-            id = null;
-        } else {
-            id = in.readInt();
-        }
-        songName = in.readString();
-        singer = in.readString();
+    public SongInfo(Parcel in) {
+        setId(in.readInt());
+        setSongName(in.readString());
+        setSinger(in.readString());
     }
 
     public static final Creator<SongInfo> CREATOR = new Creator<SongInfo>() {

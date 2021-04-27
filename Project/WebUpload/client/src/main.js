@@ -6,11 +6,13 @@ import router from "./router";
 import axios from "axios";
 import Vuex from "vuex";
 
+
 Vue.use(ElementUI);
 Vue.use(Vuex);
 
+
 Vue.config.productionTip = false;
-axios.defaults.baseURL = "http://127.0.0.1:5000";
+axios.defaults.baseURL = "http://10.166.32.42:5000";
 
 const store = new Vuex.Store({
   state: {

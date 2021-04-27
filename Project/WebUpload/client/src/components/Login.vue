@@ -83,7 +83,7 @@ export default {
       axios
         .post("/verify", payload)
         .then((res) => {
-          if (res.data.status == "success") {
+          if (res.data.status === 0) {
             this.$router.push({ path: "/upload" });
             this.$store.commit("login");
             // var expire = 5000;

@@ -23,9 +23,9 @@ public class Record {
 
         id = Integer.parseInt(fileName.substring(0, fileName.indexOf('-')));
 
-        String fileNameWithoutId = fileName.substring(fileName.indexOf('-' + 1));
-        songName = fileNameWithoutId.substring(0, fileNameWithoutId.indexOf('-'));
-        String dateString = fileNameWithoutId.substring(fileName.indexOf('-') + 1);
+        fileName = fileName.substring(fileName.indexOf('-') + 1);
+        songName = fileName.substring(0, fileName.indexOf('-'));
+        String dateString = fileName.substring(fileName.indexOf('-') + 1);
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd-HH-mm");
         Calendar calendar = new GregorianCalendar();
         calendar.setTime(format.parse(dateString));

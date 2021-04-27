@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.sjtu.karaoke.util.Constants.RECORD_DIRECTORY;
+import static com.sjtu.karaoke.util.FileUtil.deleteOneFile;
 import static com.sjtu.karaoke.util.FileUtil.getFullPathsInDirectory;
 import static com.sjtu.karaoke.util.FileUtil.isFilePresent;
 import static com.sjtu.karaoke.util.MiscUtil.downloadAndSetAlbumCover;
@@ -34,7 +35,6 @@ import static com.sjtu.karaoke.util.MiscUtil.showToast;
  * @Version: v1.2
  * @Description: 本地录音界面的录音列表生成类。根据构造时传入的录音列表参数设置本地录音列表中每行的内容和点击事件。
  */
-
 public class RecordListAdapter extends RecyclerView.Adapter<RecordListAdapter.ViewHolder> {
     List<Record> records;
     LocalRecordActivity activity;
@@ -44,6 +44,7 @@ public class RecordListAdapter extends RecyclerView.Adapter<RecordListAdapter.Vi
         ImageView recordCover;
         ImageButton btnPlay;
         ImageButton btnShare;
+        ImageButton btnDelete;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -52,6 +53,7 @@ public class RecordListAdapter extends RecyclerView.Adapter<RecordListAdapter.Vi
             recordCover = (ImageView) itemView.findViewById(R.id.recordCover);
             btnPlay = (ImageButton) itemView.findViewById(R.id.btnPlay);
             btnShare = (ImageButton) itemView.findViewById(R.id.btnShare);
+            btnDelete = (ImageButton) itemView.findViewById(R.id.btnDelete);
         }
     }
 
@@ -100,6 +102,15 @@ public class RecordListAdapter extends RecyclerView.Adapter<RecordListAdapter.Vi
             @Override
             public void onClick(View view) {
                 activity.playRecord(record);
+            }
+        });
+
+        holder.btnDelete.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                deleteOneFile(record.getFullPath());
+                records.remove(position);
+                notifyDataSetChanged();
             }
         });
     }

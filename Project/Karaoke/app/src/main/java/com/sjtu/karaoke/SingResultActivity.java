@@ -5,8 +5,10 @@ import android.app.Dialog;
 import android.content.Intent;
 import android.graphics.Color;
 import android.media.MediaPlayer;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.style.ForegroundColorSpan;
@@ -18,6 +20,7 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
@@ -123,13 +126,15 @@ public class SingResultActivity extends AppCompatActivity {
                 // merge two .wav files, and put under .../Karaoke/record/
                 Dialog loadingDialog = showLoadingDialog(SingResultActivity.this, "正在生成作品...");
                 new Thread(new Runnable() {
+                    @RequiresApi(api = Build.VERSION_CODES.O)
                     @Override
                     public void run() {
+                        Looper.prepare();
                         String resultFileName = getRecordName(id, songName);
-
                         mergeWAVs(RECORD_DIRECTORY + resultFileName, trimmedAccompanyFullPath, voiceFullPath, accompanyVolume, voiceVolume);
                         loadingDialog.dismiss();
-                        showToast(getApplicationContext(), resultFileName + "已成功保存");
+                        showToast(getApplicationContext(), "录音已成功保存");
+                        Looper.loop();
                         isFileSaved = true;
                     }
                 }).start();
