@@ -47,7 +47,7 @@ public class Constants {
     public static final String MV_DIRECTORY = ROOT_DIRECTORY + "mv/";
 
     // request URL
-    public static final String SERVER_IP = "http://10.167.192.59:5000";
+    public static final String SERVER_IP = "http://10.162.81.215:5000";
 
     public static final String GET_FILE_ROOT_URL = SERVER_IP + "/getFile";
 
@@ -57,7 +57,7 @@ public class Constants {
 
     public static final String GET_ORIGINAL_URL = GET_FILE_ROOT_URL + "/original";
 
-    public static final String GET_ACCOMPANY_URL = GET_FILE_ROOT_URL + "/accompany";
+    public static final String GET_ACCOMPANY_URL = GET_FILE_ROOT_URL + "/accompany_accompany";
 
     public static final String GET_LYRIC_URL = GET_FILE_ROOT_URL + "/lyric";
 

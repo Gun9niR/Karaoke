@@ -104,11 +104,6 @@ public class AccompanySingActivity extends AppCompatActivity {
         initSongName();
         initToolbar();
         initState();
-        /**
-         * todo: store song name, accompany file name and mv file name (if any)
-         * when choosing a song from ViewSongsFragment, above data will be present (in the Intent)
-         * whereas returning from sing result, they will be absent, so setup the previous song
-         */
     }
 
     private void initSongName() {
@@ -127,6 +122,8 @@ public class AccompanySingActivity extends AppCompatActivity {
             loadFileAndPrepareMediaPlayer(accompanyPlayer, getAccompanyFullPath(songName));
             originalPlayer = new MediaPlayer();
             loadFileAndPrepareMediaPlayer(originalPlayer, getOriginalFullPath(songName));
+            muteOriginal();
+
             initVideoView();
             initLrcView();
             initVoiceRecorder();
@@ -137,6 +134,14 @@ public class AccompanySingActivity extends AppCompatActivity {
             initProgressBarUpdater();
             initBottomNavbar();
         }
+    }
+
+    private void muteOriginal() {
+        originalPlayer.setVolume(0, 0);
+    }
+
+    private void unmuteOriginal() {
+        originalPlayer.setVolume(1, 1);
     }
 
     private void initVoiceRecorder() {
@@ -292,9 +297,11 @@ public class AccompanySingActivity extends AppCompatActivity {
                                 if (singMode == SingMode.WITH) {
                                     item.setTitle("伴唱");
                                     singMode = SingMode.WITHOUT;
+                                    muteOriginal();
                                 } else {
                                     item.setTitle("原唱");
                                     singMode = SingMode.WITH;
+                                    unmuteOriginal();
                                 }
                                 break;
                             case R.id.singingFinish:

@@ -1,5 +1,6 @@
 package com.sjtu.karaoke.fragment;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -20,12 +21,14 @@ import androidx.viewpager2.widget.CompositePageTransformer;
 import androidx.viewpager2.widget.MarginPageTransformer;
 import androidx.viewpager2.widget.ViewPager2;
 
+import com.sjtu.karaoke.MainActivity;
 import com.sjtu.karaoke.R;
 import com.sjtu.karaoke.SearchActivity;
 import com.sjtu.karaoke.adapter.CarouselAdapter;
 import com.sjtu.karaoke.adapter.SongListAdapter;
 import com.sjtu.karaoke.entity.SongInfo;
 
+import org.jetbrains.annotations.NotNull;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -53,8 +56,9 @@ import static com.sjtu.karaoke.util.MiscUtil.showToast;
  */
 
 public class ViewSongsFragment extends Fragment {
-    // carousel
     View view;
+    Context context;
+
     private ViewPager2 carousel;
     private final Handler carouselHandler = new Handler();
     private final Runnable sliderRunnable = new Runnable() {
@@ -63,15 +67,15 @@ public class ViewSongsFragment extends Fragment {
             carousel.setCurrentItem(carousel.getCurrentItem() + 1);
         }
     };
+
     private SwipeRefreshLayout swipeRefreshLayout;
     private SwipeRefreshLayout.OnRefreshListener refreshListener;
 
     private RecyclerView songRecyclerView;
     private SongListAdapter adapter;
-
     private List<SongInfo> songList;
 
-    static final int CAROUSEL_INTERVAL = 3000;
+    private static final int CAROUSEL_INTERVAL = 3000;
 
     public ViewSongsFragment() { }
 
@@ -81,6 +85,21 @@ public class ViewSongsFragment extends Fragment {
 
     @Override
     public void onCreate(Bundle savedInstanceState) { super.onCreate(savedInstanceState); }
+
+    /**
+     * Keep activity reference
+     * @param context
+     */
+    @Override
+    public void onAttach(@NotNull Context context) {
+        super.onAttach(context);
+        this.context = context;
+    }
+
+    public void onDetach() {
+        super.onDetach();
+        this.context = null;
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -109,7 +128,7 @@ public class ViewSongsFragment extends Fragment {
         adapter = new SongListAdapter(songList);
         songRecyclerView.setAdapter(adapter);
         refreshListener.onRefresh();
-        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getContext());
+        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(context);
         songRecyclerView.setLayoutManager(layoutManager);
         songRecyclerView.setNestedScrollingEnabled(false);
     }
@@ -133,7 +152,7 @@ public class ViewSongsFragment extends Fragment {
             public boolean onMenuItemClick(MenuItem item) {
                 // go to search activity
                 // put the list of SongInfo to the intent, so that SearchSongActivity won't have to get them from server again
-                Intent intent = new Intent(getActivity(), SearchActivity.class);
+                Intent intent = new Intent(context, SearchActivity.class);
                 intent.putParcelableArrayListExtra("songList", (ArrayList<? extends Parcelable>) songList);
                 startActivity(intent);
                 return true;
@@ -152,7 +171,7 @@ public class ViewSongsFragment extends Fragment {
                     public void onFailure(Call call, IOException e) {
                         e.printStackTrace();
                         Looper.prepare();
-                        showToast(getActivity(), "从服务器获取数据失败，请重试!");
+                        showToast(context, "从服务器获取数据失败，请重试!");
                         swipeRefreshLayout.setRefreshing(false);
                         Looper.loop();
                     }
@@ -175,8 +194,11 @@ public class ViewSongsFragment extends Fragment {
                             setSongs(songList);
 
                         } catch (JSONException e) {
-                            showToast(getActivity(), "从服务器获取异常数据，请重试!");
+                            Looper.prepare();
+                            showToast(context, "从服务器获取异常数据，请重试!");
+                            swipeRefreshLayout.setRefreshing(false);
                             e.printStackTrace();
+                            Looper.loop();
                         }
 
                         swipeRefreshLayout.setRefreshing(false);

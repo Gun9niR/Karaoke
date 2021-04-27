@@ -1,6 +1,5 @@
 include ':WavEditor'
-include ':waveditor'
-include ':recorder'
+include ':Recorder'
 include ':LrcView'
 include ':app'
 rootProject.name = "Karaoke"

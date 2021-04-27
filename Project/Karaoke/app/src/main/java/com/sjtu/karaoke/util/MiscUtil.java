@@ -60,20 +60,26 @@ public class MiscUtil {
         List<File> dirs = new ArrayList<>();
         // 保存文件的根目录
         dirs.add(new File(ROOT_DIRECTORY));
-        // 录音过程中产生的pcm文件
-        dirs.add(new File(PCM_DIRECTORY));
         // 录音结果，由pcm合成
         dirs.add(new File(WAV_DIRECTORY));
-        // 录音过程中一句话的pcm转换成wav的结果
-        dirs.add(new File(TRIMMED_VOICE_WAV_DIRECTORY));
-        // 伴奏和录音合成结果
-        dirs.add(new File(RECORD_DIRECTORY));
+        // 录音过程中产生的pcm文件
+        dirs.add(new File(PCM_DIRECTORY));
         // 伴奏和合成最终结果时被截短的伴奏
         dirs.add(new File(ACCOMPANY_DIRECTORY));
+        // 伴奏和录音合成结果
+        dirs.add(new File(RECORD_DIRECTORY));
         // 原唱
         dirs.add(new File(ORIGINAL_DIRECTORY));
+        // 打分文件
+        dirs.add(new File(RATE_DIRECTORY));
+        // 录音过程中一句话的pcm转换成wav的结果
+        dirs.add(new File(TRIMMED_VOICE_WAV_DIRECTORY));
         // 专辑封面
         dirs.add(new File(ALBUM_COVER_DIRECTORY));
+        // 歌词文件
+        dirs.add(new File(LYRIC_DIRECTORY));
+        // MV
+        dirs.add(new File(MV_DIRECTORY));
 
         for (File dir : dirs) {
             if (!dir.exists()) {
@@ -135,7 +141,7 @@ public class MiscUtil {
     }
 
     public static String getAccompanyFullPath(String songName) {
-        return ACCOMPANY_DIRECTORY + songName + "/wav";
+        return ACCOMPANY_DIRECTORY + songName + ".wav";
     }
 
     public static int getScore(String wavFullPath) {
@@ -192,15 +198,15 @@ public class MiscUtil {
     }
 
     public static String getMVFullPath(String songName) {
-        return MV_DIRECTORY + songName + ".wav";
+        return MV_DIRECTORY + songName + ".mp4";
     }
 
     public static String getRateFullPath(String songName) {
-        return RATE_DIRECTORY + songName + ".wav";
+        return RATE_DIRECTORY + songName + ".txt";
     }
 
     public static String getLyricFullPath(String songName) {
-        return LYRIC_DIRECTORY + songName + ".wav";
+        return LYRIC_DIRECTORY + songName + ".lrc";
     }
 
     public static String getOriginalFullPath(String songName) {

@@ -65,8 +65,8 @@ public class FileUtil {
      * @param destFullPath Destination to save the file
      */
     public static void downloadFile(String url, String destFullPath, CountDownLatch countDownLatch) {
+        System.out.println("========== Downloading from " + url + " to " + destFullPath + " ==========");
         getRequest(url, new Callback() {
-
             @Override
             public void onFailure(Call call, IOException e) {
                 Log.e("Error when downloading file", "Failed to download file " + destFullPath);
@@ -88,9 +88,11 @@ public class FileUtil {
 
         try {
             BufferedSink sink = Okio.buffer(Okio.sink(destFile));
+            System.out.println("========== Saving file to " + destPath + " ==========");
             sink.writeAll(response.body().source());
             sink.close();
         } catch (IOException e) {
+            System.err.println("Failed to download file to " + destPath);
             e.printStackTrace();
         }
     }

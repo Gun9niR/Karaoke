@@ -104,8 +104,9 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.ViewHo
         if (isFilePresent(albumCoverFullPath)) {
             // if file already exists, just set the image
             setImageFromFile(albumCoverFullPath, holder.image);
+        } else {
+            downloadAndSetAlbumCover(songInfo, holder.image);
         }
-        downloadAndSetAlbumCover(songInfo, holder.image);
 
         // set button onClick listener
         holder.btnSing.setOnClickListener(new View.OnClickListener() {
@@ -151,7 +152,6 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.ViewHo
                 btnInsMode.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-                        // todo: pass song name
                         Intent intent = new Intent(activity, InstrumentSingActivity.class);
                         activity.startActivity(intent);
                         chooseModeDialog.dismiss();

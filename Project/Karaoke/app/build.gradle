@@ -4,7 +4,7 @@ plugins {
 
 android {
     compileSdkVersion 30
-    buildToolsVersion "30.0.2"
+    buildToolsVersion "30.0.3"
 
     defaultConfig {
         applicationId "com.sjtu.karaoke"
@@ -36,19 +36,18 @@ android {
 }
 
 dependencies {
-    implementation 'androidx.appcompat:appcompat:1.1.0'
-    implementation 'com.google.android.material:material:1.1.0'
-    implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
+    implementation 'androidx.appcompat:appcompat:1.2.0'
+    implementation 'com.google.android.material:material:1.3.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.0.4'
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
-    implementation project(path: ':recorder')
+    implementation project(path: ':Recorder')
     implementation project(path: ':WavEditor')
-    testImplementation 'junit:junit:4.+'
-    androidTestImplementation 'androidx.test.ext:junit:1.1.1'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
+    testImplementation 'junit:junit:4.13.2'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.2'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
 
-    // chip navbar
+    // chip navigation bar
     implementation 'com.ismaeldivita.chipnavigation:chip-navigation-bar:1.3.4'
-    implementation 'org.jetbrains.kotlin:kotlin-stdlib:1.3.72'
 
     // Viewpager2
     implementation 'androidx.viewpager2:viewpager2:1.0.0'
@@ -57,7 +56,7 @@ dependencies {
     implementation 'com.makeramen:roundedimageview:2.3.0'
 
     // Material Design
-    implementation 'com.google.android.material:material:1.3.0-alpha03'
+    implementation 'com.google.android.material:material:1.4.0-alpha02'
 
     // LrcView
     implementation project(':LrcView')
@@ -75,8 +74,9 @@ dependencies {
     implementation 'com.github.ybq:Android-SpinKit:1.4.0'
 
     // okhtttp3
-    implementation 'com.squareup.okhttp3:okhttp:3.10.0'
+    implementation 'com.squareup.okhttp3:okhttp:5.0.0-alpha.2'
 
     // file name utils
-    implementation group: 'commons-io', name: 'commons-io', version: '2.6'
+    //noinspection GradleDependency
+    implementation group: 'commons-io', name: 'commons-io', version: '2.8.0'
 }

@@ -4,7 +4,7 @@ package com.sjtu.karaoke.waveditor;
  * @Author: guozh
  * @Date: 2021/4/22
  * @Version: 1.3
- * @Description: TODO
+ * @Description: Some utility functions
  */
 
 public class WavUtils {

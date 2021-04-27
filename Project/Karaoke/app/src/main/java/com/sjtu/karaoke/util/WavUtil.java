@@ -1,6 +1,9 @@
 package com.sjtu.karaoke.util;
 
 import com.arthenica.mobileffmpeg.FFmpeg;
+import com.sjtu.karaoke.waveditor.WavHeader;
+import com.sjtu.karaoke.waveditor.WavReader;
+import com.sjtu.karaoke.waveditor.WavWriter;
 
 import java.io.IOException;
 
