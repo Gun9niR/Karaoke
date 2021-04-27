@@ -3,6 +3,7 @@ package com.sjtu.karaoke;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.media.MediaPlayer;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -13,7 +14,6 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.VideoView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
@@ -22,6 +22,10 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
 
 import com.dreamfish.record.AudioRecorder;
+import com.google.android.exoplayer2.MediaItem;
+import com.google.android.exoplayer2.SimpleExoPlayer;
+import com.google.android.exoplayer2.ui.AspectRatioFrameLayout;
+import com.google.android.exoplayer2.ui.PlayerView;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
@@ -30,6 +34,7 @@ import org.sang.lrcview.LrcView;
 import org.sang.lrcview.bean.LrcBean;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -49,7 +54,6 @@ import static com.sjtu.karaoke.util.MiscUtil.getMVFullPath;
 import static com.sjtu.karaoke.util.MiscUtil.getOriginalFullPath;
 import static com.sjtu.karaoke.util.MiscUtil.getScore;
 import static com.sjtu.karaoke.util.MiscUtil.verifyRecorderPermissions;
-
 /*
  * @ClassName: AccompanySingActivity
  * @Author: guozh
@@ -63,7 +67,7 @@ import static com.sjtu.karaoke.util.MiscUtil.verifyRecorderPermissions;
  */
 
 public class AccompanySingActivity extends AppCompatActivity {
-    VideoView videoView;
+    SimpleExoPlayer mvPlayer;
     LrcView lrcView;
     MediaPlayer accompanyPlayer;
     MediaPlayer originalPlayer;
@@ -126,7 +130,7 @@ public class AccompanySingActivity extends AppCompatActivity {
             loadFileAndPrepareMediaPlayer(originalPlayer, getOriginalFullPath(songName));
             muteOriginal();
 
-            initVideoView();
+            initMVPlayer();
             initLrcView();
             initVoiceRecorder();
             initProgressBar();
@@ -211,7 +215,7 @@ public class AccompanySingActivity extends AppCompatActivity {
     private void startAllPlayers() {
         originalPlayer.start();
         accompanyPlayer.start();
-        videoView.start();
+        mvPlayer.play();
         fab.setImageResource(R.drawable.ic_pause);
         state = State.PLAYING;
 
@@ -255,7 +259,7 @@ public class AccompanySingActivity extends AppCompatActivity {
     private void pauseAllPlayers() {
         accompanyPlayer.pause();
         originalPlayer.pause();
-        videoView.pause();
+        mvPlayer.pause();
         fab.setImageResource(R.drawable.ic_fab_play);
         state = State.PAUSE;
         handler.removeCallbacks(progressBarUpdater);
@@ -332,8 +336,8 @@ public class AccompanySingActivity extends AppCompatActivity {
         accompanyPlayer.pause();
         originalPlayer.seekTo(0);
         originalPlayer.pause();
-        videoView.pause();
-        videoView.seekTo(0);
+        mvPlayer.pause();
+        mvPlayer.seekTo(0);
         fab.setImageResource(R.drawable.ic_fab_play);
         stopUpdateProgressBar();
         state = State.UNSTARTED;
@@ -381,16 +385,19 @@ public class AccompanySingActivity extends AppCompatActivity {
         return true;
     }
 
-    private void initVideoView() {
-        videoView = findViewById(R.id.video_view);
-        String mvFullPath = getMVFullPath(songName);
-        videoView.setVideoPath(mvFullPath);
-        videoView.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
-            public void onPrepared(MediaPlayer mp) {
-                duration = videoView.getDuration();
-                mp.setVolume(0, 0);
-            }
-        });
+    private void initMVPlayer() {
+        // set up mv player and the view it should attach to
+        mvPlayer = new SimpleExoPlayer.Builder(this).build();
+        PlayerView mvPlayerView = (PlayerView) findViewById(R.id.mvView);
+        mvPlayerView.setResizeMode(AspectRatioFrameLayout.RESIZE_MODE_FILL);
+        mvPlayerView.setPlayer(mvPlayer);
+        mvPlayerView.setUseController(false);
+
+        File mvFile = new File(getMVFullPath(songName));
+        MediaItem mv = MediaItem.fromUri(Uri.fromFile(mvFile));
+        mvPlayer.setMediaItem(mv);
+        mvPlayer.prepare();
+        mvPlayer.setVolume(0);
     }
 
     private void initToolbar() {
@@ -415,7 +422,7 @@ public class AccompanySingActivity extends AppCompatActivity {
             // 完成键只有在开始录音后，state变为非UNSTARTE才可以点，所以能进入这里必然是录音结束
             lrcView.alertPlayerReleased();
             handler.removeCallbacks(progressBarUpdater);
-            videoView.stopPlayback();
+            mvPlayer.stop();
             terminateMediaPlayer(accompanyPlayer);
             terminateMediaPlayer(originalPlayer);
         }
