@@ -1,0 +1,23 @@
+# ninja log v5
+1	516	640613343	CMakeFiles/hello-libs.dir/hello-libs.cpp.o	1da8655f0337d6ee
+517	1319	640613343	C:/Academic/UnderGraduate/Sophomore-2/Principle and Practice of Software Engineering/project/android/hello-libs/app/build/intermediates/cmake/debug/obj/x86_64/libhello-libs.so	8e80cb0d891a9545
+3	209	640691450	CMakeFiles/WORLD.dir/tools/parameterio.cpp.o	fcb3fb42e7951d7e
+6	214	640691450	CMakeFiles/WORLD.dir/tools/audioio.cpp.o	999b40ed9f917226
+214	451	640691451	C:/Academic/UnderGraduate/Sophomore-2/Principle and Practice of Software Engineering/project/android/hello-libs/app/build/intermediates/cmake/debug/obj/x86_64/libWORLD.so	a86b582f6bc779f7
+8	458	640691451	CMakeFiles/hello-libs.dir/hello-libs.cpp.o	822b268fc4733d92
+458	577	640691451	C:/Academic/UnderGraduate/Sophomore-2/Principle and Practice of Software Engineering/project/android/hello-libs/app/build/intermediates/cmake/debug/obj/x86_64/libhello-libs.so	ed2067929ec5481e
+26	262	640693036	CMakeFiles/WORLD.dir/f0analysis.cpp.o	b61dd6bea5ed669d
+10	409	640693036	CMakeFiles/WORLD.dir/dio.cpp.o	181c80ec97f35920
+5	420	640693036	CMakeFiles/WORLD.dir/common.cpp.o	51cb48745fcec7ab
+7	425	640693036	CMakeFiles/WORLD.dir/codec.cpp.o	d954aa0e7d6f77c
+2	429	640693036	CMakeFiles/WORLD.dir/cheaptrick.cpp.o	db1c3b34fdb6caa0
+29	472	640693036	CMakeFiles/WORLD.dir/stonemask.cpp.o	f0207a2e137162b
+32	581	640693036	CMakeFiles/WORLD.dir/harvest.cpp.o	b7e91ce5ea0d5c39
+14	618	640693037	CMakeFiles/WORLD.dir/fft.cpp.o	5f78ddfc5859f99c
+262	628	640693037	CMakeFiles/WORLD.dir/matlabfunctions.cpp.o	d8f28ec5ffd3737a
+22	682	640693037	CMakeFiles/WORLD.dir/d4c.cpp.o	15f2a3e6e7ffbd9d
+410	727	640693037	CMakeFiles/WORLD.dir/synthesis.cpp.o	f1c0ebedc20b8abc
+420	738	640693037	CMakeFiles/WORLD.dir/synthesisrealtime.cpp.o	ea99532fa7fff0f6
+35	789	640693037	CMakeFiles/WORLD.dir/hello-libs.cpp.o	8ba8da3a892875ca
+790	907	640693037	C:/Academic/UnderGraduate/Sophomore-2/Principle and Practice of Software Engineering/project/android/hello-libs/app/build/intermediates/cmake/debug/obj/x86_64/libWORLD.so	7d32e8812b035609
+0	14	0	clean	a9b7fdbfddce7f13

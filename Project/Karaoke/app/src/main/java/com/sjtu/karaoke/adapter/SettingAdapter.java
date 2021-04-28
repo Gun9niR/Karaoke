@@ -38,6 +38,7 @@ public class SettingAdapter extends ArrayAdapter<String> {
     public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
         LayoutInflater layoutInflater = (LayoutInflater) context.getSystemService(LAYOUT_INFLATER_SERVICE);
         @SuppressLint("ViewHolder") View row = layoutInflater.inflate(R.layout.row_setting, parent, false);
+
         TextView settingItem = row.findViewById(R.id.settingName);
 
         settingItem.setText(settingItems[position]);

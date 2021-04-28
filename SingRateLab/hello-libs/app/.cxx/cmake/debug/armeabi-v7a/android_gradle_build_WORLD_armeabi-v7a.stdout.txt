@@ -1,0 +1,20 @@
+ninja: Entering directory `C:\Academic\UnderGraduate\Sophomore-2\Principle and Practice of Software Engineering\project\android\hello-libs\app\.cxx\cmake\debug\armeabi-v7a'
+[1/16] Building CXX object CMakeFiles/WORLD.dir/hello-libs.cpp.o
+FAILED: CMakeFiles/WORLD.dir/hello-libs.cpp.o 
+C:\Users\66328\AppData\Local\Android\Sdk\ndk\21.2.6472646\toolchains\llvm\prebuilt\windows-x86_64\bin\clang++.exe --target=armv7-none-linux-androideabi16 --gcc-toolchain=C:/Users/66328/AppData/Local/Android/Sdk/ndk/21.2.6472646/toolchains/llvm/prebuilt/windows-x86_64 --sysroot=C:/Users/66328/AppData/Local/Android/Sdk/ndk/21.2.6472646/toolchains/llvm/prebuilt/windows-x86_64/sysroot  -DWORLD_EXPORTS -I"C:/Academic/UnderGraduate/Sophomore-2/Principle and Practice of Software Engineering/project/android/hello-libs/app/src/main/cpp/." -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -march=armv7-a -mthumb -Wformat -Werror=format-security   -std=gnu++11 -O0 -fno-limit-debug-info  -fPIC   -Wno-format-security -MD -MT CMakeFiles/WORLD.dir/hello-libs.cpp.o -MF CMakeFiles\WORLD.dir\hello-libs.cpp.o.d -o CMakeFiles/WORLD.dir/hello-libs.cpp.o -c "C:/Academic/UnderGraduate/Sophomore-2/Principle and Practice of Software Engineering/project/android/hello-libs/app/src/main/cpp/hello-libs.cpp"
+clang++: error: no such file or directory: 'C:/Academic/UnderGraduate/Sophomore-2/Principle and Practice of Software Engineering/project/android/hello-libs/app/src/main/cpp/hello-libs.cpp'
+clang++: error: no input files
+[2/16] Building CXX object CMakeFiles/WORLD.dir/f0analysis.cpp.o
+FAILED: CMakeFiles/WORLD.dir/f0analysis.cpp.o 
+C:\Users\66328\AppData\Local\Android\Sdk\ndk\21.2.6472646\toolchains\llvm\prebuilt\windows-x86_64\bin\clang++.exe --target=armv7-none-linux-androideabi16 --gcc-toolchain=C:/Users/66328/AppData/Local/Android/Sdk/ndk/21.2.6472646/toolchains/llvm/prebuilt/windows-x86_64 --sysroot=C:/Users/66328/AppData/Local/Android/Sdk/ndk/21.2.6472646/toolchains/llvm/prebuilt/windows-x86_64/sysroot  -DWORLD_EXPORTS -I"C:/Academic/UnderGraduate/Sophomore-2/Principle and Practice of Software Engineering/project/android/hello-libs/app/src/main/cpp/." -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -march=armv7-a -mthumb -Wformat -Werror=format-security   -std=gnu++11 -O0 -fno-limit-debug-info  -fPIC   -Wno-format-security -MD -MT CMakeFiles/WORLD.dir/f0analysis.cpp.o -MF CMakeFiles\WORLD.dir\f0analysis.cpp.o.d -o CMakeFiles/WORLD.dir/f0analysis.cpp.o -c "C:/Academic/UnderGraduate/Sophomore-2/Principle and Practice of Software Engineering/project/android/hello-libs/app/src/main/cpp/f0analysis.cpp"
+clang++: error: no such file or directory: 'C:/Academic/UnderGraduate/Sophomore-2/Principle and Practice of Software Engineering/project/android/hello-libs/app/src/main/cpp/f0analysis.cpp'
+clang++: error: no input files
+[3/16] Building CXX object CMakeFiles/WORLD.dir/stonemask.cpp.o
+[4/16] Building CXX object CMakeFiles/WORLD.dir/cheaptrick.cpp.o
+[5/16] Building CXX object CMakeFiles/WORLD.dir/common.cpp.o
+[6/16] Building CXX object CMakeFiles/WORLD.dir/codec.cpp.o
+[7/16] Building CXX object CMakeFiles/WORLD.dir/dio.cpp.o
+[8/16] Building CXX object CMakeFiles/WORLD.dir/harvest.cpp.o
+[9/16] Building CXX object CMakeFiles/WORLD.dir/fft.cpp.o
+[10/16] Building CXX object CMakeFiles/WORLD.dir/d4c.cpp.o
+ninja: build stopped: subcommand failed.
