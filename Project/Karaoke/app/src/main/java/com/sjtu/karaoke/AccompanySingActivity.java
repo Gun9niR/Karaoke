@@ -302,14 +302,7 @@ public class AccompanySingActivity extends AppCompatActivity {
                             case R.id.singingFinish:
                                 state = State.UNSTARTED;
                                 // it has to be placed here, to wait for the merging to complete
-                                voiceRecorder.stopRecord();
-
-                                lrcView.alertPlayerReleased();
-                                handler.removeCallbacks(progressMonitor);
-                                terminateExoPlayer(mvPlayer);
-                                terminateExoPlayer(accompanyPlayer);
-                                terminateExoPlayer(originalPlayer);
-
+                                stopActivity();
                                 Intent intent = new Intent(getApplicationContext(), SingResultActivity.class);
                                 intent.putExtra("id", id);
                                 intent.putExtra("songName", songName);
@@ -320,6 +313,16 @@ public class AccompanySingActivity extends AppCompatActivity {
                     }
                 }
         );
+    }
+
+    private void stopActivity() {
+        this.state = State.UNSTARTED;
+        voiceRecorder.stopRecord();
+        lrcView.alertPlayerReleased();
+        handler.removeCallbacks(progressMonitor);
+        terminateExoPlayer(mvPlayer);
+        terminateExoPlayer(accompanyPlayer);
+        terminateExoPlayer(originalPlayer);
     }
 
     private void disableFinishButton() {
@@ -371,15 +374,14 @@ public class AccompanySingActivity extends AppCompatActivity {
                 lrcView.init();
 
                 restartAllPlayers();
+                voiceRecorder.cancel();
+                voiceRecorder.createDefaultAudio(songName);
             }
         }
         else {
-            lrcView.alertPlayerReleased();
-            handler.removeCallbacks(progressMonitor);
-            terminateExoPlayer(mvPlayer);
-            terminateExoPlayer(accompanyPlayer);
-            terminateExoPlayer(originalPlayer);
-
+            if (this.state != State.UNSTARTED) {
+                stopActivity();
+            }
             onBackPressed();
         }
 
@@ -414,7 +416,6 @@ public class AccompanySingActivity extends AppCompatActivity {
     @Override
     protected void onStop() {
         super.onStop();
-        System.out.println("AccompanySing OnStop");
         // 在播放时退出app，暂停播放和录音
         if (this.state == State.PLAYING) {
             // 在播放时退出app

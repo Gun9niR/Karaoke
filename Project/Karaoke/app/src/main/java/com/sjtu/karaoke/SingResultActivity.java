@@ -4,7 +4,6 @@ import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.content.Intent;
 import android.graphics.Color;
-import android.media.MediaPlayer;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -24,24 +23,25 @@ import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
+import com.google.android.exoplayer2.Player;
+import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
-import java.util.concurrent.BrokenBarrierException;
-import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.TimeUnit;
 
 import static com.sjtu.karaoke.util.Constants.PROGRESS_UPDATE_INTERVAL;
 import static com.sjtu.karaoke.util.Constants.RECORD_DIRECTORY;
 import static com.sjtu.karaoke.util.FileUtil.deleteOneFile;
-import static com.sjtu.karaoke.util.MediaPlayerUtil.loadFileAndPrepareMediaPlayer;
-import static com.sjtu.karaoke.util.MediaPlayerUtil.terminateMediaPlayer;
+import static com.sjtu.karaoke.util.MediaPlayerUtil.loadAudioFileAndPrepareExoPlayer;
+import static com.sjtu.karaoke.util.MediaPlayerUtil.terminateExoPlayer;
 import static com.sjtu.karaoke.util.MiscUtil.getAccompanyFullPath;
 import static com.sjtu.karaoke.util.MiscUtil.getRecordName;
 import static com.sjtu.karaoke.util.MiscUtil.getTrimmedAccompanyFullPath;
 import static com.sjtu.karaoke.util.MiscUtil.getVoiceFullPath;
 import static com.sjtu.karaoke.util.MiscUtil.showLoadingDialog;
 import static com.sjtu.karaoke.util.MiscUtil.showToast;
+import static com.sjtu.karaoke.util.WavUtil.getWAVDuration;
 import static com.sjtu.karaoke.util.WavUtil.mergeWAVs;
 import static com.sjtu.karaoke.util.WavUtil.trimWav;
 
@@ -58,28 +58,38 @@ import static com.sjtu.karaoke.util.WavUtil.trimWav;
  */
 
 public class SingResultActivity extends AppCompatActivity {
+    final int INITIAL_OFFSET = 700;
 
     Toolbar toolbar;
     BottomNavigationView bottomNavbarResult;
     TextView titleText, playerPosition, playerDuration;
-    SeekBar seekBarResultProgress,  seekbarTuneVoice, seekbarTuneAccompany;
+    SeekBar seekBarResultProgress;
+    SeekBar seekbarTuneVoice;
+    SeekBar seekbarTuneAccompany;
+    SeekBar seekbarAlignVoice;
     ImageView btnPlay, btnPause;
-    MediaPlayer accompanyPlayer, voicePlayer;
+    SimpleExoPlayer accompanyPlayer;
+    SimpleExoPlayer voicePlayer;
     Handler handler = new Handler();
-    Runnable runnable;
+    Runnable progressUpdater;
 
     float voiceVolume = 1;
     float accompanyVolume = 1;
 
     boolean isFileSaved = false;
+    State state;
+    int voiceOffset;
 
     Integer id;
     String songName;
+    int voiceDuration;
+
     // 需要将伴奏裁减成和录音一样长的音频
     String trimmedAccompanyFullPath;
     // 上一个activity中录制的录音
     String voiceFullPath;
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -91,23 +101,55 @@ public class SingResultActivity extends AppCompatActivity {
         songName = intent.getStringExtra("songName");
         getFilePaths();
 
-        voicePlayer = new MediaPlayer();
-        loadFileAndPrepareMediaPlayer(voicePlayer, voiceFullPath);
+        voicePlayer = new SimpleExoPlayer.Builder(this).build();
+        loadAudioFileAndPrepareExoPlayer(voicePlayer, voiceFullPath);
+        voiceDuration = (int) getWAVDuration(voiceFullPath);
         // trim accompany
-        trimWav(getAccompanyFullPath(songName), trimmedAccompanyFullPath, 0, voicePlayer.getDuration());
+        trimWav(getAccompanyFullPath(songName), trimmedAccompanyFullPath, 0, voiceDuration);
 
-        accompanyPlayer = new MediaPlayer();
-        loadFileAndPrepareMediaPlayer(accompanyPlayer, trimmedAccompanyFullPath);
+        accompanyPlayer = new SimpleExoPlayer.Builder(this).build();
+        loadAudioFileAndPrepareExoPlayer(accompanyPlayer, trimmedAccompanyFullPath);
+        voiceOffset = INITIAL_OFFSET;
+        this.state = State.UNSTARTED;
 
-        initRunnable();
+        initProgressUpdater();
         initToolBar();
         initTitle();
         initBottomNavbar();
         initPlaySeekbar();
         initButtonControl();
         initTuneSeekbar();
-        startAllPlayers();
+        initAlignSeekbar();
+        btnPlay.callOnClick();
         initFab();
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    private void initAlignSeekbar() {
+        seekbarAlignVoice = findViewById(R.id.seekbarAlignVoice);
+        // Tune forward or backward by 1s
+        seekbarAlignVoice.setMin(0);
+        seekbarAlignVoice.setMax(1000);
+        seekbarAlignVoice.setProgress(INITIAL_OFFSET);
+        seekbarAlignVoice.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                voiceOffset = progress;
+                pauseAllPlayers();
+                voicePlayer.seekTo(0);
+                accompanyPlayer.seekTo(0);
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                btnPlay.callOnClick();
+            }
+        });
     }
 
     private void getFilePaths() {
@@ -142,11 +184,12 @@ public class SingResultActivity extends AppCompatActivity {
         });
     }
 
-    private void initRunnable() {
-        runnable = new Runnable() {
+    private void initProgressUpdater() {
+        progressUpdater = new Runnable() {
             @Override
             public void run() {
-                seekBarResultProgress.setProgress(voicePlayer.getCurrentPosition());
+                System.out.println(voicePlayer.getCurrentPosition() - accompanyPlayer.getCurrentPosition());
+                seekBarResultProgress.setProgress((int) voicePlayer.getCurrentPosition());
                 handler.postDelayed(this, PROGRESS_UPDATE_INTERVAL);
             }
         };
@@ -185,6 +228,11 @@ public class SingResultActivity extends AppCompatActivity {
                 int id = item.getItemId();
                 switch(id) {
                     case R.id.resultRetry:
+                        deleteOneFile(trimmedAccompanyFullPath);
+                        deleteOneFile(voiceFullPath);
+                        handler.removeCallbacks(progressUpdater);
+                        terminateExoPlayer(voicePlayer);
+                        terminateExoPlayer(accompanyPlayer);
                         onBackPressed();
                         break;
                     case R.id.resultShare:
@@ -197,30 +245,26 @@ public class SingResultActivity extends AppCompatActivity {
 
 
     private void initPlaySeekbar() {
-        // duration in ms
-        int duration =  voicePlayer.getDuration();
         // seekbar text
-
         playerPosition = findViewById(R.id.playerPosition);
         playerDuration = findViewById(R.id.playerDuration);
-        String sDuration = convertFormat(duration);
+        String sDuration = convertFormat(voiceDuration);
         playerDuration.setText(sDuration);
 
         // seekbar
         seekBarResultProgress = findViewById(R.id.seekbarResultProgress);
-        seekBarResultProgress.setMax(duration);
+        seekBarResultProgress.setMax(voiceDuration);
         seekBarResultProgress.setProgress(0);
 
         seekBarResultProgress.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 if (fromUser) {
-                    accompanyPlayer.seekTo(progress);
                     voicePlayer.seekTo(progress);
-                    System.out.println(convertFormat(progress));
+                    accompanyPlayer.seekTo(Math.max(progress - voiceOffset, 0));
                 }
 
-                playerPosition.setText(convertFormat((voicePlayer.getCurrentPosition())));
+                playerPosition.setText(convertFormat(((int) voicePlayer.getCurrentPosition())));
             }
 
             @Override
@@ -229,9 +273,7 @@ public class SingResultActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
-
-            }
+            public void onStopTrackingTouch(SeekBar seekBar) { }
         });
     }
 
@@ -240,13 +282,20 @@ public class SingResultActivity extends AppCompatActivity {
         btnPlay = findViewById(R.id.resultPlay);
         btnPause = findViewById(R.id.resultPause);
 
-        voicePlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+        voicePlayer.addListener(new Player.EventListener() {
             @Override
-            public void onCompletion(MediaPlayer mp) {
-                btnPause.setVisibility(View.GONE);
-                btnPlay.setVisibility(View.VISIBLE);
-                accompanyPlayer.seekTo(0);
-                voicePlayer.seekTo(0);
+            public void onPlaybackStateChanged(int state) {
+                if (state == Player.STATE_ENDED) {
+                    SingResultActivity.this.state = State.UNSTARTED;
+                    btnPause.setVisibility(View.GONE);
+                    btnPlay.setVisibility(View.VISIBLE);
+                    accompanyPlayer.pause();
+                    accompanyPlayer.seekTo(0);
+                    voicePlayer.pause();
+                    voicePlayer.seekTo(0);
+                    seekBarResultProgress.setProgress(0);
+                    handler.removeCallbacks(progressUpdater);
+                }
             }
         });
 
@@ -255,7 +304,11 @@ public class SingResultActivity extends AppCompatActivity {
             public void onClick(View v) {
                 btnPlay.setVisibility(View.GONE);
                 btnPause.setVisibility(View.VISIBLE);
-                startAllPlayers();
+                if (state == State.UNSTARTED) {
+                    startAllPlayers(voiceOffset);
+                } else {
+                    startAllPlayers(0);
+                }
             }
         });
 
@@ -270,8 +323,10 @@ public class SingResultActivity extends AppCompatActivity {
     }
 
     private void pauseAllPlayers() {
-        syncedCommand(voicePlayer, accompanyPlayer, MP_COMMAND.PAUSE);
-        handler.removeCallbacks(runnable);
+        this.state = State.PAUSE;
+        voicePlayer.pause();
+        accompanyPlayer.pause();
+        handler.removeCallbacks(progressUpdater);
     }
 
     private void initTuneSeekbar() {
@@ -279,29 +334,25 @@ public class SingResultActivity extends AppCompatActivity {
         seekbarTuneVoice = findViewById(R.id.seekbarTuneVoice);
         seekbarTuneVoice.setMax(100);
         seekbarTuneVoice.setProgress(100);
-        voicePlayer.setVolume(1, 1);
+        voicePlayer.setVolume(1);
         seekbarTuneAccompany = findViewById(R.id.seekbarTuneAccompany);
         seekbarTuneAccompany.setMax(100);
         seekbarTuneAccompany.setProgress(100);
-        accompanyPlayer.setVolume(1, 1);
+        accompanyPlayer.setVolume(1);
 
         seekbarTuneVoice.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 voiceVolume = (float)progress / 100;
                 if (fromUser)
-                    voicePlayer.setVolume(voiceVolume, voiceVolume);
+                    voicePlayer.setVolume(voiceVolume);
             }
 
             @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-
-            }
+            public void onStartTrackingTouch(SeekBar seekBar) { }
 
             @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
-
-            }
+            public void onStopTrackingTouch(SeekBar seekBar) { }
         });
 
         seekbarTuneAccompany.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
@@ -309,7 +360,7 @@ public class SingResultActivity extends AppCompatActivity {
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 accompanyVolume = (float)progress / 100;
                 if (fromUser)
-                    accompanyPlayer.setVolume(accompanyVolume, accompanyVolume);
+                    accompanyPlayer.setVolume(accompanyVolume);
             }
 
             @Override
@@ -324,11 +375,20 @@ public class SingResultActivity extends AppCompatActivity {
         });
     }
 
-    private void startAllPlayers() {
-        handler.postDelayed(runnable, 0);
+    private void startAllPlayers(int voiceOffset) {
 
-        voicePlayer.start();
-        accompanyPlayer.start();
+        this.state = State.PLAYING;
+
+        handler.postDelayed(progressUpdater, 0);
+
+        voicePlayer.play();
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                accompanyPlayer.play();
+            }
+        }, voiceOffset);
+
     }
 
     @Override
@@ -341,12 +401,11 @@ public class SingResultActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        // can't really
         deleteOneFile(trimmedAccompanyFullPath);
         deleteOneFile(voiceFullPath);
-        handler.removeCallbacks(runnable);
-        terminateMediaPlayer(voicePlayer);
-        terminateMediaPlayer(accompanyPlayer);
+        handler.removeCallbacks(progressUpdater);
+        terminateExoPlayer(voicePlayer);
+        terminateExoPlayer(accompanyPlayer);
     }
 
     @SuppressLint("DefaultLocale")
@@ -357,60 +416,7 @@ public class SingResultActivity extends AppCompatActivity {
                         - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(duration)));
     }
 
-    public enum MP_COMMAND {
-        START,
-        STOP,
-        PAUSE
-    }
-
-    /**
-     * Uses threads to execute synced commands for the current video media player and
-     * background music player in tandem.
-     */
-    public void syncedCommand(MediaPlayer player1, MediaPlayer player2, MP_COMMAND command) {
-        final CyclicBarrier commandBarrier = new CyclicBarrier(2);
-        new Thread(new SyncedCommandService(commandBarrier, player1, command)).start();
-        new Thread(new SyncedCommandService(commandBarrier, player2, command)).start();
-    }
-
-    /**
-     * Inner class that starts a given media player synchronously
-     * with other threads utilizing SyncedStartService
-     */
-    static private class SyncedCommandService implements Runnable {
-        private final CyclicBarrier              mCommandBarrier;
-        private final SingResultActivity.MP_COMMAND mCommand;
-        private final MediaPlayer                mMediaPlayer;
-
-        public SyncedCommandService(CyclicBarrier barrier, MediaPlayer player, SingResultActivity.MP_COMMAND command) {
-            mCommandBarrier = barrier;
-            mMediaPlayer = player;
-            mCommand = command;
-        }
-
-        @Override public void run() {
-            try {
-                mCommandBarrier.await();
-            } catch (InterruptedException | BrokenBarrierException e) {
-                e.printStackTrace();
-            }
-
-            switch (mCommand) {
-                case START:
-                    mMediaPlayer.start();
-                    break;
-
-                case STOP:
-                    mMediaPlayer.stop();
-                    break;
-
-                case PAUSE:
-                    mMediaPlayer.pause();
-                    break;
-
-                default:
-                    break;
-            }
-        }
+    private enum State {
+        PLAYING, PAUSE, UNSTARTED
     }
 }

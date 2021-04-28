@@ -94,23 +94,20 @@ public class PcmToWav {
                 inStream = new BufferedInputStream(new FileInputStream(file[j]));
                 int size = inStream.read(buffer);
                 while (size != -1) {
-                    ouStream.write(buffer);
+                    ouStream.write(buffer, 0, size);
                     size = inStream.read(buffer);
                 }
                 inStream.close();
             }
             ouStream.close();
-        } catch (FileNotFoundException e) {
+        } catch (IOException e) {
             Log.e("PcmToWav", e.getMessage());
             return false;
-        } catch (IOException ioe) {
-            Log.e("PcmToWav", ioe.getMessage());
-            return false;
         }
+
         clearFiles(filePathList);
         Log.i("PcmToWav", "mergePCMFilesToWAVFile  success! " + destinationPath);
         return true;
-
     }
 
     /**

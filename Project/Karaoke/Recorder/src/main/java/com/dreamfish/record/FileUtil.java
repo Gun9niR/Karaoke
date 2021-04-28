@@ -4,8 +4,6 @@ import android.os.Environment;
 import android.text.TextUtils;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -129,5 +127,19 @@ public class FileUtil {
 
         }
         return list;
+    }
+
+    /**
+     * Delete file at given full path.
+     * It handles deletion of nonexistent files
+     * @param fullPath
+     */
+    public static void deleteOneFile(String fullPath) {
+        File file = new File(fullPath);
+
+        if (file.exists()) {
+            //noinspection ResultOfMethodCallIgnored
+            file.delete();
+        }
     }
 }

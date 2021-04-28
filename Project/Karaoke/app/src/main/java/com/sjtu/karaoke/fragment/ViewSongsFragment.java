@@ -1,5 +1,6 @@
 package com.sjtu.karaoke.fragment;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -132,16 +133,17 @@ public class ViewSongsFragment extends Fragment {
     }
 
     private void setSongs(List<SongInfo> songs) {
-
-        getActivity().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                // Stuff that updates the UI
-                adapter.setSongs(songs);
-                adapter.notifyDataSetChanged();
-            }
-        });
-
+        Activity activity = getActivity();
+        if (activity != null) {
+            activity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    // Stuff that updates the UI
+                    adapter.setSongs(songs);
+                    adapter.notifyDataSetChanged();
+                }
+            });
+        }
     }
 
     private void initToolbar() {

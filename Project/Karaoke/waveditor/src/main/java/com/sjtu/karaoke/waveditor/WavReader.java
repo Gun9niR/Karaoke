@@ -102,7 +102,11 @@ public class WavReader {
             // header chunk size is 34 bytes, so skip 30 bytes
             if (header.dataChunkID.equals("LIST")) {
                 Log.d(TAG, "Skip LIST chunk");
-                wavInputStream.skip(30);
+                wavInputStream.read(buffer);
+                int listChunkSize = byteArrayToInt(buffer);
+                System.out.println("List chunk size: " + listChunkSize);
+
+                wavInputStream.skip(listChunkSize);
                 wavInputStream.read(buffer);
                 header.dataChunkID = new String(buffer);
                 Log.d(TAG, "Read data chunkID:" + header.dataChunkID);

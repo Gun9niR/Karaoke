@@ -104,7 +104,7 @@
             android:id="@+id/tuneVoice"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="人声"
+            android:text="人声音量"
             android:textColor="@color/purple_500"
             android:textStyle="bold"
             android:textSize="15dp"
@@ -121,11 +121,10 @@
             android:paddingEnd="16dp"
             android:paddingStart="16dp"
             tools:visibility="visible" />
-
-
     </LinearLayout>
 
     <LinearLayout
+        android:id="@+id/wrapperTuneAccompany"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
@@ -138,7 +137,7 @@
             android:id="@+id/tuneAccompany"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="伴奏"
+            android:text="伴奏音量"
             android:textColor="@color/purple_500"
             android:textStyle="bold"
             android:textSize="15dp"
@@ -158,6 +157,36 @@
 
     </LinearLayout>
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:padding="12dp"
+        app:layout_constraintTop_toBottomOf="@+id/wrapperTuneAccompany"
+        tools:ignore="MissingConstraints">
+        <TextView
+            android:id="@+id/alignVoice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="人声对齐"
+            android:textColor="@color/purple_500"
+            android:textStyle="bold"
+            android:textSize="15dp"
+            android:paddingLeft="8dp" />
+
+        <SeekBar
+            android:id="@+id/seekbarAlignVoice"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:thumbTint="@color/purple_500"
+            android:progressBackgroundTint="@color/purple_500"
+            android:progressTint="@color/purple_700"
+            android:paddingEnd="16dp"
+            android:paddingStart="16dp"
+            tools:visibility="visible" />
+    </LinearLayout>
     <include
         layout="@layout/bottom_navbar_result"
         android:id="@+id/bottomNavbarResult"

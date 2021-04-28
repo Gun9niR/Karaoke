@@ -19,8 +19,9 @@ public class Constants {
             Manifest.permission.READ_EXTERNAL_STORAGE,
     };
 
-    public static final int PROGRESS_UPDATE_INTERVAL = 500;
+    public static final int PROGRESS_UPDATE_INTERVAL = 100;
 
+    public static final int VOICE_DELAY = 700;
     // file save path
     public static String FILE_SAVE_DIR = "/Karaoke/";
 

@@ -13,6 +13,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.dreamfish.record.FileUtil.deleteOneFile;
+
 /**
  * 实现录音
  *
@@ -203,7 +205,10 @@ public class AudioRecorder {
     /**
      * 取消录音
      */
-    public void canel() {
+    public void cancel() {
+        for (String fileName: filesName) {
+            deleteOneFile(fileName);
+        }
         filesName.clear();
         fileName = null;
         if (audioRecord != null) {
@@ -242,9 +247,8 @@ public class AudioRecorder {
                 setFileOutputStream();
                 shouldStartNewLine = false;
             } else {
-                int readsize = audioRecord.read(audiodata, 0, bufferSizeInBytes);
-                // System.out.println("Read " + readsize + " bytes from recorder");
-                if (AudioRecord.ERROR_INVALID_OPERATION != readsize && fos != null) {
+                int readSize = audioRecord.read(audiodata, 0, bufferSizeInBytes);
+                if (AudioRecord.ERROR_INVALID_OPERATION != readSize && fos != null) {
                     try {
                         // writes very fucking fastf
                         fos.write(audiodata);
