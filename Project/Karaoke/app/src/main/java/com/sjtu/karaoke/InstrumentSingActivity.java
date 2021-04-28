@@ -201,7 +201,7 @@ public class InstrumentSingActivity<Soundpool> extends AppCompatActivity {
         }
 
         lrcView.setLrc(lrc);
-        lrcView.setPlayer(accompanyPlayer);
+//         lrcView.setPlayer(accompanyPlayer);
         lrcView.init();
     }
 

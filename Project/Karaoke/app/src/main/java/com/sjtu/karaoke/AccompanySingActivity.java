@@ -2,7 +2,6 @@ package com.sjtu.karaoke;
 
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
-import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -23,6 +22,7 @@ import androidx.core.content.ContextCompat;
 
 import com.dreamfish.record.AudioRecorder;
 import com.google.android.exoplayer2.MediaItem;
+import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.ui.AspectRatioFrameLayout;
 import com.google.android.exoplayer2.ui.PlayerView;
@@ -44,16 +44,16 @@ import java.util.ListIterator;
 import java.util.stream.Collectors;
 
 import static com.dreamfish.record.PcmToWav.makePCMFileToWAVFile;
-import static com.sjtu.karaoke.util.Constants.PROGRESS_UPDATE_INTERVAL;
 import static com.sjtu.karaoke.util.Constants.TRIMMED_VOICE_WAV_DIRECTORY;
-import static com.sjtu.karaoke.util.MediaPlayerUtil.loadFileAndPrepareMediaPlayer;
-import static com.sjtu.karaoke.util.MediaPlayerUtil.terminateMediaPlayer;
+import static com.sjtu.karaoke.util.MediaPlayerUtil.loadAudioFileAndPrepareExoPlayer;
+import static com.sjtu.karaoke.util.MediaPlayerUtil.terminateExoPlayer;
 import static com.sjtu.karaoke.util.MiscUtil.getAccompanyFullPath;
 import static com.sjtu.karaoke.util.MiscUtil.getLyricFullPath;
 import static com.sjtu.karaoke.util.MiscUtil.getMVFullPath;
 import static com.sjtu.karaoke.util.MiscUtil.getOriginalFullPath;
 import static com.sjtu.karaoke.util.MiscUtil.getScore;
 import static com.sjtu.karaoke.util.MiscUtil.verifyRecorderPermissions;
+import static com.sjtu.karaoke.util.WavUtil.getWAVDuration;
 /*
  * @ClassName: AccompanySingActivity
  * @Author: guozh
@@ -69,11 +69,12 @@ import static com.sjtu.karaoke.util.MiscUtil.verifyRecorderPermissions;
 public class AccompanySingActivity extends AppCompatActivity {
     SimpleExoPlayer mvPlayer;
     LrcView lrcView;
-    MediaPlayer accompanyPlayer;
-    MediaPlayer originalPlayer;
-    ProgressBar progressBar, scoreBar;
+    SimpleExoPlayer accompanyPlayer;
+    SimpleExoPlayer originalPlayer;
+    ProgressBar progressBar;
+    ProgressBar scoreBar;
     FloatingActionButton fab;
-    Runnable progressBarUpdater;
+    Runnable progressMonitor;
     AudioRecorder voiceRecorder;
     BottomNavigationView bottomNavigationView;
     Handler handler = new Handler();
@@ -124,10 +125,11 @@ public class AccompanySingActivity extends AppCompatActivity {
         // return from sing result activity or from main activity, initialize all players
         if (state == State.UNSTARTED) {
             // Player-related initialization
-            accompanyPlayer = new MediaPlayer();
-            loadFileAndPrepareMediaPlayer(accompanyPlayer, getAccompanyFullPath(songName));
-            originalPlayer = new MediaPlayer();
-            loadFileAndPrepareMediaPlayer(originalPlayer, getOriginalFullPath(songName));
+            accompanyPlayer = new SimpleExoPlayer.Builder(this).build();
+            loadAudioFileAndPrepareExoPlayer(accompanyPlayer, getAccompanyFullPath(songName));
+            originalPlayer = new SimpleExoPlayer.Builder(this).build();
+            loadAudioFileAndPrepareExoPlayer(originalPlayer, getOriginalFullPath(songName));
+            setListener(originalPlayer);
             muteOriginal();
 
             initMVPlayer();
@@ -137,17 +139,30 @@ public class AccompanySingActivity extends AppCompatActivity {
             initScoreBar();
             initFab();
             initState();
-            initProgressBarUpdater();
             initBottomNavbar();
         }
     }
 
+    private void setListener(SimpleExoPlayer player) {
+        player.addListener(new Player.EventListener() {
+            @Override
+            public void onPlaybackStateChanged(int state) {
+                if (state == Player.STATE_ENDED) {
+                    Intent intent = new Intent(getApplicationContext(), SingResultActivity.class);
+                    intent.putExtra("id", id);
+                    intent.putExtra("songName", songName);
+                    startActivity(intent);
+                }
+            }
+        });
+    }
+
     private void muteOriginal() {
-        originalPlayer.setVolume(0, 0);
+        originalPlayer.setVolume(0);
     }
 
     private void unmuteOriginal() {
-        originalPlayer.setVolume(1, 1);
+        originalPlayer.setVolume(1);
     }
 
     private void initVoiceRecorder() {
@@ -156,12 +171,23 @@ public class AccompanySingActivity extends AppCompatActivity {
         voiceRecorder.createDefaultAudio(songName);
     }
 
-    private void initProgressBarUpdater() {
-        progressBarUpdater = new Runnable() {
+    private void setProgressMonitor(SimpleExoPlayer player) {
+        progressMonitor = new Runnable() {
             @Override
             public void run() {
-                progressBar.setProgress(accompanyPlayer.getCurrentPosition());
-                handler.postDelayed(this, PROGRESS_UPDATE_INTERVAL);
+                progressBar.setProgress((int) player.getContentPosition());
+                if (lrcIterator.hasNext() && player.getCurrentPosition() > currentLrc.getEnd()) {
+                    voiceRecorder.setShouldStartNewLine(true);
+                    // wait for the recorder to finish writing current file
+                    while (voiceRecorder.shouldStartNewLine()) {
+                    }
+
+                    if (currentLrc.shouldRate()) {
+                        rate(voiceRecorder.getLastFinishedPCMFilePath());
+                    }
+                    currentLrc = lrcIterator.next();
+                }
+                handler.postDelayed(this, 200);
             }
         };
     }
@@ -180,20 +206,15 @@ public class AccompanySingActivity extends AppCompatActivity {
                 if (state == State.PLAYING) {
                     pause();
                 } else if (state == State.PAUSE) {
-                    startAllPlayers();
                     startRecording();
+                    startAllPlayers();
                 } else {
-                    startAllPlayers();
                     startRecording();
+                    startAllPlayers();
                     bottomNavigationView.getMenu().getItem(2).setEnabled(true);
                 }
             }
         });
-    }
-
-    private void enableFinishButton() {
-        MenuItem finishButton = bottomNavigationView.getMenu().getItem(2);
-        finishButton.setEnabled(true);
     }
 
     private void pauseRecording() {
@@ -201,59 +222,26 @@ public class AccompanySingActivity extends AppCompatActivity {
     }
 
     private void startRecording() {
-        voiceRecorder.startRecord(null, accompanyPlayer);
-    }
-
-    private void startUpdateProgressBar() {
-        handler.postDelayed(progressBarUpdater, 0);
+        voiceRecorder.startRecord(null);
     }
 
     private void stopUpdateProgressBar() {
-        handler.removeCallbacks(progressBarUpdater);
+        handler.removeCallbacks(progressMonitor);
     }
 
     private void startAllPlayers() {
-        originalPlayer.start();
-        accompanyPlayer.start();
+        originalPlayer.play();
+        accompanyPlayer.play();
         mvPlayer.play();
         fab.setImageResource(R.drawable.ic_pause);
         state = State.PLAYING;
 
-        accompanyPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-
-            @Override
-            public void onCompletion(MediaPlayer accompanyPlayer) {
-                // todo: also pass score
-                Intent intent = new Intent(getApplicationContext(), SingResultActivity.class);
-                intent.putExtra("id", id);
-                intent.putExtra("songName", songName);
-                startActivity(intent);
-            }
-        });
-
-        startSplittingLines();
-
-        startUpdateProgressBar();
+        setProgressMonitor(originalPlayer);
+        monitorProgress();
     }
 
-    private void startSplittingLines() {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                while (state == State.PLAYING && lrcIterator.hasNext()) {
-                    if (accompanyPlayer.getCurrentPosition() > currentLrc.getEnd()) {
-                        voiceRecorder.setShouldStartNewLine(true);
-                        // wait for the recorder to finish writing current file
-                        while (voiceRecorder.shouldStartNewLine()) { }
-
-                        if (currentLrc.shouldRate()) {
-                            rate(voiceRecorder.getLastFinishedPCMFilePath());
-                        }
-                        currentLrc = lrcIterator.next();
-                    }
-                }
-            }
-        }).start();
+    private void monitorProgress() {
+        handler.postDelayed(progressMonitor, 0);
     }
 
     private void pauseAllPlayers() {
@@ -262,7 +250,7 @@ public class AccompanySingActivity extends AppCompatActivity {
         mvPlayer.pause();
         fab.setImageResource(R.drawable.ic_fab_play);
         state = State.PAUSE;
-        handler.removeCallbacks(progressBarUpdater);
+        handler.removeCallbacks(progressMonitor);
     }
 
     private void initScoreBar() {
@@ -282,7 +270,7 @@ public class AccompanySingActivity extends AppCompatActivity {
 
     private void initProgressBar() {
         progressBar = (ProgressBar) findViewById(R.id.progressBar);
-        progressBar.setMax(accompanyPlayer.getDuration());
+        progressBar.setMax((int) getWAVDuration(getOriginalFullPath(songName)));
         progressBar.setProgress(0);
     }
 
@@ -315,6 +303,13 @@ public class AccompanySingActivity extends AppCompatActivity {
                                 state = State.UNSTARTED;
                                 // it has to be placed here, to wait for the merging to complete
                                 voiceRecorder.stopRecord();
+
+                                lrcView.alertPlayerReleased();
+                                handler.removeCallbacks(progressMonitor);
+                                terminateExoPlayer(mvPlayer);
+                                terminateExoPlayer(accompanyPlayer);
+                                terminateExoPlayer(originalPlayer);
+
                                 Intent intent = new Intent(getApplicationContext(), SingResultActivity.class);
                                 intent.putExtra("id", id);
                                 intent.putExtra("songName", songName);
@@ -357,7 +352,7 @@ public class AccompanySingActivity extends AppCompatActivity {
             lrcIterator = lrcs.listIterator();
             currentLrc = lrcIterator.next();
 
-            lrcView.setPlayer(accompanyPlayer);
+            lrcView.setPlayer(originalPlayer);
             lrcView.init();
         } catch (IOException e) {
             e.printStackTrace();
@@ -370,7 +365,7 @@ public class AccompanySingActivity extends AppCompatActivity {
         if (item.getItemId() == R.id.retry) {
             if (state != State.UNSTARTED) {
                 // todo: clear record, reset score, progress bar, terminate async
-                progressBar.setProgress(0, true);
+                progressBar.setProgress(0);
                 scoreBar.setProgress(0, true);
 
                 lrcView.init();
@@ -379,6 +374,12 @@ public class AccompanySingActivity extends AppCompatActivity {
             }
         }
         else {
+            lrcView.alertPlayerReleased();
+            handler.removeCallbacks(progressMonitor);
+            terminateExoPlayer(mvPlayer);
+            terminateExoPlayer(accompanyPlayer);
+            terminateExoPlayer(originalPlayer);
+
             onBackPressed();
         }
 
@@ -418,13 +419,6 @@ public class AccompanySingActivity extends AppCompatActivity {
         if (this.state == State.PLAYING) {
             // 在播放时退出app
             pause();
-        } else if (this.state == State.UNSTARTED) {
-            // 完成键只有在开始录音后，state变为非UNSTARTE才可以点，所以能进入这里必然是录音结束
-            lrcView.alertPlayerReleased();
-            handler.removeCallbacks(progressBarUpdater);
-            mvPlayer.stop();
-            terminateMediaPlayer(accompanyPlayer);
-            terminateMediaPlayer(originalPlayer);
         }
     }
 

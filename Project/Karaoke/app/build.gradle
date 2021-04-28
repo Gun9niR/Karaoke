@@ -82,5 +82,4 @@ dependencies {
 
     // exo player
     implementation 'com.google.android.exoplayer:exoplayer:2.13.3'
-
 }

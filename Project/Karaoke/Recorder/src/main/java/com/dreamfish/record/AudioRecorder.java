@@ -2,7 +2,6 @@ package com.dreamfish.record;
 
 import android.media.AudioFormat;
 import android.media.AudioRecord;
-import android.media.MediaPlayer;
 import android.media.MediaRecorder;
 import android.text.TextUtils;
 import android.util.Log;
@@ -112,7 +111,7 @@ public class AudioRecorder {
      *
      * @param listener 音频流的监听
      */
-    public void startRecord(final RecordStreamListener listener, final MediaPlayer accompanyPlayer) {
+    public void startRecord(final RecordStreamListener listener) {
 
         if (status == Status.STATUS_NO_READY || TextUtils.isEmpty(fileName)) {
             throw new IllegalStateException("录音尚未初始化,请检查是否禁止了录音权限~");
@@ -129,6 +128,7 @@ public class AudioRecorder {
             }
         }).start();
     }
+
     /**
      * 暂停录音
      */

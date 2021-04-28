@@ -5,9 +5,10 @@ import android.content.res.TypedArray;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
-import android.media.MediaPlayer;
 import android.util.AttributeSet;
 import android.view.View;
+
+import com.google.android.exoplayer2.SimpleExoPlayer;
 
 import org.sang.lrcview.bean.LrcBean;
 import org.sang.lrcview.util.LrcUtil;
@@ -25,7 +26,7 @@ public class LrcView extends View {
     private Paint hPaint;
     private int width = 0, height = 0;
     private int currentPosition = 0;
-    private MediaPlayer player;
+    private SimpleExoPlayer player;
     private int lastPosition = 0;
     private int highLineColor;
     private int lrcColor;
@@ -47,7 +48,7 @@ public class LrcView extends View {
         this.mode = mode;
     }
 
-    public void setPlayer(MediaPlayer player) {
+    public void setPlayer(SimpleExoPlayer player) {
         this.player = player;
     }
 
@@ -104,10 +105,10 @@ public class LrcView extends View {
             return;
         }
 
-        if (playerReleased == false) {
+        if (!playerReleased) {
             getCurrentPosition();
 
-            int currentMillis = player.getCurrentPosition();
+            int currentMillis = (int) player.getCurrentPosition();
             drawLrc2(canvas, currentMillis);
             long start = list.get(currentPosition).getStart();
             float v = (currentMillis - start) > 500 ? currentPosition * 80 : lastPosition * 80 + (currentPosition - lastPosition) * 80 * ((currentMillis - start) / 500f);
@@ -158,7 +159,7 @@ public class LrcView extends View {
 
     private void getCurrentPosition() {
         try {
-            int currentMillis = player.getCurrentPosition();
+            int currentMillis = (int) player.getCurrentPosition();
             if (currentMillis < list.get(0).getStart()) {
                 currentPosition = 0;
                 return;

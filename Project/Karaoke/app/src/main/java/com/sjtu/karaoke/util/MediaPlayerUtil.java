@@ -3,7 +3,12 @@ package com.sjtu.karaoke.util;
 import android.content.Context;
 import android.content.res.AssetFileDescriptor;
 import android.media.MediaPlayer;
+import android.net.Uri;
 
+import com.google.android.exoplayer2.MediaItem;
+import com.google.android.exoplayer2.SimpleExoPlayer;
+
+import java.io.File;
 import java.io.IOException;
 
 public class MediaPlayerUtil {
@@ -61,6 +66,19 @@ public class MediaPlayerUtil {
             mediaPlayer.prepare();
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+
+    public static void loadAudioFileAndPrepareExoPlayer(SimpleExoPlayer exoPlayer, String fullPath) {
+        File audioFile = new File(fullPath);
+        MediaItem mediaItem = MediaItem.fromUri(Uri.fromFile(audioFile));
+        exoPlayer.setMediaItem(mediaItem);
+        exoPlayer.prepare();
+    }
+
+    public static void terminateExoPlayer(SimpleExoPlayer player) {
+        if (player != null) {
+            player.release();
         }
     }
 }
