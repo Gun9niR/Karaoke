@@ -1,3 +1,0 @@
-include ':LrcView'
-include ':app'
-rootProject.name = "Karaoke"

@@ -1,8 +1,0 @@
-org/sang/lrcview/BuildConfig.java
- org.sang.lrcview.BuildConfig
-org/sang/lrcview/bean/LrcBean.java
- org.sang.lrcview.bean.LrcBean
-org/sang/lrcview/util/LrcUtil.java
- org.sang.lrcview.util.LrcUtil
-org/sang/lrcview/LrcView.java
- org.sang.lrcview.LrcView
