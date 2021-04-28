@@ -7,8 +7,6 @@ import com.sjtu.karaoke.waveditor.WavWriter;
 
 import java.io.IOException;
 
-import static com.sjtu.karaoke.util.Constants.RECORD_DIRECTORY;
-
 public class WavUtil {
     /**
      * Merge multiple pcm files into one single wav file stored at <destPath>
@@ -17,14 +15,15 @@ public class WavUtil {
      * @param voiceFullPath
      * @param accompanyVolume
      * @param voiceVolume
+     * @param voiceOffset
      */
     public static void mergeWAVs(String destPath, String trimmedAccompanyFullPath, String voiceFullPath,
-                                   float accompanyVolume, float voiceVolume) {
+                                   float accompanyVolume, float voiceVolume, int voiceOffset) {
         FFmpeg.execute("-y" +
                 " -i " + trimmedAccompanyFullPath +
                 " -i " + voiceFullPath +
                 " -filter_complex" +
-                " \"[0]volume=" + accompanyVolume * 2 + "[a];" +
+                " \"[0]volume=" + accompanyVolume * 2 + ", adelay=" + voiceOffset + "|" + voiceOffset + "[a];" +
                 "[1]volume=" + voiceVolume * 2 + "[b];" +
                 "[a][b]amix=inputs=2:duration=longest:dropout_transition=1\" " + destPath);
     }

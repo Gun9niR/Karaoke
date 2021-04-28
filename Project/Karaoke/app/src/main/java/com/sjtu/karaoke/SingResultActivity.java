@@ -135,7 +135,7 @@ public class SingResultActivity extends AppCompatActivity {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 voiceOffset = progress;
-                pauseAllPlayers();
+                stopAllPlayers();
                 voicePlayer.seekTo(0);
                 accompanyPlayer.seekTo(0);
             }
@@ -150,6 +150,13 @@ public class SingResultActivity extends AppCompatActivity {
                 btnPlay.callOnClick();
             }
         });
+    }
+
+    private void stopAllPlayers() {
+        this.state = State.UNSTARTED;
+        voicePlayer.pause();
+        accompanyPlayer.pause();
+        handler.removeCallbacks(progressUpdater);
     }
 
     private void getFilePaths() {
@@ -173,7 +180,7 @@ public class SingResultActivity extends AppCompatActivity {
                     public void run() {
                         Looper.prepare();
                         String resultFileName = getRecordName(id, songName);
-                        mergeWAVs(RECORD_DIRECTORY + resultFileName, trimmedAccompanyFullPath, voiceFullPath, accompanyVolume, voiceVolume);
+                        mergeWAVs(RECORD_DIRECTORY + resultFileName, trimmedAccompanyFullPath, voiceFullPath, accompanyVolume, voiceVolume, voiceOffset);
                         loadingDialog.dismiss();
                         showToast(getApplicationContext(), "录音已成功保存");
                         Looper.loop();
