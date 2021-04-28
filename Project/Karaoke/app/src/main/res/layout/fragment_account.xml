@@ -26,12 +26,12 @@
             style="@style/TextAppearance.AppCompat.Widget.ActionBar.Title.Inverse"/>
     </androidx.appcompat.widget.Toolbar>
 
-    <de.hdodenhof.circleimageview.CircleImageView
+    <ImageView
         android:id="@+id/circleAppIcon"
         android:layout_width="255dp"
-        android:layout_height="205dp"
+        android:layout_height="255dp"
         android:layout_marginTop="32dp"
-        android:src="@mipmap/icon"
+        android:src="@mipmap/icon_round"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/toolbarAccount" />

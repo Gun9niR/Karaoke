@@ -8,6 +8,7 @@ public class LrcBean {
     private String lrc;
     private long start;
     private long end;
+    private boolean shouldRate;
 
     public LrcBean() {
     }
@@ -40,5 +41,13 @@ public class LrcBean {
 
     public void setEnd(long end) {
         this.end = end;
+    }
+
+    public boolean shouldRate() {
+        return shouldRate;
+    }
+
+    public void setShouldRate(boolean shouldRate) {
+        this.shouldRate = shouldRate;
     }
 }

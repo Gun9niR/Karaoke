@@ -1,18 +1,16 @@
 package com.sjtu.karaoke.adapter;
 
+import android.app.Activity;
 import android.app.Dialog;
-import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
-
 import android.graphics.drawable.ColorDrawable;
+import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-
 import android.widget.ImageButton;
-
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -20,11 +18,30 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.sjtu.karaoke.AccompanySingActivity;
-import com.sjtu.karaoke.util.Data;
 import com.sjtu.karaoke.InstrumentSingActivity;
 import com.sjtu.karaoke.R;
+import com.sjtu.karaoke.entity.SongInfo;
 
 import java.util.List;
+
+import static com.sjtu.karaoke.util.Constants.GET_ACCOMPANY_URL;
+import static com.sjtu.karaoke.util.Constants.GET_LYRIC_URL;
+import static com.sjtu.karaoke.util.Constants.GET_MV_URL;
+import static com.sjtu.karaoke.util.Constants.GET_ORIGINAL_URL;
+import static com.sjtu.karaoke.util.Constants.GET_RATE_URL;
+import static com.sjtu.karaoke.util.FileUtil.downloadFiles;
+import static com.sjtu.karaoke.util.FileUtil.isFilePresent;
+import static com.sjtu.karaoke.util.MiscUtil.downloadAndSetAlbumCover;
+import static com.sjtu.karaoke.util.MiscUtil.getAccompanyFullPath;
+import static com.sjtu.karaoke.util.MiscUtil.getAlbumCoverFullPath;
+import static com.sjtu.karaoke.util.MiscUtil.getLyricFullPath;
+import static com.sjtu.karaoke.util.MiscUtil.getMVFullPath;
+import static com.sjtu.karaoke.util.MiscUtil.getOriginalFullPath;
+import static com.sjtu.karaoke.util.MiscUtil.getRateFullPath;
+import static com.sjtu.karaoke.util.MiscUtil.getRequestParamFromId;
+import static com.sjtu.karaoke.util.MiscUtil.setImageFromFile;
+import static com.sjtu.karaoke.util.MiscUtil.showLoadingDialog;
+import static com.sjtu.karaoke.util.MiscUtil.showToast;
 
 /*
  * @ClassName: SongListAdapter
@@ -35,8 +52,12 @@ import java.util.List;
  */
 
 public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.ViewHolder> {
-    List<Data.Song> songs;
-    Context context;
+    List<SongInfo> songs;
+    Activity activity;
+
+    public void setSongs(List<SongInfo> songs) {
+        this.songs = songs;
+    }
 
     public class ViewHolder extends RecyclerView.ViewHolder {
         TextView songName, singer;
@@ -49,18 +70,17 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.ViewHo
             singer = (TextView) itemView.findViewById(R.id.singer);
             image = (ImageView) itemView.findViewById(R.id.cover);
             btnSing = (Button) itemView.findViewById(R.id.btnSing);
-
         }
     }
 
-    public SongListAdapter(List<Data.Song> songs) {
+    public SongListAdapter(List<SongInfo> songs) {
         this.songs = songs;
     }
 
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        context = parent.getContext();
+        activity = (Activity) parent.getContext();
         LayoutInflater inflater = LayoutInflater.from(parent.getContext());
         View view = inflater.inflate(R.layout.row_song, parent, false);
         return new ViewHolder(view);
@@ -68,19 +88,28 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.ViewHo
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        holder.songName.setText(songs.get(position).songName);
-        holder.singer.setText(songs.get(position).singer);
-        holder.image.setImageResource(songs.get(position).image);
+        SongInfo songInfo = songs.get(position);
+        String songName = songInfo.getSongName();
+        String albumCoverFullPath = getAlbumCoverFullPath(songName);
+        holder.songName.setText(songName);
+        holder.singer.setText(songInfo.getSinger());
+
+        if (isFilePresent(albumCoverFullPath)) {
+            // if file already exists, just set the image
+            setImageFromFile(albumCoverFullPath, holder.image);
+        } else {
+            downloadAndSetAlbumCover(songInfo.getId(), songInfo.getSongName(), activity, holder.image);
+        }
 
         // set button onClick listener
         holder.btnSing.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 // get the song to sing
-                Data.Song selectedSong = songs.get(position);
+                SongInfo selectedSong = songs.get(position);
 
                 // declare dialog
-                Dialog chooseModeDialog = new Dialog(context);
+                Dialog chooseModeDialog = new Dialog(activity);
                 chooseModeDialog.setContentView(R.layout.dialog_mode);
                 chooseModeDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
                 ImageButton closeButton = chooseModeDialog.findViewById(R.id.btnClose);
@@ -97,19 +126,38 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.ViewHo
                 btnMvMode.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-                        Intent intent = new Intent(context, AccompanySingActivity.class);
-                        context.startActivity(intent);
+                        // 伴奏演唱模式
                         chooseModeDialog.dismiss();
-                        // todo: pass song name, accompany file name, MV file name to the activity
+
+                        Dialog loadingDialog = showLoadingDialog(activity, "正在下载文件...");
+
+                        new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+                                boolean isSuccess = downloadAccompanySingFiles(selectedSong);
+                                loadingDialog.dismiss();
+                                if (isSuccess) {
+                                    Intent intent = new Intent(activity, AccompanySingActivity.class);
+                                    intent.putExtra("id", selectedSong.getId());
+                                    intent.putExtra("songName", selectedSong.getSongName());
+                                    activity.startActivity(intent);
+                                } else {
+                                    Looper.prepare();
+                                    showToast(activity, "未能成功下载文件，请重试");
+                                    Looper.loop();
+                                }
+                            }
+                        }).start();
                     }
                 });
 
                 btnInsMode.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-                        Intent intent = new Intent(context, InstrumentSingActivity.class);
-                        context.startActivity(intent);
                         chooseModeDialog.dismiss();
+
+                        Intent intent = new Intent(activity, InstrumentSingActivity.class);
+                        activity.startActivity(intent);
                     }
                 });
 
@@ -123,9 +171,42 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.ViewHo
         return songs.size();
     }
 
-    public void handleSearchResult(List<Data.Song> newSongs) {
+    public void handleSearchResult(List<SongInfo> newSongs) {
         this.songs = newSongs;
         notifyDataSetChanged();
     }
 
+    /**
+     * This method runs on the thread that calls it
+     * @param songInfo
+     * @return true if success, false if some files are not downloaded successfully
+     */
+    public boolean downloadAccompanySingFiles(SongInfo songInfo) {
+        Integer id = songInfo.getId();
+        String songName = songInfo.getSongName();
+        String requestParam = getRequestParamFromId(id);
+        // download original
+        // download accompany
+        // download lyric
+        // download rating txt
+        // download mv
+
+        String[] urls = {
+                GET_ORIGINAL_URL + requestParam,
+                GET_ACCOMPANY_URL + requestParam,
+                GET_LYRIC_URL + requestParam,
+                GET_RATE_URL + requestParam,
+                GET_MV_URL + requestParam,
+        };
+
+        String[] destFullPaths = {
+                getOriginalFullPath(songName),
+                getAccompanyFullPath(songName),
+                getLyricFullPath(songName),
+                getRateFullPath(songName),
+                getMVFullPath(songName),
+        };
+
+        return downloadFiles(urls, destFullPaths);
+    }
 }

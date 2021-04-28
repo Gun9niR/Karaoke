@@ -16,15 +16,16 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.sjtu.karaoke.adapter.RecordListAdapter;
-import com.sjtu.karaoke.util.Data;
+import com.sjtu.karaoke.entity.Record;
 
-import java.util.List;
 import java.util.Objects;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
-import static com.sjtu.karaoke.util.Utils.loadAndPrepareMediaplayer;
-import static com.sjtu.karaoke.util.Utils.terminateMediaPlayer;
+import static com.sjtu.karaoke.util.MediaPlayerUtil.loadFileAndPrepareMediaPlayer;
+import static com.sjtu.karaoke.util.MediaPlayerUtil.terminateMediaPlayer;
+import static com.sjtu.karaoke.util.MiscUtil.getAlbumCoverFullPath;
+import static com.sjtu.karaoke.util.MiscUtil.setImageFromFile;
 
 /*
  * @ClassName: LocalRecordActivity
@@ -92,8 +93,7 @@ public class LocalRecordActivity extends AppCompatActivity {
     private void initLocalRecordList() {
         RecyclerView localRecordList = (RecyclerView) findViewById(R.id.localRecordList);
 
-        List<Data.Record> records = Data.records;
-        RecordListAdapter adapter = new RecordListAdapter(this, records);
+        RecordListAdapter adapter = new RecordListAdapter(this);
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getApplicationContext());
         localRecordList.setLayoutManager(layoutManager);
         localRecordList.setAdapter(adapter);
@@ -126,8 +126,8 @@ public class LocalRecordActivity extends AppCompatActivity {
         }
     }
 
-    public void playRecord(Data.Record record) {
-        initRecordPlayer("Attention.mp3");
+    public void playRecord(Record record) {
+        initRecordPlayer(record.getFullPath());
 
         initSeekbar();
 
@@ -182,12 +182,12 @@ public class LocalRecordActivity extends AppCompatActivity {
         handler.postDelayed(runnable, 0);
     }
 
-    private void initRecordTitleAndCover(Data.Record record) {
+    private void initRecordTitleAndCover(Record record) {
         TextView textView = findViewById(R.id.recordPlayerName);
-        textView.setText(record.recordName);
+        textView.setText(record.getSongName());
 
         circleImageView = findViewById(R.id.recordPlayerCover);
-        circleImageView.setImageResource(record.recordCover);
+        setImageFromFile(getAlbumCoverFullPath(record.getSongName()), circleImageView);
     }
 
     private void initPlayBtn() {
@@ -225,12 +225,12 @@ public class LocalRecordActivity extends AppCompatActivity {
         circleImageView.startAnimation(rotateAnimation);
     }
 
-    private void initRecordPlayer(String fileName) {
+    private void initRecordPlayer(String fullPath) {
         terminateMediaPlayer(recordPlayer);
 
         recordPlayer = new MediaPlayer();
 
-        loadAndPrepareMediaplayer(this, recordPlayer, fileName);
+        loadFileAndPrepareMediaPlayer(recordPlayer, fullPath);
 
         duration = recordPlayer.getDuration();
         playerReleased = false;

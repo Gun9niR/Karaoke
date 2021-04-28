@@ -36,3 +36,9 @@
 - 修复bug：`fix`
 - 更新文档：`docs`
 - 微调：`tweak`
+
+# 7. 目前问题
+
+1. loading dialog无法正常显示
+2. MV延迟
+3. LrcView严重卡顿

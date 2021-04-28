@@ -26,8 +26,8 @@
 
     </androidx.appcompat.widget.Toolbar>
 
-    <VideoView
-        android:id="@+id/video_view"
+    <com.google.android.exoplayer2.ui.PlayerView
+        android:id="@+id/mvView"
         android:layout_width="match_parent"
         android:layout_height="200dp"
         app:layout_constraintEnd_toEndOf="parent"
@@ -46,7 +46,7 @@
         app:layout_constraintCircleRadius="0dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/video_view"
+        app:layout_constraintTop_toBottomOf="@+id/mvView"
         tools:ignore="MissingConstraints" />
 
     <ProgressBar
@@ -64,7 +64,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/video_view"
+        app:layout_constraintTop_toBottomOf="@+id/mvView"
         tools:ignore="MissingConstraints" />
 
     <TextView

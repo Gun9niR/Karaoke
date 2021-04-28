@@ -2,6 +2,7 @@ import Vue from 'vue';
 import Router from 'vue-router';
 import Login from '../components/Login';
 import Upload from '../components/Upload';
+import Songs from '../components/Songs.vue';
 
 Vue.use(Router);
 
@@ -21,6 +22,11 @@ export default new Router({
       meta : {
         requireAuth: true, 
       },
+    },
+    {
+      path: '/songs',
+      name: 'Songs',
+      component: Songs,
     }
   ]
 });
