@@ -119,6 +119,7 @@ public class PcmToWav {
      * @return
      */
     public static boolean makePCMFileToWAVFile(String pcmPath, String destinationPath, boolean deletePcmFile) {
+        System.out.println("Making pcm from " + pcmPath + " to " + destinationPath);
         byte buffer[] = null;
         int TOTAL_SIZE = 0;
         File file = new File(pcmPath);
@@ -169,7 +170,7 @@ public class PcmToWav {
             inStream = new BufferedInputStream(new FileInputStream(file));
             int size = inStream.read(buffer);
             while (size != -1) {
-                ouStream.write(buffer);
+                ouStream.write(buffer, 0, size);
                 size = inStream.read(buffer);
             }
             inStream.close();
@@ -194,7 +195,7 @@ public class PcmToWav {
      *
      * @param filePathList
      */
-    private static void clearFiles(List<String> filePathList) {
+    static void clearFiles(List<String> filePathList) {
         for (int i = 0; i < filePathList.size(); i++) {
             File file = new File(filePathList.get(i));
             if (file.exists()) {

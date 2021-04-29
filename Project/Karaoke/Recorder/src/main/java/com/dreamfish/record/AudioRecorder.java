@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.dreamfish.record.FileUtil.deleteOneFile;
+import static com.dreamfish.record.PcmToWav.clearFiles;
 
 /**
  * 实现录音
@@ -147,7 +148,7 @@ public class AudioRecorder {
     /**
      * 停止录音
      */
-    public void stopRecord() {
+    public void stopRecord(boolean shouldMergePcm) {
         Log.d("AudioRecorder", "===stopRecord===");
         if (status == Status.STATUS_NO_READY || status == Status.STATUS_READY) {
             throw new IllegalStateException("录音尚未开始");
@@ -159,14 +160,14 @@ public class AudioRecorder {
             fo = null;
             currentFileName = null;
 
-            release();
+            release(shouldMergePcm);
         }
     }
 
     /**
      * 释放资源
      */
-    public void release() {
+    public void release(boolean shouldMergePcm) {
         Log.d("AudioRecorder", "===release===");
         //假如有暂停录音
         try {
@@ -181,7 +182,11 @@ public class AudioRecorder {
                     fos.close();
                 }
                 //将多个pcm文件转化为wav文件
-                mergePCMFilesToWAVFile(filePaths);
+                if (shouldMergePcm) {
+                    mergePCMFilesToWAVFile(filePaths);
+                } else {
+                    clearFiles(filePaths);
+                }
 
             } else {
                 //这里由于只要录音过filesName.size都会大于0,没录音时fileName为null

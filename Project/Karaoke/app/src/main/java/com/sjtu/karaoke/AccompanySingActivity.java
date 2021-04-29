@@ -29,7 +29,6 @@ import com.google.android.exoplayer2.ui.PlayerView;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
-import org.apache.commons.io.FilenameUtils;
 import org.sang.lrcview.LrcView;
 import org.sang.lrcview.bean.LrcBean;
 
@@ -51,6 +50,7 @@ import static com.sjtu.karaoke.util.MiscUtil.getAccompanyFullPath;
 import static com.sjtu.karaoke.util.MiscUtil.getLyricFullPath;
 import static com.sjtu.karaoke.util.MiscUtil.getMVFullPath;
 import static com.sjtu.karaoke.util.MiscUtil.getOriginalFullPath;
+import static com.sjtu.karaoke.util.MiscUtil.getPcmFullPath;
 import static com.sjtu.karaoke.util.MiscUtil.getScore;
 import static com.sjtu.karaoke.util.MiscUtil.verifyRecorderPermissions;
 import static com.sjtu.karaoke.util.WavUtil.getWAVDuration;
@@ -183,6 +183,7 @@ public class AccompanySingActivity extends AppCompatActivity {
                     }
 
                     if (currentLrc.shouldRate()) {
+                        // fixme: latency in recorded voice
                         rate(voiceRecorder.getLastFinishedPCMFilePath());
                     }
                     currentLrc = lrcIterator.next();
@@ -302,7 +303,7 @@ public class AccompanySingActivity extends AppCompatActivity {
                             case R.id.singingFinish:
                                 state = State.UNSTARTED;
                                 // it has to be placed here, to wait for the merging to complete
-                                stopActivity();
+                                stopActivity(true);
                                 Intent intent = new Intent(getApplicationContext(), SingResultActivity.class);
                                 intent.putExtra("id", id);
                                 intent.putExtra("songName", songName);
@@ -315,9 +316,13 @@ public class AccompanySingActivity extends AppCompatActivity {
         );
     }
 
-    private void stopActivity() {
+    /**
+     *
+     * @param shouldMergePcm
+     */
+    private void stopActivity(boolean shouldMergePcm) {
         this.state = State.UNSTARTED;
-        voiceRecorder.stopRecord();
+        voiceRecorder.stopRecord(shouldMergePcm);
         lrcView.alertPlayerReleased();
         handler.removeCallbacks(progressMonitor);
         terminateExoPlayer(mvPlayer);
@@ -374,13 +379,14 @@ public class AccompanySingActivity extends AppCompatActivity {
                 lrcView.init();
 
                 restartAllPlayers();
+                voiceRecorder.stopRecord(false);
                 voiceRecorder.cancel();
                 voiceRecorder.createDefaultAudio(songName);
             }
         }
         else {
             if (this.state != State.UNSTARTED) {
-                stopActivity();
+                stopActivity(false);
             }
             onBackPressed();
         }
@@ -447,19 +453,22 @@ public class AccompanySingActivity extends AppCompatActivity {
 
     /**
      *
-     * @param pcmFullPath Full path to the pcm file of the recording
+     * @param pcmFileName The pcm file name without .pcm extension
      */
-    public void rate(String pcmFullPath) {
-        String trimmedVoiceFullPath = getTrimmedVoicePath(pcmFullPath);
-        makePCMFileToWAVFile(pcmFullPath, trimmedVoiceFullPath, false);
+    public void rate(String pcmFileName) {
+        String trimmedVoiceFullPath = getTrimmedVoicePath(pcmFileName);
+        makePCMFileToWAVFile(getPcmFullPath(pcmFileName), trimmedVoiceFullPath, false);
         int score = getScore(trimmedVoiceFullPath);
         scoreBar.setProgress(scoreBar.getProgress() + score, true);
     }
 
-    private String getTrimmedVoicePath(String pcmFullPath) {
-        // pcm path: .../Karaoke/pcm/<fileName>.pcm
-        String fileName = FilenameUtils.getBaseName(pcmFullPath);
-        return TRIMMED_VOICE_WAV_DIRECTORY + fileName + ".wav";
+    /**
+     *
+     * @param pcmFileName pcm file name without extension
+     * @return
+     */
+    private String getTrimmedVoicePath(String pcmFileName) {
+        return TRIMMED_VOICE_WAV_DIRECTORY + pcmFileName + ".wav";
     }
 
     private enum State {

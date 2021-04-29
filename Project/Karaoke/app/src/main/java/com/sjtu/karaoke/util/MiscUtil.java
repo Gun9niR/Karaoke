@@ -228,6 +228,14 @@ public class MiscUtil {
     }
 
     /**
+     *
+     * @param pcmFileName pcm file name without .pcm extension
+     * @return
+     */
+    public static String getPcmFullPath(String pcmFileName) {
+        return PCM_DIRECTORY + pcmFileName + ".pcm";
+    }
+    /**
      * Get name of the record file from song name
      * Naming strategy is: <songName>-<year>-<month>-<date>-<hour>-<minute>
      * Time is generated after merging pcm files to wav file
