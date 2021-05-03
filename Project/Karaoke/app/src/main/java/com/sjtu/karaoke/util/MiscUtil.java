@@ -20,6 +20,7 @@ import android.widget.Toast;
 import androidx.annotation.RequiresApi;
 import androidx.core.app.ActivityCompat;
 
+import com.dreamfish.record.FileUtil;
 import com.sjtu.karaoke.R;
 
 import java.io.File;
@@ -96,6 +97,8 @@ public class MiscUtil {
                 dir.mkdir();
             }
         }
+
+        FileUtil.setBaseDirectories(ROOT_DIRECTORY);
     }
 
     public static void verifyStoragePermissions(Activity activity) {

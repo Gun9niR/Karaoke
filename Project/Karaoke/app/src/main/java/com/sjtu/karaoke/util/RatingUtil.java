@@ -1,11 +1,11 @@
 package com.sjtu.karaoke.util;
 
 //实时演唱打分系统
-public class SingRater {
-    //对filePath这个wav文件进行基频分析。以伴奏时钟为参考基准，其起始时间为jstartTimeInMicroMS毫秒，
+public class RatingUtil {
+    //对filePath这个wav文件进行基频分析。以伴奏时钟为参考基准，其起始时间为startTimeInMicroMS毫秒，
     //返回算法消耗的时间。可以并行。
     //注意，不可以对同一时刻的音频多次调用该函数。filePath必须以/data/data/com.sjtu.karaoke开头。
-    public native String f0analysis(String filePath, int jstartTimeInMicroMS);
+    public native String f0analysis(String filePath, int startTimeInMicroMS);
 
     //以伴奏时钟为参考基准，获取startTimeInMicroMS毫秒至endTimeInMicroMS毫秒的单句演唱打分，
     //返回以空格隔开且不超过100的四个非负整数，依次代表单句总分，单句音准与节奏得分，单句感情得分与单句气息得分。
