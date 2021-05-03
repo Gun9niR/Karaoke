@@ -24,7 +24,7 @@ import static com.sjtu.karaoke.util.FileUtil.deleteOneFile;
 import static com.sjtu.karaoke.util.FileUtil.getFullPathsInDirectory;
 import static com.sjtu.karaoke.util.FileUtil.isFilePresent;
 import static com.sjtu.karaoke.util.MiscUtil.downloadAndSetAlbumCover;
-import static com.sjtu.karaoke.util.MiscUtil.getRecordFullPath;
+import static com.sjtu.karaoke.util.MiscUtil.getAlbumCoverFullPath;
 import static com.sjtu.karaoke.util.MiscUtil.setImageFromFile;
 import static com.sjtu.karaoke.util.MiscUtil.showToast;
 
@@ -86,8 +86,8 @@ public class RecordListAdapter extends RecyclerView.Adapter<RecordListAdapter.Vi
         holder.recordName.setText(songName);
         holder.recordTime.setText(record.getRecordTime());
         // download it if it does not exist
-        if (isFilePresent(getRecordFullPath(songName))) {
-            setImageFromFile(record.getFullPath(), holder.recordCover);
+        if (isFilePresent(getAlbumCoverFullPath(songName))) {
+            setImageFromFile(getAlbumCoverFullPath(songName), holder.recordCover);
         } else {
             downloadAndSetAlbumCover(record.getId(), songName, activity, holder.recordCover);
         }
