@@ -63,7 +63,7 @@ namespace {
 }  // namespace
 
 extern "C" JNIEXPORT jstring JNICALL
-Java_com_sjtu_karaoke_SingRater_f0analysis(JNIEnv *env, jobject thiz, jstring filePath, jint jstartTimeInMicroMS) {
+Java_com_sjtu_karaoke_util_SingRater_f0analysis(JNIEnv *env, jobject thiz, jstring filePath, jint jstartTimeInMicroMS) {
     jboolean icCopy = 0;
     string cppfilePath = env->GetStringUTFChars(filePath, &icCopy);
     timeval t1, t2;
@@ -148,7 +148,7 @@ Java_com_sjtu_karaoke_SingRater_f0analysis(JNIEnv *env, jobject thiz, jstring fi
 }
 
 extern "C" JNIEXPORT jstring JNICALL
-Java_com_sjtu_karaoke_SingRater_getScore(JNIEnv *env, jobject thiz, jint jstartTimeInMicroMS, jint jendTimeInMicroMS) {
+Java_com_sjtu_karaoke_util_SingRater_getScore(JNIEnv *env, jobject thiz, jint jstartTimeInMicroMS, jint jendTimeInMicroMS) {
     int startTimeInMicroMS = jstartTimeInMicroMS;
     int endTimeInMicroMS = jendTimeInMicroMS;
     return env->NewStringUTF(getScore(startTimeInMicroMS / 1000.0, endTimeInMicroMS / 1000.0, 0).c_str());
@@ -191,7 +191,7 @@ string getScore(double startTime, double endTime, double delay) {
 }
 
 extern "C" JNIEXPORT jstring JNICALL
-Java_com_sjtu_karaoke_SingRater_init(JNIEnv *env, jobject thiz, jstring filePath, jint splitTimeInMicroMS,
+Java_com_sjtu_karaoke_util_SingRater_init(JNIEnv *env, jobject thiz, jstring filePath, jint splitTimeInMicroMS,
         jdouble delayLowerBound, jdouble delayUpperBound) {
     jboolean icCopy = 0;
     string cppfilePath = env->GetStringUTFChars(filePath, &icCopy);
