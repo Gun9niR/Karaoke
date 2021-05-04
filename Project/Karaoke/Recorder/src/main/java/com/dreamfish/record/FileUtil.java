@@ -15,16 +15,20 @@ import java.util.List;
  */
 public class FileUtil {
 
-    private static String BASE_DIRECTORY;
+    static String ROOT_DIRECTORY;
     //原始文件(不能播放)
-    private static String AUDIO_PCM_BASEPATH;
+    static String PCM_DIRECTORY;
     //可播放的高质量音频文件
-    private static String AUDIO_WAV_BASEPATH;
+    static String WAV_DIRECTORY;
+    //截取得到到wav文件
+    static String TRIMMED_VOICE_WAV_DIRECTORY;
+
 
     public static void setBaseDirectories(String baseDirectory) {
-        FileUtil.BASE_DIRECTORY = baseDirectory;
-        AUDIO_PCM_BASEPATH = BASE_DIRECTORY + "pcm/";
-        AUDIO_WAV_BASEPATH = BASE_DIRECTORY + "wav/";
+        FileUtil.ROOT_DIRECTORY = baseDirectory;
+        PCM_DIRECTORY = ROOT_DIRECTORY + "pcm/";
+        WAV_DIRECTORY = ROOT_DIRECTORY + "wav/";
+        TRIMMED_VOICE_WAV_DIRECTORY = WAV_DIRECTORY + "trimmed_voice/";
     }
 
     public static String getPcmFileAbsolutePath(String fileName) {
@@ -39,7 +43,7 @@ public class FileUtil {
             if (!fileName.endsWith(".pcm")) {
                 fileName = fileName + ".pcm";
             }
-            String fileBasePath = AUDIO_PCM_BASEPATH;
+            String fileBasePath = PCM_DIRECTORY;
             File file = new File(fileBasePath);
             //创建目录
             if (!file.exists()) {
@@ -64,7 +68,7 @@ public class FileUtil {
             if (!fileName.endsWith(".wav")) {
                 fileName = fileName + ".wav";
             }
-            String fileBasePath = AUDIO_WAV_BASEPATH;
+            String fileBasePath = WAV_DIRECTORY;
             File file = new File(fileBasePath);
             //创建目录
             if (!file.exists()) {
@@ -94,7 +98,7 @@ public class FileUtil {
      */
     public static List<File> getPcmFiles() {
         List<File> list = new ArrayList<>();
-        String fileBasePath = AUDIO_PCM_BASEPATH;
+        String fileBasePath = PCM_DIRECTORY;
 
         File rootFile = new File(fileBasePath);
         if (!rootFile.exists()) {
@@ -117,7 +121,7 @@ public class FileUtil {
      */
     public static List<File> getWavFiles() {
         List<File> list = new ArrayList<>();
-        String fileBasePath = AUDIO_WAV_BASEPATH;
+        String fileBasePath = WAV_DIRECTORY;
 
         File rootFile = new File(fileBasePath);
         if (!rootFile.exists()) {
@@ -151,10 +155,10 @@ public class FileUtil {
      * @return Full path to the pcm file
      */
     public static String getPcmFullPath(String pcmFileName) {
-        return AUDIO_PCM_BASEPATH + pcmFileName + ".pcm";
+        return PCM_DIRECTORY + pcmFileName + ".pcm";
     }
 
-    public static String getWavFullPath(String pcmFileName) {
-        return AUDIO_WAV_BASEPATH + pcmFileName + ".wav";
+    public static String getTrimmedWavFullPath(String pcmFileName) {
+        return TRIMMED_VOICE_WAV_DIRECTORY + pcmFileName + ".wav";
     }
 }

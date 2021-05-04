@@ -188,6 +188,8 @@ public class AccompanySingActivity extends AppCompatActivity {
         if (this.state == State.PLAYING) {
             // 在播放时退出app
             pause();
+        } else {
+
         }
     }
 
@@ -197,7 +199,13 @@ public class AccompanySingActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        System.out.println("AccompanySing OnDestroy");
+        if (voiceRecorder.getStatus() == AudioRecorder.Status.STATUS_PAUSE || voiceRecorder.getStatus() == AudioRecorder.Status.STATUS_START) {
+            voiceRecorder.stopRecord(false);
+        }
+        lrcView.alertPlayerReleased();
+        terminateExoPlayer(mvPlayer);
+        terminateExoPlayer(accompanyPlayer);
+        terminateExoPlayer(originalPlayer);
     }
 
     private void initSongName() {
@@ -226,6 +234,9 @@ public class AccompanySingActivity extends AppCompatActivity {
             @Override
             public void onPlaybackStateChanged(int state) {
                 if (state == Player.STATE_ENDED) {
+                    AccompanySingActivity.this.state = State.UNSTARTED;
+                    // it has to be placed here, to wait for the merging to complete
+                    stopActivity(true);
                     Intent intent = new Intent(getApplicationContext(), SingResultActivity.class);
                     intent.putExtra("id", id);
                     intent.putExtra("songName", songName);
@@ -286,7 +297,7 @@ public class AccompanySingActivity extends AppCompatActivity {
     }
 
     private void initProgressBar() {
-        progressBar = (ProgressBar) findViewById(R.id.progressBar);
+        progressBar = findViewById(R.id.progressBar);
         progressBar.setMax((int) getWAVDuration(getOriginalFullPath(songName)));
         progressBar.setProgress(0);
     }

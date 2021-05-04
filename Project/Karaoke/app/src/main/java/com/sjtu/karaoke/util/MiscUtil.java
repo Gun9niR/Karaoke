@@ -220,17 +220,13 @@ public class MiscUtil {
         return ORIGINAL_DIRECTORY + songName + ".wav";
     }
 
-    public static String getRecordFullPath(String songName) {
-        return RECORD_DIRECTORY + songName;
-    }
-
     /**
-     *
-     * @param pcmFileName pcm file name without .pcm extension
-     * @return
+     * Returns the trimmed wav path which is converted from a pcm file
+     * @param fileName File name without extension
+     * @return Full path with .wav extension
      */
-    public static String getPcmFullPath(String pcmFileName) {
-        return PCM_DIRECTORY + pcmFileName + ".pcm";
+    public static String getTrimmedVoiceFullPath(String fileName) {
+        return TRIMMED_VOICE_WAV_DIRECTORY + fileName + ".wav";
     }
     /**
      * Get name of the record file from song name

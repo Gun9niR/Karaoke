@@ -18,7 +18,7 @@ import java.util.List;
 
 import static com.dreamfish.record.FileUtil.deleteOneFile;
 import static com.dreamfish.record.FileUtil.getPcmFullPath;
-import static com.dreamfish.record.FileUtil.getWavFullPath;
+import static com.dreamfish.record.FileUtil.getTrimmedWavFullPath;
 import static com.dreamfish.record.PcmToWav.clearFiles;
 import static com.sjtu.karaoke.singrater.RatingUtil.f0analysis;
 
@@ -182,7 +182,7 @@ public class AudioRecorder {
     }
 
     /**
-     * 释放资源
+     * 释放资源，包括删除所有pcm和打分用的wav
      */
     public void release(boolean shouldMergePcm) {
         Log.d("AudioRecorder", "===release===");
@@ -204,6 +204,7 @@ public class AudioRecorder {
                 } else {
                     clearFiles(filePaths);
                 }
+                // FileUtils.cleanDirectory(new File(TRIMMED_VOICE_WAV_DIRECTORY));
 
             } else {
                 //这里由于只要录音过filesName.size都会大于0,没录音时fileName为null
@@ -267,7 +268,7 @@ public class AudioRecorder {
                             public void run() {
                                 int startTime = currentPcmStartTime;
                                 String pcmFullPath = getPcmFullPath(currentFileName);
-                                String wavFullPath = getWavFullPath(currentFileName);
+                                String wavFullPath = getTrimmedWavFullPath(currentFileName);
                                 PcmToWav.makePCMFileToWAVFile(pcmFullPath, wavFullPath, false);
 
                                 f0analysis(wavFullPath, currentPcmStartTime);
