@@ -293,7 +293,6 @@ public class AccompanySingActivity extends AppCompatActivity {
     private void initVoiceRecorder() {
         voiceRecorder = AudioRecorder.getInstance();
         voiceRecorder.createDefaultAudio(songName);
-        voiceRecorder.setCurrentLrc(currentLrc);
     }
 
     private void initProgressBar() {
@@ -365,7 +364,6 @@ public class AccompanySingActivity extends AppCompatActivity {
                             rate((int) currentLrc.getStart(), (int) currentLrc.getEnd());
                         }
                         currentLrc = lrcIterator.next();
-                        voiceRecorder.setCurrentLrc(currentLrc);
                     }
                     voiceRecorder.setShouldStartNewPcm(true);
 

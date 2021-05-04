@@ -6,8 +6,6 @@ import android.media.MediaRecorder;
 import android.text.TextUtils;
 import android.util.Log;
 
-import org.sang.lrcview.bean.LrcBean;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -48,8 +46,6 @@ public class AudioRecorder {
 
     // 当前pcm文件的开始时间
     private int currentPcmStartTime;
-    // 伴奏当前进度(以歌词为单位)
-    private LrcBean currentLrc;
     //录音对象
     private AudioRecord audioRecord;
     // 记录每个pcm的f0analysis是否完成
@@ -99,7 +95,7 @@ public class AudioRecorder {
         audioRecord = new AudioRecord(AUDIO_INPUT, AUDIO_SAMPLE_RATE, AUDIO_CHANNEL, AUDIO_ENCODING, bufferSizeInBytes);
         this.fileName = fileName;
 
-        currentLrc = null;
+        filesName.clear();
         currentPcmStartTime = 0;
         f0Complete = new HashSet<>();
         // initialize file name (no extension)
@@ -262,21 +258,20 @@ public class AudioRecorder {
                     fos.close();
                     // after writing an pcm
                     // conditionally convert it to wav
-                    if (currentLrc.shouldRate()) {
-                        new Thread(new Runnable() {
-                            @Override
-                            public void run() {
-                                int startTime = currentPcmStartTime;
-                                String pcmFullPath = getPcmFullPath(currentFileName);
-                                String wavFullPath = getTrimmedWavFullPath(currentFileName);
-                                PcmToWav.makePCMFileToWAVFile(pcmFullPath, wavFullPath, false);
+                    final int startTime = currentPcmStartTime;
+                    final String fileName = currentFileName;
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            String pcmFullPath = getPcmFullPath(fileName);
+                            String wavFullPath = getTrimmedWavFullPath(fileName);
+                            PcmToWav.makePCMFileToWAVFile(pcmFullPath, wavFullPath, false);
 
-                                f0analysis(wavFullPath, currentPcmStartTime);
-                                System.out.println("========== " + startTime + ": f0 complete ==========");
-                                f0Complete.add(startTime);
-                            }
-                        }).start();
-                    }
+                            f0analysis(wavFullPath, currentPcmStartTime);
+                            System.out.println("========== " + startTime + ": f0 complete ==========");
+                            f0Complete.add(startTime);
+                        }
+                    }).start();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -356,10 +351,6 @@ public class AudioRecorder {
      */
     public int getPcmFilesCount() {
         return filesName.size();
-    }
-
-    public void setCurrentLrc(LrcBean currentLrc) {
-        this.currentLrc = currentLrc;
     }
 
     public void setCurrentPcmStartTime(int currentPcmStartTime) {
