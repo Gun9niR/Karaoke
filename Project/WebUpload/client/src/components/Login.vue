@@ -3,7 +3,12 @@
     <alert v-if="showErrorMessage"></alert>
 
     <el-card class="box-card" id="login-card">
-      <div id="title-wrapper"><h2>管理员登录</h2></div>
+      <div id="title-wrapper">
+        <h2>
+          <p class="title">天天爱K歌</p>
+          <p class="title">管理员登录</p>
+        </h2>
+      </div>
 
       <div id="login-form-wrapper">
         <el-form
@@ -80,22 +85,18 @@ export default {
 
   methods: {
     verify(payload) {
+      const url = process.env.VUE_APP_AJAX_URL + '/verify';
       axios
-        .post("/verify", payload)
-        .then((res) => {
-          if (res.data.status === 0) {
+        .post(url, payload)
+        .then(() => {
             this.$router.push({ path: "/upload" });
             this.$store.commit("login");
-            // var expire = 5000;
-            // setTimeout(() => {
-            //   this.$store.commit("loginExpire");
-            // }, expire);
-          } else {
-            this.showErrorMessage = true;
-          }
         })
         .catch(() => {
-          alert("Error! There may be something wrong!");
+          this.$message({
+            message: '登录失败。',
+            type: 'error',
+          });
         });
     },
 
@@ -139,8 +140,12 @@ export default {
 }
 
 #title-wrapper {
-  margin: 35px;
+  margin: 25px;
   font-size: 18.5px;
+}
+
+.title {
+  margin: 0;
 }
 
 #login-form-wrapper {
