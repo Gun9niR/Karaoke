@@ -49,7 +49,7 @@ public class Constants {
     public static final String MV_DIRECTORY = ROOT_DIRECTORY + "mv/";
 
     // request URL
-    public static final String SERVER_IP = "http://192.168.1.92:5000";
+    public static final String SERVER_IP = "http://192.168.1.101:5000";
 
     public static final String GET_FILE_ROOT_URL = SERVER_IP + "/getFile";
 

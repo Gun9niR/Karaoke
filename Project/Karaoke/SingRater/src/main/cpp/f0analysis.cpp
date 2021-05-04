@@ -255,7 +255,7 @@ int getCorrectnessScore(double startTime, double endTime, double delay) {
         while (userNowLowerID + 1 < userf0.size() && userf0[userNowLowerID].time + correctnessInterval < sttime) userNowLowerID++;
         while (userNowUpperID + 1 < userf0.size() && userf0[userNowUpperID].time - correctnessInterval < sttime) userNowUpperID++;
         int maxPitch = INT_MIN, minPitch = INT_MAX;
-        for (int j = userNowLowerID; j <= userNowUpperID; j++) {
+        for (int j = userNowLowerID; j < userf0.size() && j <= userNowUpperID; j++) {
             minPitch = min(minPitch, userf0[j].pitchID);
             maxPitch = max(maxPitch, userf0[j].pitchID);
         }
