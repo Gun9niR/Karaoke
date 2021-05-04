@@ -34,9 +34,11 @@ import static com.sjtu.karaoke.util.FileUtil.deleteOneFile;
 import static com.sjtu.karaoke.util.MediaPlayerUtil.loadAudioFileAndPrepareExoPlayer;
 import static com.sjtu.karaoke.util.MediaPlayerUtil.terminateExoPlayer;
 import static com.sjtu.karaoke.util.MiscUtil.getAccompanyFullPath;
+import static com.sjtu.karaoke.util.MiscUtil.getAlbumCoverFullPath;
 import static com.sjtu.karaoke.util.MiscUtil.getRecordName;
 import static com.sjtu.karaoke.util.MiscUtil.getTrimmedAccompanyFullPath;
 import static com.sjtu.karaoke.util.MiscUtil.getVoiceFullPath;
+import static com.sjtu.karaoke.util.MiscUtil.setImageFromFile;
 import static com.sjtu.karaoke.util.MiscUtil.showLoadingDialog;
 import static com.sjtu.karaoke.util.MiscUtil.showToast;
 import static com.sjtu.karaoke.util.WavUtil.getWAVDuration;
@@ -65,7 +67,9 @@ public class SingResultActivity extends AppCompatActivity {
     SeekBar seekbarTuneVoice;
     SeekBar seekbarTuneAccompany;
     SeekBar seekbarAlignVoice;
-    ImageView btnPlay, btnPause;
+    ImageView btnPlay;
+    ImageView btnPause;
+    ImageView albumCover;
     SimpleExoPlayer accompanyPlayer;
     SimpleExoPlayer voicePlayer;
     Handler handler = new Handler();
@@ -110,6 +114,7 @@ public class SingResultActivity extends AppCompatActivity {
         voiceOffset = INITIAL_OFFSET;
         this.state = State.UNSTARTED;
 
+        initAlbumCover();
         initProgressUpdater();
         initToolBar();
         initTitle();
@@ -120,6 +125,11 @@ public class SingResultActivity extends AppCompatActivity {
         initAlignSeekbar();
         btnPlay.callOnClick();
         initFab();
+    }
+
+    private void initAlbumCover() {
+        albumCover = findViewById(R.id.albumCover);
+        setImageFromFile(getAlbumCoverFullPath(songName), albumCover);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)

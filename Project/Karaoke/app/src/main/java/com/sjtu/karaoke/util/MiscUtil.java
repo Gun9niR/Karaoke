@@ -263,15 +263,17 @@ public class MiscUtil {
             public void onResponse(Call call, Response response) throws IOException {
                 // receive and save the file
                 String destPath = ALBUM_COVER_DIRECTORY + songName + ".png";
-                saveFileFromResponse(response, destPath);
+                if (response.isSuccessful()) {
+                    saveFileFromResponse(response, destPath);
 
-                // set image, should run on UI thread
-                activity.runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        setImageFromFile(destPath, imageView);
-                    }
-                });
+                    // set image, should run on UI thread
+                    activity.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            setImageFromFile(destPath, imageView);
+                        }
+                    });
+                }
             }
         });
     }
