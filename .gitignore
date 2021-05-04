@@ -1,4 +1,6 @@
 .DS_Store
-UIPrototype/WebUpload/client/node_modules
-UIPrototype/WebUpload/.vscode
-
+Project/WebUpload/client/node_modules
+Project/WebUpload/.vscode
+Project/WebUpload/client/.env
+Project/WebUpload/server/config.py
+Project/WebUpload/server/__pycache__/

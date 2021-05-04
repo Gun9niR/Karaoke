@@ -11,14 +11,12 @@ import android.os.Looper;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.style.ForegroundColorSpan;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -195,7 +193,6 @@ public class SingResultActivity extends AppCompatActivity {
         progressUpdater = new Runnable() {
             @Override
             public void run() {
-                System.out.println(voicePlayer.getCurrentPosition() - accompanyPlayer.getCurrentPosition());
                 seekBarResultProgress.setProgress((int) voicePlayer.getCurrentPosition());
                 handler.postDelayed(this, PROGRESS_UPDATE_INTERVAL);
             }
@@ -229,24 +226,21 @@ public class SingResultActivity extends AppCompatActivity {
         bottomNavbarResult.setBackground(null);
         bottomNavbarResult.getMenu().getItem(1).setEnabled(false);
 
-        bottomNavbarResult.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
-            @Override
-            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-                int id = item.getItemId();
-                switch(id) {
-                    case R.id.resultRetry:
-                        deleteOneFile(trimmedAccompanyFullPath);
-                        deleteOneFile(voiceFullPath);
-                        handler.removeCallbacks(progressUpdater);
-                        terminateExoPlayer(voicePlayer);
-                        terminateExoPlayer(accompanyPlayer);
-                        onBackPressed();
-                        break;
-                    case R.id.resultShare:
-                        break;
-                }
-                return false;
+        bottomNavbarResult.setOnNavigationItemSelectedListener(item -> {
+            int id = item.getItemId();
+            switch(id) {
+                case R.id.resultRetry:
+                    deleteOneFile(trimmedAccompanyFullPath);
+                    deleteOneFile(voiceFullPath);
+                    handler.removeCallbacks(progressUpdater);
+                    terminateExoPlayer(voicePlayer);
+                    terminateExoPlayer(accompanyPlayer);
+                    onBackPressed();
+                    break;
+                case R.id.resultShare:
+                    break;
             }
+            return false;
         });
     }
 

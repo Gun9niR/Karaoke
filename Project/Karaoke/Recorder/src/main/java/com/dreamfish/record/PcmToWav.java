@@ -191,7 +191,7 @@ public class PcmToWav {
     }
 
     /**
-     * 清除文件
+     * 清除List中的所有文件，List中保存的是
      *
      * @param filePathList
      */
