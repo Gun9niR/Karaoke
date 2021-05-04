@@ -155,6 +155,6 @@ public class FileUtil {
     }
 
     public static String getWavFullPath(String pcmFileName) {
-        return AUDIO_WAV_BASEPATH + pcmFileName + ".pcm";
+        return AUDIO_WAV_BASEPATH + pcmFileName + ".wav";
     }
 }
