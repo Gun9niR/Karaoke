@@ -20,6 +20,7 @@ import android.widget.Toast;
 import androidx.annotation.RequiresApi;
 import androidx.core.app.ActivityCompat;
 
+import com.dreamfish.record.FileUtil;
 import com.sjtu.karaoke.R;
 
 import java.io.File;
@@ -28,7 +29,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Random;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -96,6 +96,8 @@ public class MiscUtil {
                 dir.mkdir();
             }
         }
+
+        FileUtil.setBaseDirectories(ROOT_DIRECTORY);
     }
 
     public static void verifyStoragePermissions(Activity activity) {
@@ -154,11 +156,6 @@ public class MiscUtil {
         return ACCOMPANY_DIRECTORY + songName + ".wav";
     }
 
-    public static int getScore(String wavFullPath) {
-        Random r = new Random();
-        return r.nextInt(101);
-    }
-
     public static void getSongInfo(Callback callback) {
         getRequest(GET_SONG_INFO_URL, callback);
     }
@@ -212,7 +209,7 @@ public class MiscUtil {
     }
 
     public static String getRateFullPath(String songName) {
-        return RATE_DIRECTORY + songName + ".txt";
+        return RATE_DIRECTORY + songName + ".f0a";
     }
 
     public static String getLyricFullPath(String songName) {
@@ -223,17 +220,13 @@ public class MiscUtil {
         return ORIGINAL_DIRECTORY + songName + ".wav";
     }
 
-    public static String getRecordFullPath(String songName) {
-        return RECORD_DIRECTORY + songName;
-    }
-
     /**
-     *
-     * @param pcmFileName pcm file name without .pcm extension
-     * @return
+     * Returns the trimmed wav path which is converted from a pcm file
+     * @param fileName File name without extension
+     * @return Full path with .wav extension
      */
-    public static String getPcmFullPath(String pcmFileName) {
-        return PCM_DIRECTORY + pcmFileName + ".pcm";
+    public static String getTrimmedVoiceFullPath(String fileName) {
+        return TRIMMED_VOICE_WAV_DIRECTORY + fileName + ".wav";
     }
     /**
      * Get name of the record file from song name

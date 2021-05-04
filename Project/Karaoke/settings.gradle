@@ -1,3 +1,4 @@
+include ':SingRater'
 include ':WavEditor'
 include ':Recorder'
 include ':LrcView'

@@ -5,40 +5,26 @@ import pymysql
 import os
 import shutil
 import subprocess
-import sys
-import logging
-
-ADMINS = [
-    {'name': 'deepsand', 'password': '987654'}
-] 
 
 app = Flask(__name__)
 app.config.from_object(Config)
 CORS(app, resources={r'/*': {'origins': '*'}})
-logging.basicConfig(level=logging.DEBUG)
 
 
 @app.route('/verify', methods=['GET', 'POST'])
 def verify_admin():
 
-    response_object = {'status': 1 }
+    post_data = request.get_json()
+    login_name = post_data.get('name')
+    login_password = post_data.get('password')
 
-    if (request.method == 'GET'):
-        return jsonify({})
+    for admin in app.config['ADMINS']:
+        admin_name = admin['name']
+        admin_password = admin['password']
+        if (login_name == admin_name and login_password == admin_password):
+            return 'success'
 
-    else:
-        post_data = request.get_json()
-        login_name = post_data.get('name')
-        login_password = post_data.get('password')
-
-        for admin in ADMINS:
-            admin_name = admin['name']
-            admin_password = admin['password']
-            if (login_name == admin_name and login_password == admin_password):
-                response_object['status'] = 0
-                break
-
-        return jsonify(response_object)
+    return 'Login failed!', 400
 
 
 @app.route("/getSongs", methods=['GET'])
@@ -326,11 +312,6 @@ def generate_rate_file(vocal_file_path):
     rate_file_path = os.path.join(directory, rate_filename)
 
     shell_args = [app.config['RATING_PATH'], vocal_file_path, '-t', '-s', '50', '-o', rate_file_path]
-    s = ''
-    for arg in shell_args:
-        s += arg
-        s += ' '
-    print(s)
     subprocess.run(shell_args)
 
     os.remove(vocal_file_path)

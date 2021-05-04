@@ -1,7 +1,7 @@
 package com.sjtu.karaoke.util;
 
 import android.Manifest;
-import android.os.Environment;
+import android.annotation.SuppressLint;
 
 public class Constants {
     public static final String[] PERMISSIONS_STORAGE = {
@@ -21,11 +21,12 @@ public class Constants {
 
     public static final int PROGRESS_UPDATE_INTERVAL = 100;
 
-    public static final int VOICE_DELAY = 700;
-    // file save path
-    public static String FILE_SAVE_DIR = "/Karaoke/";
+    public static final double RECORD_DELAY_LB= 0.2;
 
-    public static final String ROOT_DIRECTORY = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS) + FILE_SAVE_DIR;
+    public static final double RECORD_DELAY_UB = 0.9;
+    @SuppressLint("SdCardPath")
+    public static final String ROOT_DIRECTORY = "/data/data/com.sjtu.karaoke/";
+    // public static final String ROOT_DIRECTORY = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS) + FILE_SAVE_DIR;
 
     public static final String WAV_DIRECTORY = ROOT_DIRECTORY + "wav/";
 

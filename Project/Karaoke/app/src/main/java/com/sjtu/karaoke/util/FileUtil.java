@@ -130,8 +130,10 @@ public class FileUtil {
 
     public static boolean saveFileFromResponse(Response response, String destPath) {
         File destFile = new File(destPath);
-
         try {
+            if (destFile.exists()) {
+                destFile.delete();
+            }
             BufferedSink sink = Okio.buffer(Okio.sink(destFile));
             System.out.println("========== Saving file to " + destPath + " ==========");
             sink.writeAll(response.body().source());
