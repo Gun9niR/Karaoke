@@ -25,5 +25,5 @@ INSERT INTO songs VALUES (
    '/Users/david/Study/SJTU/Courses/SE/songs/Attention-Charlie Puth/Attention.mp4',
    '/Users/david/Study/SJTU/Courses/SE/songs/Attention-Charlie Puth/instrument.txt',
    '/Users/david/Study/SJTU/Courses/SE/songs/Attention-Charlie Puth/Attention2.wav',
-   '/Users/david/Study/SJTU/Courses/SE/songs/Attention-Charlie Puth/test.txt'
+   '/Users/david/Study/SJTU/Courses/SE/songs/Attention-Charlie Puth/Attention.f0a'
 );

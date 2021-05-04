@@ -144,4 +144,17 @@ public class FileUtil {
             file.delete();
         }
     }
+
+    /**
+     *
+     * @param pcmFileName pcm filename with out extention
+     * @return Full path to the pcm file
+     */
+    public static String getPcmFullPath(String pcmFileName) {
+        return AUDIO_PCM_BASEPATH + pcmFileName + ".pcm";
+    }
+
+    public static String getWavFullPath(String pcmFileName) {
+        return AUDIO_WAV_BASEPATH + pcmFileName + ".pcm";
+    }
 }

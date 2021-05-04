@@ -21,9 +21,9 @@ public class Constants {
 
     public static final int PROGRESS_UPDATE_INTERVAL = 100;
 
-    // file save path
-    public static String FILE_SAVE_DIR = "/Karaoke/";
+    public static final double RECORD_DELAY_LB= 0.2;
 
+    public static final double RECORD_DELAY_UB = 0.9;
     @SuppressLint("SdCardPath")
     public static final String ROOT_DIRECTORY = "/data/data/com.sjtu.karaoke/";
     // public static final String ROOT_DIRECTORY = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS) + FILE_SAVE_DIR;

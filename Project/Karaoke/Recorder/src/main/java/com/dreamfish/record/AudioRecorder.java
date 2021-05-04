@@ -6,15 +6,21 @@ import android.media.MediaRecorder;
 import android.text.TextUtils;
 import android.util.Log;
 
+import org.sang.lrcview.bean.LrcBean;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 import static com.dreamfish.record.FileUtil.deleteOneFile;
+import static com.dreamfish.record.FileUtil.getPcmFullPath;
+import static com.dreamfish.record.FileUtil.getWavFullPath;
 import static com.dreamfish.record.PcmToWav.clearFiles;
+import static com.sjtu.karaoke.singrater.RatingUtil.f0analysis;
 
 /**
  * 实现录音
@@ -29,6 +35,9 @@ public class AudioRecorder {
     //44100是目前的标准，但是某些设备仍然支持22050，16000，11025
     //采样频率一般共分为22.05KHz、44.1KHz、48KHz三个等级
     public final static int AUDIO_SAMPLE_RATE = 44100;
+
+    // 切分pcm的间隔时间
+    public static final int PCM_SPLIT_INTERVAL = 1000;
     //声道 单声道
     private final static int AUDIO_CHANNEL = AudioFormat.CHANNEL_IN_MONO;
     public final static int NUM_OF_CHANNEL = 1;
@@ -37,9 +46,14 @@ public class AudioRecorder {
     // 缓冲区字节大小
     private int bufferSizeInBytes = 0;
 
+    // 当前pcm文件的开始时间
+    private int currentPcmStartTime;
+    // 伴奏当前进度(以歌词为单位)
+    private LrcBean currentLrc;
     //录音对象
     private AudioRecord audioRecord;
-
+    // 记录每个pcm的f0analysis是否完成
+    private HashSet<Integer> f0Complete;
     //录音状态
     private Status status = Status.STATUS_NO_READY;
 
@@ -54,7 +68,7 @@ public class AudioRecorder {
     File fo = null;
     String currentFileName= null;
 
-    private boolean shouldStartNewLine = false;
+    private boolean shouldStartNewPcm = false;
     /**
      * 类级的内部类，也就是静态类的成员式内部类，该内部类的实例与外部类的实例
      * 没有绑定关系，而且只有被调用时才会装载，从而实现了延迟加载
@@ -85,6 +99,9 @@ public class AudioRecorder {
         audioRecord = new AudioRecord(AUDIO_INPUT, AUDIO_SAMPLE_RATE, AUDIO_CHANNEL, AUDIO_ENCODING, bufferSizeInBytes);
         this.fileName = fileName;
 
+        currentLrc = null;
+        currentPcmStartTime = 0;
+        f0Complete = new HashSet<>();
         // initialize file name (no extension)
         currentFileName = fileName + filesName.size();
         setFileOutputStream();
@@ -224,16 +241,13 @@ public class AudioRecorder {
         status = Status.STATUS_NO_READY;
     }
 
-    public String getLastFinishedPCMFilePath() {
-        return filesName.get(filesName.size() - 2);
+
+    public boolean shouldStartNewPcm() {
+        return shouldStartNewPcm;
     }
 
-    public boolean shouldStartNewLine() {
-        return shouldStartNewLine;
-    }
-
-    public void setShouldStartNewLine(boolean shouldStartNewLine) {
-        this.shouldStartNewLine = shouldStartNewLine;
+    public void setShouldStartNewPcm(boolean shouldStartNewPcm) {
+        this.shouldStartNewPcm = shouldStartNewPcm;
     }
 
     private void writeDataTOFile(RecordStreamListener listener) {
@@ -242,15 +256,34 @@ public class AudioRecorder {
 
         status = Status.STATUS_START;
         while (status == Status.STATUS_START) {
-            if (shouldStartNewLine) {
-                currentFileName = fileName + filesName.size();
+            if (shouldStartNewPcm) {
                 try {
                     fos.close();
+                    // after writing an pcm
+                    // conditionally convert it to wav
+                    if (currentLrc.shouldRate()) {
+                        new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+                                int startTime = currentPcmStartTime;
+                                String pcmFullPath = getPcmFullPath(currentFileName);
+                                String wavFullPath = getWavFullPath(currentFileName);
+                                PcmToWav.makePCMFileToWAVFile(pcmFullPath, wavFullPath, false);
+
+                                f0analysis(wavFullPath, currentPcmStartTime);
+                                System.out.println("========== " + startTime + ": f0 complete ==========");
+                                f0Complete.add(startTime);
+                            }
+                        }).start();
+                    }
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
+
+                currentFileName = fileName + filesName.size();
+
                 setFileOutputStream();
-                shouldStartNewLine = false;
+                shouldStartNewPcm = false;
             } else {
                 int readSize = audioRecord.read(audiodata, 0, bufferSizeInBytes);
                 if (AudioRecord.ERROR_INVALID_OPERATION != readSize && fos != null) {
@@ -324,6 +357,27 @@ public class AudioRecorder {
         return filesName.size();
     }
 
+    public void setCurrentLrc(LrcBean currentLrc) {
+        this.currentLrc = currentLrc;
+    }
+
+    public void setCurrentPcmStartTime(int currentPcmStartTime) {
+        this.currentPcmStartTime = currentPcmStartTime;
+    }
+
+    public boolean isf0AnalysisComplete(int startTime, int endTime) {
+        // 开始时间和结束时间都往前取，例如500取0
+        int s = startTime / PCM_SPLIT_INTERVAL * PCM_SPLIT_INTERVAL;
+        int e = endTime / PCM_SPLIT_INTERVAL * PCM_SPLIT_INTERVAL;
+        System.out.println("========== Check f0 ==========");
+        for (int i = s; i <= e; i += PCM_SPLIT_INTERVAL) {
+            System.out.println(i);
+            if (!f0Complete.contains(i)) {
+                return false;
+            }
+        }
+        return true;
+    }
     /**
      * 录音对象的状态
      */

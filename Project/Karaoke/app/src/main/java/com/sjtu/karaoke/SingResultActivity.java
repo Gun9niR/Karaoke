@@ -195,7 +195,6 @@ public class SingResultActivity extends AppCompatActivity {
         progressUpdater = new Runnable() {
             @Override
             public void run() {
-                System.out.println(voicePlayer.getCurrentPosition() - accompanyPlayer.getCurrentPosition());
                 seekBarResultProgress.setProgress((int) voicePlayer.getCurrentPosition());
                 handler.postDelayed(this, PROGRESS_UPDATE_INTERVAL);
             }

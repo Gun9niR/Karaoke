@@ -29,7 +29,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Random;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -157,11 +156,6 @@ public class MiscUtil {
         return ACCOMPANY_DIRECTORY + songName + ".wav";
     }
 
-    public static int getScore(String wavFullPath) {
-        Random r = new Random();
-        return r.nextInt(101);
-    }
-
     public static void getSongInfo(Callback callback) {
         getRequest(GET_SONG_INFO_URL, callback);
     }
@@ -215,7 +209,7 @@ public class MiscUtil {
     }
 
     public static String getRateFullPath(String songName) {
-        return RATE_DIRECTORY + songName + ".txt";
+        return RATE_DIRECTORY + songName + ".f0a";
     }
 
     public static String getLyricFullPath(String songName) {
