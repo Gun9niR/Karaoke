@@ -4,3 +4,6 @@ Project/WebUpload/.vscode
 Project/WebUpload/client/.env
 Project/WebUpload/server/config.py
 Project/WebUpload/server/__pycache__/
+UIPrototype/Karaoke/.idea/
+UIPrototype/Karaoke/.gradle/
+

@@ -16,14 +16,4 @@ create table songs (
    unique key `unique_song` (`song_name`, `singer`)
 ) charset = utf8;
 
-INSERT INTO songs VALUES (
-   NULL, 'Attention', 'Charlie Puth', 
-   '/Users/david/Study/SJTU/Courses/SE/songs/Attention-Charlie Puth/Charlie_Puth_Voicenotes.png',
-   '/Users/david/Study/SJTU/Courses/SE/songs/Attention-Charlie Puth/Attention_vocal.wav',
-   '/Users/david/Study/SJTU/Courses/SE/songs/Attention-Charlie Puth/Attention1.wav',
-   '/Users/david/Study/SJTU/Courses/SE/songs/Attention-Charlie Puth/Attention.lrc',
-   '/Users/david/Study/SJTU/Courses/SE/songs/Attention-Charlie Puth/Attention.mp4',
-   '/Users/david/Study/SJTU/Courses/SE/songs/Attention-Charlie Puth/instrument.txt',
-   '/Users/david/Study/SJTU/Courses/SE/songs/Attention-Charlie Puth/Attention2.wav',
-   '/Users/david/Study/SJTU/Courses/SE/songs/Attention-Charlie Puth/Attention.f0a'
-);
+
