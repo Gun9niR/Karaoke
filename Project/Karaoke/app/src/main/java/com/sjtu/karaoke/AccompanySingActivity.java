@@ -234,13 +234,7 @@ public class AccompanySingActivity extends AppCompatActivity {
             @Override
             public void onPlaybackStateChanged(int state) {
                 if (state == Player.STATE_ENDED) {
-                    AccompanySingActivity.this.state = State.UNSTARTED;
-                    // it has to be placed here, to wait for the merging to complete
-                    stopActivity(true);
-                    Intent intent = new Intent(getApplicationContext(), SingResultActivity.class);
-                    intent.putExtra("id", id);
-                    intent.putExtra("songName", songName);
-                    startActivity(intent);
+                    bottomNavigationView.setSelectedItemId(R.id.singingFinish);
                 }
             }
         });
@@ -400,7 +394,9 @@ public class AccompanySingActivity extends AppCompatActivity {
                         case R.id.singingFinish:
                             state = State.UNSTARTED;
                             // it has to be placed here, to wait for the merging to complete
+                            Dialog loadingDialog = showLoadingDialog(this, "正在处理录音");
                             stopActivity(true);
+                            loadingDialog.dismiss();
                             Intent intent = new Intent(getApplicationContext(), SingResultActivity.class);
                             intent.putExtra("id", id);
                             intent.putExtra("songName", songName);
@@ -498,7 +494,7 @@ public class AccompanySingActivity extends AppCompatActivity {
         new Thread(() -> {
             while (!voiceRecorder.isf0AnalysisComplete(startTime, endTime)) {
                 try {
-                    Thread.sleep(500);
+                    Thread.sleep(200);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }

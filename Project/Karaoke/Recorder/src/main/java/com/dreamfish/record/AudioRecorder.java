@@ -6,6 +6,8 @@ import android.media.MediaRecorder;
 import android.text.TextUtils;
 import android.util.Log;
 
+import org.apache.commons.io.FileUtils;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -14,6 +16,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
+import static com.dreamfish.record.FileUtil.TRIMMED_VOICE_WAV_DIRECTORY;
 import static com.dreamfish.record.FileUtil.deleteOneFile;
 import static com.dreamfish.record.FileUtil.getPcmFullPath;
 import static com.dreamfish.record.FileUtil.getTrimmedWavFullPath;
@@ -35,7 +38,7 @@ public class AudioRecorder {
     public final static int AUDIO_SAMPLE_RATE = 44100;
 
     // 切分pcm的间隔时间
-    public static final int PCM_SPLIT_INTERVAL = 1000;
+    public static final int PCM_SPLIT_INTERVAL = 500;
     //声道 单声道
     private final static int AUDIO_CHANNEL = AudioFormat.CHANNEL_IN_MONO;
     public final static int NUM_OF_CHANNEL = 1;
@@ -200,7 +203,7 @@ public class AudioRecorder {
                 } else {
                     clearFiles(filePaths);
                 }
-                // FileUtils.cleanDirectory(new File(TRIMMED_VOICE_WAV_DIRECTORY));
+                FileUtils.cleanDirectory(new File(TRIMMED_VOICE_WAV_DIRECTORY));
 
             } else {
                 //这里由于只要录音过filesName.size都会大于0,没录音时fileName为null
@@ -268,7 +271,6 @@ public class AudioRecorder {
                             PcmToWav.makePCMFileToWAVFile(pcmFullPath, wavFullPath, false);
 
                             f0analysis(wavFullPath, currentPcmStartTime);
-                            System.out.println("========== " + startTime + ": f0 complete ==========");
                             f0Complete.add(startTime);
                         }
                     }).start();
@@ -361,9 +363,7 @@ public class AudioRecorder {
         // 开始时间和结束时间都往前取，例如500取0
         int s = startTime / PCM_SPLIT_INTERVAL * PCM_SPLIT_INTERVAL;
         int e = endTime / PCM_SPLIT_INTERVAL * PCM_SPLIT_INTERVAL;
-        System.out.println("========== Check f0 ==========");
         for (int i = s; i <= e; i += PCM_SPLIT_INTERVAL) {
-            System.out.println(i);
             if (!f0Complete.contains(i)) {
                 return false;
             }
