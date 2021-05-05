@@ -35,4 +35,5 @@ string getScoreWithDelay(double startTime, double endTime);
 
 int getCorrectnessScore(double startTime, double endTime, double delay);
 
+int getEmotionScore(double startTime, double endTime, double delay);
 #endif //HELLO_LIBS_F0ANALYSIS_H

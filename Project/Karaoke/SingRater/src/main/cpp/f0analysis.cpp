@@ -147,6 +147,30 @@ Java_com_sjtu_karaoke_singrater_RatingUtil_f0analysis(JNIEnv *env, jobject thiz,
     return env->NewStringUTF(res.c_str());
 }
 
+vector<F0data> getUserF0(double startTime, double endTime, double delay) {
+    vector<string> files;
+    int cnt = utils::scanDir(dataDir, files);
+    vector<F0data> userf0;
+    for (int i = 0; i < cnt; i++) {
+        stringstream filenamestream(files[i]);
+        int sttimeMs;
+        filenamestream >> sttimeMs;
+        double sttime = sttimeMs / 1000.0 + delay;
+        if (sttime > endTime || sttime + splittime < startTime)   continue;
+        string str;
+        ifstream file(dataDir + files[i]);
+        while (getline(file, str)) {
+            stringstream ss(str);
+            double a1, a2;
+            ss >> a1 >> a2;
+            userf0.push_back(F0data(a1 + sttime, a2));
+        }
+        file.close();
+    }
+    sort(userf0.begin(), userf0.end());
+    return userf0;
+}
+
 extern "C" JNIEXPORT jstring JNICALL
 Java_com_sjtu_karaoke_singrater_RatingUtil_getScore(JNIEnv *env, jobject thiz, jint jstartTimeInMicroMS, jint jendTimeInMicroMS) {
     int startTimeInMicroMS = jstartTimeInMicroMS;
@@ -173,6 +197,7 @@ string getScoreWithDelay(double startTime, double endTime) {
 string getScore(double startTime, double endTime, double delay) {
     string res;
     int CorrectnessScore = getCorrectnessScore(startTime, endTime, delay);
+    //getEmotionScore(startTime, endTime, delay);
     if (CorrectnessScore > correctnessThreshold) {
         res += to_string(CorrectnessScore);
         res += " " + to_string(CorrectnessScore);
@@ -180,6 +205,7 @@ string getScore(double startTime, double endTime, double delay) {
         res += " " + to_string(CorrectnessScore);
     }
     else {
+        CorrectnessScore = CorrectnessScore + (correctnessThreshold - CorrectnessScore) / 3;
         res += to_string(CorrectnessScore);
         res += " " + to_string(CorrectnessScore);
         res += " " + to_string(CorrectnessScore);
@@ -198,6 +224,8 @@ Java_com_sjtu_karaoke_singrater_RatingUtil_init(JNIEnv *env, jobject thiz, jstri
 }
 
 void init(string cppfilePath, int splitTimeInMicroMS) {
+    memset(originF0Path, 0 ,sizeof (originF0Path));
+    originf0.clear();
     strcpy(originF0Path, cppfilePath.c_str());
     splittime = splitTimeInMicroMS / 1000.0;
     vector<string> files;
@@ -223,27 +251,9 @@ void initbaseFreq() {
         }
 }
 
+
 int getCorrectnessScore(double startTime, double endTime, double delay) {
-    vector<string> files;
-    int cnt = utils::scanDir(dataDir, files);
-    vector<F0data> userf0;
-    for (int i = 0; i < cnt; i++) {
-        stringstream filenamestream(files[i]);
-        int sttimeMs;
-        filenamestream >> sttimeMs;
-        double sttime = sttimeMs / 1000.0 + delay;
-        if (sttime > endTime || sttime + splittime < startTime)   continue;
-        string str;
-        ifstream file(dataDir + files[i]);
-        while (getline(file, str)) {
-            stringstream ss(str);
-            double a1, a2;
-            ss >> a1 >> a2;
-            userf0.push_back(F0data(a1 + sttime, a2));
-        }
-        file.close();
-    }
-    sort(userf0.begin(), userf0.end());
+    vector<F0data> userf0 = getUserF0(startTime, endTime, delay);
 
     int userNowLowerID = 0, userNowUpperID = 0;
     double rightScore = 0, wrongPenalty = 0;
@@ -267,4 +277,25 @@ int getCorrectnessScore(double startTime, double endTime, double delay) {
 
     int res = rightScore / (rightScore + wrongPenalty) * 100 + 0.5;
     return res;
+}
+
+int getEmotionScore(double startTime, double endTime, double delay) {
+    vector<F0data> userf0 = getUserF0(startTime, endTime, delay);
+    int last = 0;
+    double delta, minf0(INT_MAX), maxf0(INT_MIN);
+    for (int i = 0; i < userf0.size(); i++) {
+        if (userf0[last].pitchID != userf0[i].pitchID) {
+            delta = (maxf0 - minf0) / (baseFreq[userf0[last].pitchID + 1] - baseFreq[userf0[last].pitchID]);
+            __android_log_print(ANDROID_LOG_INFO, "Rater",
+                    "pitchID = %d EmotionScore = %d\n", userf0[last].pitchID, delta);
+            last = i;
+            minf0 = INT_MAX;
+            maxf0 = INT_MIN;
+        }
+        minf0 = min(minf0, userf0[i].f0);
+        maxf0 = max(maxf0, userf0[i].f0);
+    }
+    __android_log_print(ANDROID_LOG_INFO, "Rater",
+            "pitchID = %d EmotionScore = %d\n", userf0[last].pitchID, delta);
+    return 0;
 }
