@@ -151,23 +151,21 @@ extern "C" JNIEXPORT jstring JNICALL
 Java_com_sjtu_karaoke_singrater_RatingUtil_getScore(JNIEnv *env, jobject thiz, jint jstartTimeInMicroMS, jint jendTimeInMicroMS) {
     int startTimeInMicroMS = jstartTimeInMicroMS;
     int endTimeInMicroMS = jendTimeInMicroMS;
-    return env->NewStringUTF(getScore(startTimeInMicroMS / 1000.0, endTimeInMicroMS / 1000.0, 0).c_str());
+    return env->NewStringUTF(getScoreWithDelay(startTimeInMicroMS / 1000.0, endTimeInMicroMS / 1000.0).c_str());
+}
+
+int getFirstScore(string s) {
+    stringstream ss(s);
+    int x;
+    ss >> x;
+    return x;
 }
 
 string getScoreWithDelay(double startTime, double endTime) {
-    string res;
-    int CorrectnessScore = getCorrectnessScore(startTime, endTime, 0);
-    if (CorrectnessScore > correctnessThreshold) {
-        res += to_string(CorrectnessScore);
-        res += " " + to_string(CorrectnessScore);
-        res += " " + to_string(CorrectnessScore);
-        res += " " + to_string(CorrectnessScore);
-    }
-    else {
-        res += to_string(CorrectnessScore);
-        res += " " + to_string(CorrectnessScore);
-        res += " " + to_string(CorrectnessScore);
-        res += " " + to_string(CorrectnessScore);
+    string res, tmp;
+    for (double delay = delayLowerBound; delay <= delayLowerBound; delay += f0Shift) {
+        tmp = getScore(startTime, endTime, delay);
+        if (res == "" || getFirstScore(res) < getFirstScore(tmp)) res = tmp;
     }
     return res;
 }
