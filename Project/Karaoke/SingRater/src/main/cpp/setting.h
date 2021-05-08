@@ -19,11 +19,12 @@
 using namespace std;
 
 const char dataDir[] = "/data/data/com.sjtu.karaoke/raterdata/";
-const float correctnessInterval = 0.25;
-const int correctnessThreshold = 70;
+const float correctnessInterval = 0.3;
+const int correctnessUpperThreshold = 65;
+const int correctnessLowerThreshold = 50;
 const float OnceRightScore = 1.3;
-const float OnceNotCorrectScore = 0.4;
-const float OnceWrongScore = 0.8;
+const float OnceNotCorrectScore = 0.3;
+const float OnceWrongScore = 0.9;
 const float f0Shift = 0.1;
 
 #endif //HELLO_LIBS_SETTING_H

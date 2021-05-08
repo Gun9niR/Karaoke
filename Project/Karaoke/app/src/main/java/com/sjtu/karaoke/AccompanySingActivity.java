@@ -226,7 +226,7 @@ public class AccompanySingActivity extends AppCompatActivity {
 
     private void initState() {
         state = State.UNSTARTED;
-        singMode = SingMode.WITHOUT;
+        singMode = SingMode.WITHOUT_ACCOMPANY;
     }
 
     private void initOnCompleteListener(SimpleExoPlayer player) {
@@ -335,12 +335,20 @@ public class AccompanySingActivity extends AppCompatActivity {
         });
     }
 
+    /*
+     * Mute original, unmute accompany
+     */
     private void muteOriginal() {
+        accompanyPlayer.setVolume(1);
         originalPlayer.setVolume(0);
     }
 
+    /**
+     * Mute accompany, unmute original
+     */
     private void unmuteOriginal() {
         originalPlayer.setVolume(1);
+        accompanyPlayer.setVolume(0);
     }
 
     private void setProgressMonitor(SimpleExoPlayer player) {
@@ -381,13 +389,13 @@ public class AccompanySingActivity extends AppCompatActivity {
                 item -> {
                     switch (item.getItemId()) {
                         case R.id.singingMode:
-                            if (singMode == SingMode.WITH) {
+                            if (singMode == SingMode.WITH_ACCOMPANY) {
                                 item.setTitle("伴唱");
-                                singMode = SingMode.WITHOUT;
+                                singMode = SingMode.WITHOUT_ACCOMPANY;
                                 muteOriginal();
                             } else {
                                 item.setTitle("原唱");
-                                singMode = SingMode.WITH;
+                                singMode = SingMode.WITH_ACCOMPANY;
                                 unmuteOriginal();
                             }
                             break;
@@ -530,6 +538,6 @@ public class AccompanySingActivity extends AppCompatActivity {
     }
 
     private enum SingMode {
-        WITH, WITHOUT
+        WITH_ACCOMPANY, WITHOUT_ACCOMPANY
     }
 }

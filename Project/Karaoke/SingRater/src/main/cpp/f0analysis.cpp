@@ -198,14 +198,15 @@ string getScore(double startTime, double endTime, double delay) {
     string res;
     int CorrectnessScore = getCorrectnessScore(startTime, endTime, delay);
     //getEmotionScore(startTime, endTime, delay);
-    if (CorrectnessScore > correctnessThreshold) {
+    if (CorrectnessScore > correctnessUpperThreshold) {
         res += to_string(CorrectnessScore);
         res += " " + to_string(CorrectnessScore);
         res += " " + to_string(CorrectnessScore);
         res += " " + to_string(CorrectnessScore);
     }
     else {
-        CorrectnessScore = CorrectnessScore + (correctnessThreshold - CorrectnessScore) / 3;
+        if (CorrectnessScore > correctnessLowerThreshold)
+            CorrectnessScore = CorrectnessScore + (correctnessUpperThreshold - CorrectnessScore) / 3;
         res += to_string(CorrectnessScore);
         res += " " + to_string(CorrectnessScore);
         res += " " + to_string(CorrectnessScore);
