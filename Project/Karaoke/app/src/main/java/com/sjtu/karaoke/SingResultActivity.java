@@ -58,7 +58,7 @@ import static com.sjtu.karaoke.util.WavUtil.trimWav;
  */
 
 public class SingResultActivity extends AppCompatActivity {
-    final int INITIAL_OFFSET = 700;
+    final int INITIAL_OFFSET = 0;
 
     Toolbar toolbar;
     BottomNavigationView bottomNavbarResult;
@@ -80,7 +80,9 @@ public class SingResultActivity extends AppCompatActivity {
 
     boolean isFileSaved = false;
     State state;
+    // offset set with progress bar
     int voiceOffset;
+    int actualOffset;
 
     Integer id;
     String songName;
@@ -138,33 +140,36 @@ public class SingResultActivity extends AppCompatActivity {
         // Tune forward or backward by 1s
         seekbarAlignVoice.setMin(0);
         seekbarAlignVoice.setMax(1000);
-        seekbarAlignVoice.setProgress(INITIAL_OFFSET);
         seekbarAlignVoice.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            private boolean isPreviouslyPlaying;
+
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 voiceOffset = progress;
-                stopAllPlayers();
-                voicePlayer.seekTo(0);
-                accompanyPlayer.seekTo(0);
+
+                long accompanyPosition = accompanyPlayer.getCurrentPosition();
+                long newPosition = accompanyPosition + voiceOffset;
+                voicePlayer.seekTo(newPosition < voiceDuration ? newPosition : voiceDuration);
             }
 
             @Override
             public void onStartTrackingTouch(SeekBar seekBar) {
-
+                isPreviouslyPlaying = voicePlayer.isPlaying();
+                pauseAllPlayers();
             }
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
-                btnPlay.callOnClick();
+                if (isPreviouslyPlaying) {
+                    startAllPlayers();
+                    handler.postDelayed(()-> {
+                        actualOffset = (int) voicePlayer.getCurrentPosition() - (int) accompanyPlayer.getCurrentPosition();
+                    }, 500);
+
+                }
             }
         });
-    }
-
-    private void stopAllPlayers() {
-        this.state = State.UNSTARTED;
-        voicePlayer.pause();
-        accompanyPlayer.pause();
-        handler.removeCallbacks(progressUpdater);
+        seekbarAlignVoice.setProgress(INITIAL_OFFSET);
     }
 
     private void getFilePaths() {
@@ -172,30 +177,29 @@ public class SingResultActivity extends AppCompatActivity {
         voiceFullPath = getVoiceFullPath(songName);
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
     private void initFab() {
         FloatingActionButton fabSave = findViewById(R.id.fabSave);
-        fabSave.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (isFileSaved) {
-                    showToast(getApplicationContext(), "文件已经保存");
-                }
-                // merge two .wav files, and put under .../Karaoke/record/
-                Dialog loadingDialog = showLoadingDialog(SingResultActivity.this, "正在生成作品...");
-                new Thread(new Runnable() {
-                    @RequiresApi(api = Build.VERSION_CODES.O)
-                    @Override
-                    public void run() {
-                        Looper.prepare();
-                        String resultFileName = getRecordName(id, songName);
-                        mergeWAVs(RECORD_DIRECTORY + resultFileName, trimmedAccompanyFullPath, voiceFullPath, accompanyVolume, voiceVolume, voiceOffset);
-                        loadingDialog.dismiss();
-                        showToast(getApplicationContext(), "录音已成功保存");
-                        Looper.loop();
-                        isFileSaved = true;
-                    }
-                }).start();
+        fabSave.setOnClickListener(view -> {
+            if (isFileSaved) {
+                showToast(getApplicationContext(), "文件已经保存");
             }
+            // merge two .wav files, and put under .../Karaoke/record/
+            Dialog loadingDialog = showLoadingDialog(SingResultActivity.this, "正在生成作品...");
+            new Thread(() -> {
+                Looper.prepare();
+                String resultFileName = getRecordName(id, songName);
+                mergeWAVs(RECORD_DIRECTORY + resultFileName,
+                        trimmedAccompanyFullPath,
+                        voiceFullPath,
+                        accompanyVolume,
+                        voiceVolume,
+                        actualOffset);
+                loadingDialog.dismiss();
+                showToast(getApplicationContext(), "录音已成功保存");
+                Looper.loop();
+                isFileSaved = true;
+            }).start();
         });
     }
 
@@ -203,7 +207,8 @@ public class SingResultActivity extends AppCompatActivity {
         progressUpdater = new Runnable() {
             @Override
             public void run() {
-                seekBarResultProgress.setProgress((int) voicePlayer.getCurrentPosition());
+                System.out.println(voicePlayer.getCurrentPosition() - accompanyPlayer.getCurrentPosition());
+                seekBarResultProgress.setProgress((int) accompanyPlayer.getCurrentPosition());
                 handler.postDelayed(this, PROGRESS_UPDATE_INTERVAL);
             }
         };
@@ -271,8 +276,10 @@ public class SingResultActivity extends AppCompatActivity {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 if (fromUser) {
-                    voicePlayer.seekTo(progress);
-                    accompanyPlayer.seekTo(Math.max(progress - voiceOffset, 0));
+                    long newPosition = progress + voiceOffset;
+                    voicePlayer.seekTo(newPosition < voiceDuration ? newPosition : voiceDuration);
+                    voicePlayer.seekTo(newPosition);
+                    accompanyPlayer.seekTo(progress);
                 }
 
                 playerPosition.setText(convertFormat(((int) voicePlayer.getCurrentPosition())));
@@ -303,7 +310,7 @@ public class SingResultActivity extends AppCompatActivity {
                     accompanyPlayer.pause();
                     accompanyPlayer.seekTo(0);
                     voicePlayer.pause();
-                    voicePlayer.seekTo(0);
+                    voicePlayer.seekTo(voiceOffset);
                     seekBarResultProgress.setProgress(0);
                     handler.removeCallbacks(progressUpdater);
                 }
@@ -313,21 +320,13 @@ public class SingResultActivity extends AppCompatActivity {
         btnPlay.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                btnPlay.setVisibility(View.GONE);
-                btnPause.setVisibility(View.VISIBLE);
-                if (state == State.UNSTARTED) {
-                    startAllPlayers(voiceOffset);
-                } else {
-                    startAllPlayers(0);
-                }
+                startAllPlayers();
             }
         });
 
         btnPause.setOnClickListener((new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                btnPause.setVisibility(View.GONE);
-                btnPlay.setVisibility(View.VISIBLE);
                 pauseAllPlayers();
             }
         }));
@@ -335,6 +334,8 @@ public class SingResultActivity extends AppCompatActivity {
 
     private void pauseAllPlayers() {
         this.state = State.PAUSE;
+        btnPause.setVisibility(View.GONE);
+        btnPlay.setVisibility(View.VISIBLE);
         voicePlayer.pause();
         accompanyPlayer.pause();
         handler.removeCallbacks(progressUpdater);
@@ -386,20 +387,14 @@ public class SingResultActivity extends AppCompatActivity {
         });
     }
 
-    private void startAllPlayers(int voiceOffset) {
+    private void startAllPlayers() {
 
         this.state = State.PLAYING;
-
+        btnPlay.setVisibility(View.GONE);
+        btnPause.setVisibility(View.VISIBLE);
         handler.postDelayed(progressUpdater, 0);
-
         voicePlayer.play();
-        handler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                accompanyPlayer.play();
-            }
-        }, voiceOffset);
-
+        accompanyPlayer.play();
     }
 
     @Override
