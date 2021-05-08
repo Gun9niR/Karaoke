@@ -92,11 +92,16 @@ def upload_one_file(song_id):
         new_file_path = os.path.join(song_dir, upload_file.filename)
         upload_file.save(new_file_path)
 
-        if file_type == 'rate':
-            new_file_path = generate_rate_file(new_file_path)
-            
         # Save the file path to database
         update_file_path_in_db(song_id, file_type, new_file_path)
+
+        if (file_type == 'original'):
+            rating_file_path = os.path.join(song_dir, app.config['RATING_FILENAME'])
+            if os.path.exists(rating_file_path):
+                os.remove(rating_file_path)
+            
+            rate_file_path = rate_by_original(new_file_path, song_dir)
+            update_file_path_in_db(song_id, 'rate', rate_file_path)
 
     return 'success'
 
@@ -132,8 +137,9 @@ def upload_song():
         save_path = os.path.join(song_upload_path, upload_file.filename)
         upload_file.save(save_path)
 
-        if file_field == 'rate':
-            save_path = generate_rate_file(save_path)
+        if file_field == 'original':
+            rate_file_path = rate_by_original(save_path, song_upload_path)
+            save['rate'] = rate_file_path
 
         save[file_field] = save_path
 
@@ -187,7 +193,6 @@ def get_song_info_in_db():
             cursor.execute(sql)
             connection.commit()
             song_info = cursor.fetchall()
-            # print(song_info)
             return song_info
 
 def get_song_by_id(song_id):
@@ -304,17 +309,51 @@ def generate_save_directory(song):
     return os.path.join(app.config['FILE_UPLOAD_PATH'], folder_name)
 
 
-def generate_rate_file(vocal_file_path):
+def rate_by_original(original_file_path, directory):
+    vocal_file_path = generate_vocal_file(original_file_path)
+    single_track_file_path = generate_single_track_file(vocal_file_path)
+    return generate_rate_file(single_track_file_path, directory)
+
+
+def generate_vocal_file(original_file_path):
+
+    _dir, original_filename = os.path.split(original_file_path)
+    filename_without_suffix = original_filename.rsplit('.', 1)[0]
+
+    shell_args = ['python', '-m', 'spleeter', 'separate', '-p', 'spleeter:2stems', '-o', 
+                  app.config['SPLEETER_OUTPUT_PATH'], original_file_path]
+    process = subprocess.Popen(shell_args)
+    process.wait()
+
+    vocal_file_path = os.path.join(app.config['SPLEETER_OUTPUT_PATH'], 
+                                   filename_without_suffix, 'vocals.wav')
+
+    return vocal_file_path
+
+
+def generate_single_track_file(vocal_file_path):
 
     directory, vocal_filename = os.path.split(vocal_file_path)
-    filename_without_suffix = vocal_filename.rsplit('.', 1)[0]
-    rate_filename = filename_without_suffix + ".txt"
-    rate_file_path = os.path.join(directory, rate_filename)
+    single_track_file_path = os.path.join(directory, 'vocalSingle.wav')
 
-    shell_args = [app.config['RATING_PATH'], vocal_file_path, '-t', '-s', '50', '-o', rate_file_path]
-    subprocess.run(shell_args)
+    shell_args = ['ffmpeg', '-y', '-i', vocal_file_path, 
+                  '-ar', '44100', '-ac', '1', single_track_file_path]
+    process = subprocess.Popen(shell_args)
+    process.wait()
 
-    os.remove(vocal_file_path)
+    return single_track_file_path
+
+
+def generate_rate_file(single_track_file_path, directory):
+
+    rate_file_path = os.path.join(directory, app.config['RATING_FILENAME'])
+
+    shell_args = [app.config['RATING_PATH'], single_track_file_path, 
+                  '-t', '-s', '50', '-o', rate_file_path]
+    process = subprocess.Popen(shell_args)
+    process.wait()
+
+    shutil.rmtree(app.config['SPLEETER_OUTPUT_PATH'])
 
     return rate_file_path
 

@@ -6,4 +6,5 @@ Project/WebUpload/server/config.py
 Project/WebUpload/server/__pycache__/
 UIPrototype/Karaoke/.idea/
 UIPrototype/Karaoke/.gradle/
-
+Project/WebUpload/server/pretrained_models
+Project/WebUpload/server/rating/build
