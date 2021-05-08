@@ -1,0 +1,20 @@
+{
+  "buildFiles": [
+    "C:\\Users\\66328\\AppData\\Local\\Android\\Sdk\\ndk\\21.2.6472646\\build\\cmake\\platforms.cmake",
+    "C:\\Users\\66328\\AppData\\Local\\Android\\Sdk\\ndk\\21.2.6472646\\build\\cmake\\android.toolchain.cmake",
+    "C:\\Academic\\UnderGraduate\\Sophomore-2\\Principle and Practice of Software Engineering\\project\\android\\hello-libs\\app\\src\\main\\cpp\\CMakeLists.txt"
+  ],
+  "cleanCommands": [
+    "C:\\Users\\66328\\AppData\\Local\\Android\\Sdk\\cmake\\3.10.2.4988404\\bin\\ninja.exe -C \"C:\\Academic\\UnderGraduate\\Sophomore-2\\Principle and Practice of Software Engineering\\project\\android\\hello-libs\\app\\.cxx\\cmake\\debug\\x86_64\" clean"
+  ],
+  "buildTargetsCommand": "C:\\Users\\66328\\AppData\\Local\\Android\\Sdk\\cmake\\3.10.2.4988404\\bin\\ninja.exe  -C \"C:\\Academic\\UnderGraduate\\Sophomore-2\\Principle and Practice of Software Engineering\\project\\android\\hello-libs\\app\\.cxx\\cmake\\debug\\x86_64\" {LIST_OF_TARGETS_TO_BUILD}",
+  "libraries": {
+    "WORLD-Debug-x86_64": {
+      "artifactName": "WORLD",
+      "buildCommand": "C:\\Users\\66328\\AppData\\Local\\Android\\Sdk\\cmake\\3.10.2.4988404\\bin\\ninja.exe -C \"C:\\Academic\\UnderGraduate\\Sophomore-2\\Principle and Practice of Software Engineering\\project\\android\\hello-libs\\app\\.cxx\\cmake\\debug\\x86_64\" WORLD",
+      "abi": "x86_64",
+      "output": "C:\\Academic\\UnderGraduate\\Sophomore-2\\Principle and Practice of Software Engineering\\project\\android\\hello-libs\\app\\build\\intermediates\\cmake\\debug\\obj\\x86_64\\libWORLD.so",
+      "runtimeFiles": []
+    }
+  }
+}

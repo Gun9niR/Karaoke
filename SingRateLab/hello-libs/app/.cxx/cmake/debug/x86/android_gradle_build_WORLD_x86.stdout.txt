@@ -1,0 +1,16 @@
+ninja: Entering directory `C:\Academic\UnderGraduate\Sophomore-2\Principle and Practice of Software Engineering\project\android\hello-libs\app\.cxx\cmake\debug\x86'
+[1/15] Building CXX object CMakeFiles/WORLD.dir/matlabfunctions.cpp.o
+[2/15] Building CXX object CMakeFiles/WORLD.dir/cheaptrick.cpp.o
+[3/15] Building CXX object CMakeFiles/WORLD.dir/codec.cpp.o
+[4/15] Building CXX object CMakeFiles/WORLD.dir/synthesis.cpp.o
+[5/15] Building CXX object CMakeFiles/WORLD.dir/common.cpp.o
+[6/15] Building CXX object CMakeFiles/WORLD.dir/harvest.cpp.o
+[7/15] Building CXX object CMakeFiles/WORLD.dir/stonemask.cpp.o
+[8/15] Building CXX object CMakeFiles/WORLD.dir/dio.cpp.o
+[9/15] Building CXX object CMakeFiles/WORLD.dir/fft.cpp.o
+[10/15] Building CXX object CMakeFiles/WORLD.dir/tools/parameterio.cpp.o
+[11/15] Building CXX object CMakeFiles/WORLD.dir/tools/audioio.cpp.o
+[12/15] Building CXX object CMakeFiles/WORLD.dir/synthesisrealtime.cpp.o
+[13/15] Building CXX object CMakeFiles/WORLD.dir/d4c.cpp.o
+[14/15] Building CXX object CMakeFiles/WORLD.dir/interface.cpp.o
+[15/15] Linking CXX shared library "C:\Academic\UnderGraduate\Sophomore-2\Principle and Practice of Software Engineering\project\android\hello-libs\app\build\intermediates\cmake\debug\obj\x86\libWORLD.so"

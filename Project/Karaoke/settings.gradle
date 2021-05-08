@@ -1,0 +1,6 @@
+include ':SingRater'
+include ':WavEditor'
+include ':Recorder'
+include ':LrcView'
+include ':app'
+rootProject.name = "Karaoke"
