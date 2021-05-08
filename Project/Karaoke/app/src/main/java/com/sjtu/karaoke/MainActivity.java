@@ -12,8 +12,7 @@ import com.sjtu.karaoke.fragment.AccountFragment;
 import com.sjtu.karaoke.fragment.ViewSongsFragment;
 
 import static com.sjtu.karaoke.util.MiscUtil.makeDirectories;
-import static com.sjtu.karaoke.util.MiscUtil.verifyRecorderPermissions;
-import static com.sjtu.karaoke.util.MiscUtil.verifyStoragePermissions;
+import static com.sjtu.karaoke.util.MiscUtil.verifyAllPermissions;
 
 /*
  * @ClassName: MainActivity
@@ -31,8 +30,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        verifyStoragePermissions(this);
-        verifyRecorderPermissions(this);
+        verifyAllPermissions(this);
         makeDirectories();
 
         ChipNavigationBar chipNavigationBar = findViewById(R.id.chipNavigation);

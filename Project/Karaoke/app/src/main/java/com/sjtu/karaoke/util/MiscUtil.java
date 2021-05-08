@@ -46,10 +46,8 @@ import static com.sjtu.karaoke.util.Constants.MV_DIRECTORY;
 import static com.sjtu.karaoke.util.Constants.ORIGINAL_DIRECTORY;
 import static com.sjtu.karaoke.util.Constants.PCM_DIRECTORY;
 import static com.sjtu.karaoke.util.Constants.PERMISSIONS_RECORDER;
-import static com.sjtu.karaoke.util.Constants.PERMISSIONS_STORAGE;
 import static com.sjtu.karaoke.util.Constants.RATE_DIRECTORY;
 import static com.sjtu.karaoke.util.Constants.RECORD_DIRECTORY;
-import static com.sjtu.karaoke.util.Constants.REQUEST_EXTERNAL_STORAGE;
 import static com.sjtu.karaoke.util.Constants.ROOT_DIRECTORY;
 import static com.sjtu.karaoke.util.Constants.TRIMMED_VOICE_WAV_DIRECTORY;
 import static com.sjtu.karaoke.util.Constants.WAV_DIRECTORY;
@@ -100,18 +98,19 @@ public class MiscUtil {
         FileUtil.setBaseDirectories(ROOT_DIRECTORY);
     }
 
-    public static void verifyStoragePermissions(Activity activity) {
-        try {
-            int permission = ActivityCompat.checkSelfPermission(activity, Manifest.permission.WRITE_EXTERNAL_STORAGE);
-            if (permission != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(activity, PERMISSIONS_STORAGE, REQUEST_EXTERNAL_STORAGE);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
+//    public static void verifyStoragePermissions(Activity activity) {
+//        try {
+//            int permission = ActivityCompat.checkSelfPermission(activity, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+//            if (permission != PackageManager.PERMISSION_GRANTED) {
+//                ActivityCompat.requestPermissions(activity, PERMISSIONS_STORAGE, REQUEST_EXTERNAL_STORAGE);
+//            }
+//            while (permission)
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//    }
 
-    public static void verifyRecorderPermissions(Activity activity) {
+    public static void verifyAllPermissions(Activity activity) {
         boolean permission = (ActivityCompat.checkSelfPermission(activity, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED)
                 || (ActivityCompat.checkSelfPermission(activity, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)
                 || (ActivityCompat.checkSelfPermission(activity, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED);

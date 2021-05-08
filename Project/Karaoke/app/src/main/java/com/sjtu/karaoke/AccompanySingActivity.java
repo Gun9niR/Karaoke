@@ -58,7 +58,6 @@ import static com.sjtu.karaoke.util.MiscUtil.getOriginalFullPath;
 import static com.sjtu.karaoke.util.MiscUtil.getRateFullPath;
 import static com.sjtu.karaoke.util.MiscUtil.showLoadingDialog;
 import static com.sjtu.karaoke.util.MiscUtil.showToast;
-import static com.sjtu.karaoke.util.MiscUtil.verifyRecorderPermissions;
 import static com.sjtu.karaoke.util.WavUtil.getWAVDuration;
 /*
  * @ClassName: AccompanySingActivity
@@ -114,8 +113,6 @@ public class AccompanySingActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_accompany_sing);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-
-        verifyRecorderPermissions(this);
 
         // UI-related initialization
         initSongName();
@@ -226,7 +223,7 @@ public class AccompanySingActivity extends AppCompatActivity {
 
     private void initState() {
         state = State.UNSTARTED;
-        singMode = SingMode.WITHOUT;
+        singMode = SingMode.WITHOUT_ORIGINAL;
     }
 
     private void initOnCompleteListener(SimpleExoPlayer player) {
@@ -335,12 +332,20 @@ public class AccompanySingActivity extends AppCompatActivity {
         });
     }
 
+    /*
+     * Mute original, unmute accompany
+     */
     private void muteOriginal() {
+        accompanyPlayer.setVolume(1);
         originalPlayer.setVolume(0);
     }
 
+    /**
+     * Mute accompany, unmute original
+     */
     private void unmuteOriginal() {
         originalPlayer.setVolume(1);
+        accompanyPlayer.setVolume(0);
     }
 
     private void setProgressMonitor(SimpleExoPlayer player) {
@@ -373,6 +378,7 @@ public class AccompanySingActivity extends AppCompatActivity {
         bottomNavigationView = findViewById(R.id.bottomNavigationView);
         bottomNavigationView.setBackground(null);
         // 禁用中间的占位item
+        bottomNavigationView.getMenu().getItem(0).setTitle("伴唱");
         bottomNavigationView.getMenu().getItem(1).setEnabled(false);
         // 禁用完成，因为录音还没有开始
         disableFinishButton();
@@ -381,14 +387,12 @@ public class AccompanySingActivity extends AppCompatActivity {
                 item -> {
                     switch (item.getItemId()) {
                         case R.id.singingMode:
-                            if (singMode == SingMode.WITH) {
+                            if (singMode == SingMode.WITH_ORIGINAL) {
                                 item.setTitle("伴唱");
-                                singMode = SingMode.WITHOUT;
-                                muteOriginal();
+                                withOriginalMode();
                             } else {
                                 item.setTitle("原唱");
-                                singMode = SingMode.WITH;
-                                unmuteOriginal();
+                                withoutOriginalMode();
                             }
                             break;
                         case R.id.singingFinish:
@@ -406,6 +410,16 @@ public class AccompanySingActivity extends AppCompatActivity {
                     return false;
                 }
         );
+    }
+
+    private void withOriginalMode() {
+        singMode = SingMode.WITHOUT_ORIGINAL;
+        muteOriginal();
+    }
+
+    private void withoutOriginalMode() {
+        singMode = SingMode.WITH_ORIGINAL;
+        unmuteOriginal();
     }
 
     private void pauseRecording() {
@@ -511,12 +525,7 @@ public class AccompanySingActivity extends AppCompatActivity {
             emotionScore += emotion;
             breathScore += breath;
 
-            AccompanySingActivity.this.runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    scoreBar.setProgress(totalScore, true);
-                }
-            });
+            AccompanySingActivity.this.runOnUiThread(() -> scoreBar.setProgress(totalScore, true));
 
             Looper.prepare();
             showToast(AccompanySingActivity.this, Integer.toString(total));
@@ -530,6 +539,6 @@ public class AccompanySingActivity extends AppCompatActivity {
     }
 
     private enum SingMode {
-        WITH, WITHOUT
+        WITH_ORIGINAL, WITHOUT_ORIGINAL
     }
 }

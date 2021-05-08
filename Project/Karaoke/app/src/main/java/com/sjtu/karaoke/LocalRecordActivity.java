@@ -43,15 +43,16 @@ public class LocalRecordActivity extends AppCompatActivity {
     MediaPlayer recordPlayer;
     CircleImageView circleImageView;
     ImageButton btnPlayRecord;
+    TextView recordSongName;
     SeekBar seekbarRecordProgress;
     Animation rotateAnimation;
     Handler handler = new Handler();
     Runnable runnable;
 
-    int duration;
-    boolean playerReleased;
+    private int duration;
+    private boolean playerReleased;
     private State state = State.UNSTARTED;
-
+    private String currentRecordFullPath;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,11 +67,29 @@ public class LocalRecordActivity extends AppCompatActivity {
 
         initAnimation();
 
-        ImageButton btnPlayRecord = findViewById(R.id.btnPlayRecord);
-        btnPlayRecord.setEnabled(false);
-        seekbarRecordProgress = findViewById(R.id.seekbarRecordProgress);
-        seekbarRecordProgress.setEnabled(false);
+        initBottomRecordBar();
 
+
+    }
+
+    private void initBottomRecordBar() {
+        recordSongName = findViewById(R.id.recordPlayerName);
+        circleImageView = findViewById(R.id.recordPlayerCover);
+        btnPlayRecord = findViewById(R.id.btnPlayRecord);
+        seekbarRecordProgress = findViewById(R.id.seekbarRecordProgress);
+
+        resetBottomRecordBar();
+    }
+
+    private void resetBottomRecordBar() {
+        recordSongName.setText("暂无播放");
+        circleImageView.setImageBitmap(null);
+        circleImageView.clearAnimation();
+        btnPlayRecord.setEnabled(false);
+        btnPlayRecord.setImageResource(R.drawable.ic_play_record);
+
+        seekbarRecordProgress.setEnabled(false);
+        seekbarRecordProgress.setProgress(0);
         playerReleased = true;
     }
 
@@ -121,7 +140,7 @@ public class LocalRecordActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         playerReleased = true;
-        if (recordPlayer != null) {
+        if (recordPlayer != null && state != State.UNSTARTED) {
             terminateMediaPlayer(recordPlayer);
         }
     }
@@ -136,16 +155,15 @@ public class LocalRecordActivity extends AppCompatActivity {
         initRecordTitleAndCover(record);
 
         this.state = State.PLAYING;
+        currentRecordFullPath = record.getFullPath();
 
-        recordPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-            @Override
-            public void onCompletion(MediaPlayer mediaPlayer) {
-                recordPlayer.seekTo(0);
-                btnPlayRecord.setImageResource(R.drawable.ic_play_record);
-                circleImageView.clearAnimation();
-                handler.removeCallbacks(runnable);
-                seekbarRecordProgress.setProgress(0);
-            }
+        recordPlayer.setOnCompletionListener(mediaPlayer -> {
+            this.state = State.UNSTARTED;
+            recordPlayer.seekTo(0);
+            btnPlayRecord.setImageResource(R.drawable.ic_play_record);
+            circleImageView.clearAnimation();
+            handler.removeCallbacks(runnable);
+            seekbarRecordProgress.setProgress(0);
         });
 
         startRecordPlayer();
@@ -179,6 +197,7 @@ public class LocalRecordActivity extends AppCompatActivity {
             }
         });
 
+        // restart playing
         handler.postDelayed(runnable, 0);
     }
 
@@ -186,7 +205,6 @@ public class LocalRecordActivity extends AppCompatActivity {
         TextView textView = findViewById(R.id.recordPlayerName);
         textView.setText(record.getSongName());
 
-        circleImageView = findViewById(R.id.recordPlayerCover);
         setImageFromFile(getAlbumCoverFullPath(record.getSongName()), circleImageView);
     }
 
@@ -200,10 +218,16 @@ public class LocalRecordActivity extends AppCompatActivity {
         btnPlayRecord.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (state == State.PAUSE) {
-                    startRecordPlayer();
-                } else if (state == State.PLAYING) {
-                    pauseRecordPlayer();
+                switch (state) {
+                    case UNSTARTED:
+                    case PAUSE:
+                        startRecordPlayer();
+                        break;
+                    case PLAYING:
+                        pauseRecordPlayer();
+                        break;
+                    default:
+                        break;
                 }
             }
         });
@@ -225,6 +249,12 @@ public class LocalRecordActivity extends AppCompatActivity {
         circleImageView.startAnimation(rotateAnimation);
     }
 
+    private void stopRecordPlayer() {
+        state = State.UNSTARTED;
+        terminateMediaPlayer(recordPlayer);
+        handler.removeCallbacks(runnable);
+    }
+
     private void initRecordPlayer(String fullPath) {
         terminateMediaPlayer(recordPlayer);
 
@@ -236,6 +266,16 @@ public class LocalRecordActivity extends AppCompatActivity {
         playerReleased = false;
     }
 
+    /**
+     * Called when a local record is removed, reset bottom record bar if the currently playing record
+     * is the one being deleted
+     */
+    public void checkCurrentDeletion(String fullPath) {
+        if (fullPath.equals(currentRecordFullPath)) {
+            stopRecordPlayer();
+            resetBottomRecordBar();
+        }
+    }
 
 private enum State {PAUSE, PLAYING, UNSTARTED}
 }

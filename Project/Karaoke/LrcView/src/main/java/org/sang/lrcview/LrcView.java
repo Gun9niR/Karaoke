@@ -157,6 +157,9 @@ public class LrcView extends View {
         invalidate();
     }
 
+    /**
+     * 获取当前播放到的LrcBean下标
+     */
     private void getCurrentPosition() {
         try {
             int currentMillis = (int) player.getCurrentPosition();

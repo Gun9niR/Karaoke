@@ -108,9 +108,12 @@ public class RecordListAdapter extends RecyclerView.Adapter<RecordListAdapter.Vi
         holder.btnDelete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                deleteOneFile(record.getFullPath());
+                String recordFullPath = record.getFullPath();
+                deleteOneFile(recordFullPath);
                 records.remove(position);
                 notifyDataSetChanged();
+
+                activity.checkCurrentDeletion(recordFullPath);
             }
         });
     }
