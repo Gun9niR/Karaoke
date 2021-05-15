@@ -114,16 +114,6 @@ export default {
             },
           ],
         },
-        {
-          value: 'rating',
-          label: '歌曲打分',
-          children: [
-            {
-              value: 'rate',
-              label: '人声音频',
-            },
-          ],
-        },
       ],
     };
   },
@@ -140,7 +130,6 @@ export default {
         'mv': 'mp4',
         'instrument': 'txt',
         'accompany_instrument': 'wav',
-        'rate': 'wav',
       };
       if (this.field in typeToSuffix)
         return typeToSuffix[this.field];

@@ -1,7 +1,3 @@
-set names utf8;
-drop database if exists karaoke;
-create database karaoke;
-use karaoke;
 drop table if exists songs;
  
 create table songs (
@@ -19,3 +15,5 @@ create table songs (
    primary key (`id`),
    unique key `unique_song` (`song_name`, `singer`)
 ) charset = utf8;
+
+

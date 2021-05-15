@@ -89,7 +89,7 @@ export default {
       axios
         .post(url, payload)
         .then(() => {
-            this.$router.push({ path: "/upload" });
+            this.$router.push({ path: "/songs" });
             this.$store.commit("login");
         })
         .catch(() => {

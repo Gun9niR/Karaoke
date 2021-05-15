@@ -20,8 +20,8 @@
             <accompany-sing-form ref="accompanySing" class="upload-card" />
           </el-col>
           <el-col :span="8">
-            <instrument-sing-form ref="instrumentSing" id="instrument-sing" class="upload-card" />
-            <rating-form ref="rating" id="rating-form" class="upload-card" />
+            <instrument-sing-form ref="instrumentSing" class="upload-card" />
+            <!-- <rating-form ref="rating" id="rating-form" class="upload-card" /> -->
           </el-col>
         </el-row>
       </div>
@@ -35,7 +35,7 @@ import axios from 'axios';
 import SongInfoForm from "./SongInfoForm";
 import AccompanySingForm from "./AccompanySingForm";
 import InstrumentSingForm from "./InstrumentSingForm";
-import RatingForm from './RatingForm.vue';
+// import RatingForm from './RatingForm.vue';
 
 export default {
   data() {
@@ -49,7 +49,7 @@ export default {
     SongInfoForm,
     AccompanySingForm,
     InstrumentSingForm,
-    RatingForm, 
+    // RatingForm, 
   },
 
   methods: {
@@ -95,11 +95,11 @@ export default {
         return;
       }
 
-      let ratingFiles = this.$refs.rating.uploadFiles;
-      if (Object.keys(ratingFiles).length !== 1) {
-        this.$message.error("请上传歌曲打分相关文件！");
-        return;
-      }
+      // let ratingFiles = this.$refs.rating.uploadFiles;
+      // if (Object.keys(ratingFiles).length !== 1) {
+      //   this.$message.error("请上传歌曲打分相关文件！");
+      //   return;
+      // }
 
       uploadForm.append('song_name', songName);
       uploadForm.append('singer', singer);
@@ -111,8 +111,8 @@ export default {
       for (let key in instrumentFiles) 
         uploadForm.append(key, instrumentFiles[key]);
 
-      for (let key in ratingFiles)
-        uploadForm.append(key, ratingFiles[key]);
+      // for (let key in ratingFiles)
+      //   uploadForm.append(key, ratingFiles[key]);
 
       const url = process.env.VUE_APP_AJAX_URL + '/uploadSong';
 
