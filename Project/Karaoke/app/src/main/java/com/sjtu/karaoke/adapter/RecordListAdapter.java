@@ -1,5 +1,7 @@
 package com.sjtu.karaoke.adapter;
 
+import android.content.Intent;
+import android.net.Uri;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -9,24 +11,27 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.FileProvider;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.sjtu.karaoke.LocalRecordActivity;
 import com.sjtu.karaoke.R;
 import com.sjtu.karaoke.entity.Record;
 
+import java.io.File;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.sjtu.karaoke.util.Constants.AUTHORITY;
 import static com.sjtu.karaoke.util.Constants.RECORD_DIRECTORY;
 import static com.sjtu.karaoke.util.FileUtil.deleteOneFile;
 import static com.sjtu.karaoke.util.FileUtil.getFullPathsInDirectory;
 import static com.sjtu.karaoke.util.FileUtil.isFilePresent;
 import static com.sjtu.karaoke.util.MiscUtil.downloadAndSetAlbumCover;
 import static com.sjtu.karaoke.util.MiscUtil.getAlbumCoverFullPath;
+import static com.sjtu.karaoke.util.MiscUtil.getChooserIntent;
 import static com.sjtu.karaoke.util.MiscUtil.setImageFromFile;
-import static com.sjtu.karaoke.util.MiscUtil.showToast;
 
 /*
  * @ClassName: RecordListAdapter
@@ -91,30 +96,24 @@ public class RecordListAdapter extends RecyclerView.Adapter<RecordListAdapter.Vi
         } else {
             downloadAndSetAlbumCover(record.getId(), songName, activity, holder.recordCover);
         }
-        holder.btnShare.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                showToast(activity, "已经成功分享到微信");
-            }
+        holder.btnShare.setOnClickListener(view -> {
+            File recordFile = new File(record.getFullPath());
+            System.out.println(activity.getFilesDir());
+            Uri uri = FileProvider.getUriForFile(activity, AUTHORITY, recordFile);
+
+            Intent chooserIntent = getChooserIntent(uri, activity);
+            activity.startActivity(chooserIntent);
         });
 
-        holder.btnPlay.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                activity.playRecord(record);
-            }
-        });
+        holder.btnPlay.setOnClickListener(view -> activity.playRecord(record));
 
-        holder.btnDelete.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String recordFullPath = record.getFullPath();
-                deleteOneFile(recordFullPath);
-                records.remove(position);
-                notifyDataSetChanged();
+        holder.btnDelete.setOnClickListener(v -> {
+            String recordFullPath = record.getFullPath();
+            deleteOneFile(recordFullPath);
+            records.remove(position);
+            notifyDataSetChanged();
 
-                activity.checkCurrentDeletion(recordFullPath);
-            }
+            activity.checkCurrentDeletion(recordFullPath);
         });
     }
 
