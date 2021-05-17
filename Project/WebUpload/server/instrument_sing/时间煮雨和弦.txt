@@ -1,0 +1,26 @@
+85 -1 4 4	26.88
+Cmaj7 2
+Dsus2 2
+Em 4
+Cmaj7 2
+Dsus2 2
+Gadd9 4
+Cmaj7 2
+Dsus2 2
+Em 2
+Cmaj7 2
+Am7 2
+D11 2
+Em 4
+Cmaj7 2
+Dsus2 2
+Em 4
+Cmaj7 2
+Dsus2 2
+Gadd9 4
+Cmaj7 2
+Dsus2 2
+Em 2
+Cmaj7 2
+Am7 2
+D11 2
