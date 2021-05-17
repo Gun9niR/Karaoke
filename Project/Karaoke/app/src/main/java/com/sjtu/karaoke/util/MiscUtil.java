@@ -4,11 +4,16 @@ import android.Manifest;
 import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
+import android.content.Intent;
+import android.content.pm.ActivityInfo;
+import android.content.pm.LabeledIntent;
 import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
+import android.net.Uri;
 import android.os.Build;
 import android.util.Log;
 import android.view.Gravity;
@@ -44,6 +49,7 @@ import static com.sjtu.karaoke.util.Constants.GET_SONG_INFO_URL;
 import static com.sjtu.karaoke.util.Constants.LYRIC_DIRECTORY;
 import static com.sjtu.karaoke.util.Constants.MV_DIRECTORY;
 import static com.sjtu.karaoke.util.Constants.ORIGINAL_DIRECTORY;
+import static com.sjtu.karaoke.util.Constants.PACKAGES_FOR_SHARING;
 import static com.sjtu.karaoke.util.Constants.PCM_DIRECTORY;
 import static com.sjtu.karaoke.util.Constants.PERMISSIONS_RECORDER;
 import static com.sjtu.karaoke.util.Constants.RATE_DIRECTORY;
@@ -98,17 +104,52 @@ public class MiscUtil {
         FileUtil.setBaseDirectories(ROOT_DIRECTORY);
     }
 
-//    public static void verifyStoragePermissions(Activity activity) {
-//        try {
-//            int permission = ActivityCompat.checkSelfPermission(activity, Manifest.permission.WRITE_EXTERNAL_STORAGE);
-//            if (permission != PackageManager.PERMISSION_GRANTED) {
-//                ActivityCompat.requestPermissions(activity, PERMISSIONS_STORAGE, REQUEST_EXTERNAL_STORAGE);
-//            }
-//            while (permission)
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-//    }
+    public static Intent getChooserIntent(Uri uri, Context context) {
+        List<LabeledIntent> targetedShareIntents = new ArrayList<>();
+        PackageManager pm = context.getPackageManager();
+
+        for (String packageName: PACKAGES_FOR_SHARING) {
+            if (isPackageInstalled(packageName, context)) {
+                targetedShareIntents.addAll(getShareIntents(pm, uri, packageName));
+            }
+        }
+
+        Intent chooserIntent = Intent.createChooser(targetedShareIntents.remove(0), "分享录音");
+        chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, targetedShareIntents.toArray(new LabeledIntent[ targetedShareIntents.size() ]));
+        return chooserIntent;
+    }
+
+    public static List<LabeledIntent> getShareIntents(PackageManager pm, Uri uri, String packageName) {
+        Intent dummy = new Intent(Intent.ACTION_SEND);
+        dummy.setType("*/*");
+        dummy.setPackage(packageName);
+
+        List<ResolveInfo> info = pm.queryIntentActivities(dummy, 0);
+        List<LabeledIntent> intents = new ArrayList<>();
+        for (ResolveInfo i: info) {
+            ActivityInfo activityInfo = i.activityInfo;
+            // Ignore WeChat Timeline
+            if (activityInfo.packageName.equals("com.tencent.mm") && activityInfo.name.equals("com.tencent.mm.ui.tools.ShareToTimeLineUI")) {
+                continue;
+            }
+            Intent intent = new Intent(Intent.ACTION_SEND);
+            intent.putExtra(Intent.EXTRA_STREAM, uri);
+            intent.setType("*/*");
+            intent.setClassName(activityInfo.packageName, activityInfo.name);
+            intents.add(new LabeledIntent(intent, packageName, i.loadLabel(pm), i.icon));
+        }
+
+        return intents;
+    }
+
+    public static boolean isPackageInstalled(String packageName, Context context) {
+        try {
+            context.getPackageManager().getPackageInfo(packageName, 0);
+            return true;
+        } catch (PackageManager.NameNotFoundException e) {
+            return false;
+        }
+    }
 
     public static void verifyAllPermissions(Activity activity) {
         boolean permission = (ActivityCompat.checkSelfPermission(activity, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED)
