@@ -6,11 +6,11 @@
 #include <set>
 #include <vector>
 using namespace std;
-const int PITCH_CNT = 12;
-string getNameOfPitch[20] = {"1", "#1", "2", "#2", "3", "4", "#4", "5", "#5", "6", "#6", "7"};
-map<string, int> getIdOfPitch;
-map<string, vector<int> > chordDict;
-set<string> usedChord;
+const int PITCH_CNT = 12;//支持的音域 
+string getNameOfPitch[20] = {"1", "#1", "2", "#2", "3", "4", "#4", "5", "#5", "6", "#6", "7"};//音名
+map<string, int> getIdOfPitch;//音名到getNameOfPitch下标的映射，即getNameOfPitch的对偶数组 
+map<string, vector<int> > chordDict;//和弦字典 
+set<string> usedChord;//该演奏片段实际用到的和弦 
 
 //显示使用帮助
 void showTutorial()
@@ -30,6 +30,7 @@ void translaterException(string s)
 
 int main(int argc, char *argv[])
 {
+	//检查传参是否正确 
 	if (argc != 3)
 	{
 		showTutorial();
