@@ -19,6 +19,7 @@ void showTutorial()
 	puts("请使用命令行调用该程序，并传入两个参数，");
 	puts("分别代表需要解释的和弦文件文件名以及输出文件名");
 	puts("示例：chordTranslater.exe 时间煮雨.txt 时间煮雨.chordTrans");
+	puts("屏幕上提示\"和弦文件解释成功\"字样说明程序运行正常");
 }
 
 //抛出异常并终止程序
@@ -71,15 +72,17 @@ int main(int argc, char *argv[])
 
 	//解析和弦文件头
 	int bpm, delta, beatN, beatM, lastBeat;
-	double startTime, timePerBeat;
+	double startTime, timePerBeat, beatCnt = 0;
 	getline(filein, line);
 	stringstream ss(line);
 	ss >> bpm >> delta >> beatN >> beatM >> startTime;
 	if (ss.fail() || ss.bad())	translaterException("输入的和弦文件不合法");
 	timePerBeat = 60.0 / bpm;
-	fileout << timePerBeat << " " << beatN << " " << beatM << " " << startTime << endl
-			<< endl;
+	fileout << timePerBeat * 1000 << " " << beatN << " " << beatM << " " << startTime * 1000 << " ";
 
+	vector<string> outSting;
+	vector<double> outDouble;
+	
 	//解析和弦文件主体部分
 	while (getline(filein, line))
 	{
@@ -88,6 +91,7 @@ int main(int argc, char *argv[])
 		if (ss.good())
 		{
 			ss >> lastBeat;
+			beatCnt += lastBeat;
 			if (ss.fail() || ss.bad())
 				translaterException("输入的和弦文件不合法");
 		}
@@ -96,9 +100,10 @@ int main(int argc, char *argv[])
 		if (chordDict.find(chordName) == chordDict.end())
 			translaterException("输入的和弦不在和弦字典中");
 		usedChord.insert(chordName);
-		fileout << chordName << " " << timePerBeat * lastBeat << endl;
+		outSting.push_back(chordName);
+		outDouble.push_back(timePerBeat * lastBeat);
 	}
-	fileout << endl;
+	fileout << (startTime + beatCnt * timePerBeat) * 1000 << endl << endl;
 
 	//根据移调附加本乐段所需和弦字典
 	for (auto &it : usedChord)
@@ -112,7 +117,16 @@ int main(int argc, char *argv[])
 		}
 		fileout << endl;
 	}
+	
+	//输出和弦文件主体部分
+	fileout << endl;
+	for (int i = 0; i < outSting.size(); i++)
+	{
+		fileout << outSting[i] << " " << outDouble[i] * 1000 << endl;
+	}
+	
 	fileout.close();
 	filein.close();
+	puts("和弦文件解释成功");
 	return 0;
 }
