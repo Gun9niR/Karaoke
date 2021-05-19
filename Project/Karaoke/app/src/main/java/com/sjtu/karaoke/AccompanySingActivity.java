@@ -29,6 +29,7 @@ import com.google.android.exoplayer2.ui.AspectRatioFrameLayout;
 import com.google.android.exoplayer2.ui.PlayerView;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.sjtu.karaoke.entity.Score;
 
 import org.sang.lrcview.LrcView;
 import org.sang.lrcview.bean.LrcBean;
@@ -52,10 +53,11 @@ import static com.sjtu.karaoke.util.Constants.RECORD_DELAY_UB;
 import static com.sjtu.karaoke.util.MediaPlayerUtil.loadAudioFileAndPrepareExoPlayer;
 import static com.sjtu.karaoke.util.MediaPlayerUtil.terminateExoPlayer;
 import static com.sjtu.karaoke.util.MiscUtil.getAccompanyFullPath;
-import static com.sjtu.karaoke.util.MiscUtil.getLyricFullPath;
+import static com.sjtu.karaoke.util.MiscUtil.getAccompanyLyricFullPath;
 import static com.sjtu.karaoke.util.MiscUtil.getMVFullPath;
 import static com.sjtu.karaoke.util.MiscUtil.getOriginalFullPath;
 import static com.sjtu.karaoke.util.MiscUtil.getRateFullPath;
+import static com.sjtu.karaoke.util.MiscUtil.parseScore;
 import static com.sjtu.karaoke.util.MiscUtil.showLoadingDialog;
 import static com.sjtu.karaoke.util.MiscUtil.showToast;
 import static com.sjtu.karaoke.util.WavUtil.getWAVDuration;
@@ -89,7 +91,7 @@ public class AccompanySingActivity extends AppCompatActivity {
     Integer id;
     // 当前歌名
     String songName;
-    // 歌曲的持续时间，mv和所有伴奏的声音时长一样
+    // 下一次切分pcm的时间
     Integer nextPcmSplitTime;
     // 当前的播放状态，未开始、正在播放、暂停
     State state;
@@ -102,10 +104,7 @@ public class AccompanySingActivity extends AppCompatActivity {
     // 当前歌词
     LrcBean currentLrc;
     // 得分
-    Integer totalScore;
-    Integer accuracyScore;
-    Integer emotionScore;
-    Integer breathScore;
+    Score score;
 
     @RequiresApi(api = Build.VERSION_CODES.N)
     @Override
@@ -185,8 +184,6 @@ public class AccompanySingActivity extends AppCompatActivity {
         if (this.state == State.PLAYING) {
             // 在播放时退出app
             pause();
-        } else {
-
         }
     }
 
@@ -239,9 +236,7 @@ public class AccompanySingActivity extends AppCompatActivity {
 
     private void initRatingSystem() {
         Dialog loadingDialog = showLoadingDialog(this, "正在初始化");
-        if (init(getRateFullPath(songName), PCM_SPLIT_INTERVAL, RECORD_DELAY_LB, RECORD_DELAY_UB).equals("Done")) {
-            System.out.println("========== Rating init success ==========");
-        }
+        init(getRateFullPath(songName), PCM_SPLIT_INTERVAL, RECORD_DELAY_LB, RECORD_DELAY_UB);
         loadingDialog.dismiss();
     }
 
@@ -265,7 +260,7 @@ public class AccompanySingActivity extends AppCompatActivity {
         lrcView = findViewById(R.id.lrcRoller);
         lrcView.setHighLineColor(ContextCompat.getColor(getApplicationContext(), R.color.purple_500));
         try {
-            InputStream is = new FileInputStream(getLyricFullPath(songName));
+            InputStream is = new FileInputStream(getAccompanyLyricFullPath(songName));
 
             String lrc = new BufferedReader(new InputStreamReader(is))
                     .lines().collect(Collectors.joining("\n"));
@@ -293,10 +288,7 @@ public class AccompanySingActivity extends AppCompatActivity {
     }
 
     private void initScore() {
-        totalScore = 0;
-        accuracyScore = 0;
-        emotionScore = 0;
-        breathScore = 0;
+        score = new Score();
     }
 
     /**
@@ -422,10 +414,6 @@ public class AccompanySingActivity extends AppCompatActivity {
         unmuteOriginal();
     }
 
-    private void pauseRecording() {
-        voiceRecorder.pauseRecord();
-    }
-
     private void startRecording() {
         voiceRecorder.startRecord(null);
     }
@@ -453,7 +441,7 @@ public class AccompanySingActivity extends AppCompatActivity {
     private void pause() {
         // change of state is done in pauseAllPlayers
         pauseAllPlayers();
-        pauseRecording();
+        voiceRecorder.pauseRecord();
     }
 
     private void pauseAllPlayers() {
@@ -504,7 +492,7 @@ public class AccompanySingActivity extends AppCompatActivity {
      * @param startTime Starting time of the line (ms)
      * @param endTime End time of the line (ms)
      */
-    public void rate(int startTime, int endTime) {
+    private void rate(int startTime, int endTime) {
         new Thread(() -> {
             while (!voiceRecorder.isf0AnalysisComplete(startTime, endTime)) {
                 try {
@@ -514,24 +502,15 @@ public class AccompanySingActivity extends AppCompatActivity {
                 }
             }
             String scoreStr = getScore(startTime, endTime);
-            String[] scores = scoreStr.split(" ");
-            int total = Integer.parseInt(scores[0]);
-            int accuracy = Integer.parseInt(scores[1]);
-            int emotion = Integer.parseInt(scores[2]);
-            int breath = Integer.parseInt(scores[3]);
+            Integer[] scores = parseScore(scoreStr);
+            score.update(scores);
 
-            totalScore += total;
-            accuracyScore += accuracy;
-            emotionScore += emotion;
-            breathScore += breath;
-
-            AccompanySingActivity.this.runOnUiThread(() -> scoreBar.setProgress(totalScore, true));
+            AccompanySingActivity.this.runOnUiThread(() -> scoreBar.setProgress(score.getTotalScore(), true));
 
             Looper.prepare();
-            showToast(AccompanySingActivity.this, Integer.toString(total));
+            showToast(AccompanySingActivity.this, Integer.toString(scores[0]));
             Looper.loop();
         }).start();
-
     }
 
     private enum State {

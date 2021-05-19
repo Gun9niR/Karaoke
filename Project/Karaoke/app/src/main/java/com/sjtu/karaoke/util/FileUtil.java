@@ -62,10 +62,6 @@ public class FileUtil {
      * @return true if all files are downloaded successfully or exist already, false otherwise
      */
     public static boolean downloadFiles(String[] urls, String[] destFullPaths) {
-        if (areFilesPresent(destFullPaths)) {
-            return true;
-        }
-
         int numOfFilesToDownload = urls.length;
 
         CountDownLatch countDownLatch = new CountDownLatch(numOfFilesToDownload);

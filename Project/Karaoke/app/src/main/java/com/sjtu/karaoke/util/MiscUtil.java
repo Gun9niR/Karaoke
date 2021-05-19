@@ -41,12 +41,14 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
-import static com.sjtu.karaoke.util.Constants.ACCOMPANY_DIRECTORY;
+import static com.sjtu.karaoke.util.Constants.ACCOMPANY_ACCOMPANY_DIRECTORY;
 import static com.sjtu.karaoke.util.Constants.ALBUM_COVER_DIRECTORY;
+import static com.sjtu.karaoke.util.Constants.CHORD_DIRECTORY;
 import static com.sjtu.karaoke.util.Constants.GET_ALBUM_COVER_URL;
 import static com.sjtu.karaoke.util.Constants.GET_RECORD_AUDIO;
 import static com.sjtu.karaoke.util.Constants.GET_SONG_INFO_URL;
 import static com.sjtu.karaoke.util.Constants.LYRIC_DIRECTORY;
+import static com.sjtu.karaoke.util.Constants.LYRIC_INSTRUMENT_DIRECTORY;
 import static com.sjtu.karaoke.util.Constants.MV_DIRECTORY;
 import static com.sjtu.karaoke.util.Constants.ORIGINAL_DIRECTORY;
 import static com.sjtu.karaoke.util.Constants.PACKAGES_FOR_SHARING;
@@ -79,7 +81,7 @@ public class MiscUtil {
         // 录音过程中产生的pcm文件
         dirs.add(new File(PCM_DIRECTORY));
         // 伴奏和合成最终结果时被截短的伴奏
-        dirs.add(new File(ACCOMPANY_DIRECTORY));
+        dirs.add(new File(ACCOMPANY_ACCOMPANY_DIRECTORY));
         // 伴奏和录音合成结果
         dirs.add(new File(RECORD_DIRECTORY));
         // 原唱
@@ -90,10 +92,14 @@ public class MiscUtil {
         dirs.add(new File(TRIMMED_VOICE_WAV_DIRECTORY));
         // 专辑封面
         dirs.add(new File(ALBUM_COVER_DIRECTORY));
-        // 歌词文件
+        // 伴奏演唱模式歌词文件
         dirs.add(new File(LYRIC_DIRECTORY));
+        // 自弹自唱模式歌词文件
+        dirs.add(new File(LYRIC_INSTRUMENT_DIRECTORY));
         // MV
         dirs.add(new File(MV_DIRECTORY));
+        // 和弦文件
+        dirs.add(new File(CHORD_DIRECTORY));
 
         for (File dir : dirs) {
             if (!dir.exists()) {
@@ -193,7 +199,7 @@ public class MiscUtil {
     }
 
     public static String getAccompanyFullPath(String songName) {
-        return ACCOMPANY_DIRECTORY + songName + ".wav";
+        return ACCOMPANY_ACCOMPANY_DIRECTORY + songName + ".wav";
     }
 
     public static void getSongInfo(Callback callback) {
@@ -208,7 +214,7 @@ public class MiscUtil {
      */
     public static String getTrimmedAccompanyFullPath(String songName) {
         String newFileName = songName + "-trim.wav";
-        return ACCOMPANY_DIRECTORY + newFileName;
+        return ACCOMPANY_ACCOMPANY_DIRECTORY + newFileName;
     }
 
     public static String getVoiceFullPath(String songName) {
@@ -252,21 +258,20 @@ public class MiscUtil {
         return RATE_DIRECTORY + songName + ".f0a";
     }
 
-    public static String getLyricFullPath(String songName) {
+    public static String getAccompanyLyricFullPath(String songName) {
         return LYRIC_DIRECTORY + songName + ".lrc";
+    }
+
+    public static String getLyricInsrumentFullPath(String songName) {
+        return LYRIC_INSTRUMENT_DIRECTORY + songName + ".lrc";
     }
 
     public static String getOriginalFullPath(String songName) {
         return ORIGINAL_DIRECTORY + songName + ".wav";
     }
 
-    /**
-     * Returns the trimmed wav path which is converted from a pcm file
-     * @param fileName File name without extension
-     * @return Full path with .wav extension
-     */
-    public static String getTrimmedVoiceFullPath(String fileName) {
-        return TRIMMED_VOICE_WAV_DIRECTORY + fileName + ".wav";
+    public static String getChordFullPath(String songName) {
+        return CHORD_DIRECTORY + songName + ".chordTrans";
     }
     /**
      * Get name of the record file from song name
@@ -307,14 +312,19 @@ public class MiscUtil {
                     saveFileFromResponse(response, destPath);
 
                     // set image, should run on UI thread
-                    activity.runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            setImageFromFile(destPath, imageView);
-                        }
-                    });
+                    activity.runOnUiThread(() -> setImageFromFile(destPath, imageView));
                 }
             }
         });
+    }
+
+    public static Integer[] parseScore(String scoreStr) {
+        String[] scores = scoreStr.split(" ");
+        return new Integer[] {
+                Integer.parseInt(scores[0]),
+                Integer.parseInt(scores[1]),
+                Integer.parseInt(scores[2]),
+                Integer.parseInt(scores[3]),
+        };
     }
 }

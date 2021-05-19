@@ -26,13 +26,12 @@ public class Constants {
     public static final double RECORD_DELAY_UB = 0.9;
     @SuppressLint("SdCardPath")
     public static final String ROOT_DIRECTORY = "/data/data/com.sjtu.karaoke/";
-    // public static final String ROOT_DIRECTORY = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS) + FILE_SAVE_DIR;
 
     public static final String WAV_DIRECTORY = ROOT_DIRECTORY + "wav/";
 
     public static final String PCM_DIRECTORY = ROOT_DIRECTORY + "pcm/";
 
-    public static final String ACCOMPANY_DIRECTORY = ROOT_DIRECTORY + "accompany/";
+    public static final String ACCOMPANY_ACCOMPANY_DIRECTORY = ROOT_DIRECTORY + "accompany/";
 
     public static final String RECORD_DIRECTORY = ROOT_DIRECTORY + "record/";
 
@@ -46,14 +45,18 @@ public class Constants {
 
     public static final String LYRIC_DIRECTORY = ROOT_DIRECTORY + "lyric/";
 
+    public static final String LYRIC_INSTRUMENT_DIRECTORY = ROOT_DIRECTORY + "i_lyric/";
+
     public static final String MV_DIRECTORY = ROOT_DIRECTORY + "mv/";
+
+    public static final String CHORD_DIRECTORY = ROOT_DIRECTORY + "chord/";
 
     public static final String PACKAGE_NAME = "com.sjtu.karaoke";
 
     public static final String AUTHORITY = PACKAGE_NAME + ".fileprovider";
 
     // request URL
-    public static final String SERVER_IP = "http://172.20.10.13:5000";
+    public static final String SERVER_IP = "http://192.168.10.9:5000";
 
     public static final String GET_FILE_ROOT_URL = SERVER_IP + "/getFile";
 
@@ -67,9 +70,13 @@ public class Constants {
 
     public static final String GET_LYRIC_URL = GET_FILE_ROOT_URL + "/lyric";
 
+    public static final String GET_LYRIC_INSTRUMENT_URL = GET_FILE_ROOT_URL + "/lyric_instrument";
+
     public static final String GET_RATE_URL = GET_FILE_ROOT_URL + "/rate";
 
     public static final String GET_MV_URL = GET_FILE_ROOT_URL + "/mv";
+
+    public static final String GET_CHORD_URL = GET_FILE_ROOT_URL + "/chord";
 
     public static final String[] PACKAGES_FOR_SHARING = {
             "com.tencent.mobileqq",
