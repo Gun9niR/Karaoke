@@ -78,7 +78,7 @@ int main(int argc, char *argv[])
 	ss >> bpm >> delta >> beatN >> beatM >> startTime;
 	if (ss.fail() || ss.bad())	translaterException("输入的和弦文件不合法");
 	timePerBeat = 60.0 / bpm;
-	fileout << int(timePerBeat * 1000) << " " << beatN << " " << beatM << " " << int(startTime * 1000) << " ";
+	fileout << int(timePerBeat * 1000 + 0.5) << " " << beatN << " " << beatM << " " << int(startTime * 1000 + 0.5) << " ";
 
 	vector<string> outSting;
 	vector<double> outDouble;
@@ -103,7 +103,7 @@ int main(int argc, char *argv[])
 		outSting.push_back(chordName);
 		outDouble.push_back(timePerBeat * lastBeat);
 	}
-	fileout << int((startTime + beatCnt * timePerBeat) * 1000) << endl << endl;
+	fileout << int((startTime + beatCnt * timePerBeat) * 1000 + 0.5) << endl << endl;
 
 	//根据移调附加本乐段所需和弦字典
 	for (auto &it : usedChord)
@@ -122,7 +122,7 @@ int main(int argc, char *argv[])
 	fileout << endl;
 	for (int i = 0; i < outSting.size(); i++)
 	{
-		fileout << outSting[i] << " " << int(outDouble[i] * 1000) << endl;
+		fileout << outSting[i] << " " << int(outDouble[i] * 1000 + 0.5) << endl;
 	}
 	
 	fileout.close();
