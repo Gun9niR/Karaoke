@@ -16,13 +16,18 @@
 #include <sstream>
 #include <iostream>
 #include <algorithm>
+
+#include <jni.h>
+#include <cinttypes>
+#include <android/log.h>
+#include <sys/time.h>
 using namespace std;
 
 const char dataDir[] = "/data/data/com.sjtu.karaoke/raterdata/";
-const float correctnessInterval = 0.3;
+const float correctnessInterval = 0.25;
 const int correctnessUpperThreshold = 68;
 const int correctnessLowerThreshold = 50;
-const float OnceRightScore = 1.325;
+const float OnceRightScore = 1.25;
 const float OnceNotCorrectScore = 0.3;
 const float OnceWrongScore = 0.9;
 const float f0Shift = 0.1;

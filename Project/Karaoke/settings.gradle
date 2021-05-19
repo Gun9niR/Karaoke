@@ -1,3 +1,4 @@
+include ':PianoRater'
 include ':SingRater'
 include ':WavEditor'
 include ':Recorder'
