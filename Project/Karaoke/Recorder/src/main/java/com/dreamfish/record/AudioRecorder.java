@@ -49,6 +49,8 @@ public class AudioRecorder {
 
     // 当前pcm文件的开始时间
     private int currentPcmStartTime;
+    // pcm切分时间和interval整数倍的插，例如pcm从1010ms开始切，间隔是500ms，offset就是10ms
+    private int offset;
     //录音对象
     private AudioRecord audioRecord;
     // 记录每个pcm的f0analysis是否完成
@@ -91,7 +93,7 @@ public class AudioRecorder {
      *
      * @param fileName 文件名
      */
-    public void createDefaultAudio(String fileName) {
+    public void createDefaultAudio(String fileName, int offset) {
         // 获得缓冲区字节大小
         bufferSizeInBytes = AudioRecord.getMinBufferSize(AUDIO_SAMPLE_RATE,
                 AUDIO_CHANNEL, AUDIO_ENCODING);
@@ -99,7 +101,8 @@ public class AudioRecorder {
         this.fileName = fileName;
 
         filesName.clear();
-        currentPcmStartTime = 0;
+        this.currentPcmStartTime = 0;
+        this.offset = offset;
         f0Complete = new HashSet<>();
         // initialize file name (no extension)
         currentFileName = fileName + filesName.size();
@@ -241,11 +244,6 @@ public class AudioRecorder {
         status = Status.STATUS_NO_READY;
     }
 
-
-    public boolean shouldStartNewPcm() {
-        return shouldStartNewPcm;
-    }
-
     public void setShouldStartNewPcm(boolean shouldStartNewPcm) {
         this.shouldStartNewPcm = shouldStartNewPcm;
     }
@@ -271,6 +269,7 @@ public class AudioRecorder {
                             PcmToWav.makePCMFileToWAVFile(pcmFullPath, wavFullPath, false);
 
                             f0analysis(wavFullPath, currentPcmStartTime);
+                            System.out.println(startTime + ": f0a complete");
                             f0Complete.add(startTime);
                         }
                     }).start();
@@ -346,23 +345,14 @@ public class AudioRecorder {
         return status;
     }
 
-    /**
-     * 获取本次录音文件的个数
-     *
-     * @return
-     */
-    public int getPcmFilesCount() {
-        return filesName.size();
-    }
-
     public void setCurrentPcmStartTime(int currentPcmStartTime) {
         this.currentPcmStartTime = currentPcmStartTime;
     }
 
     public boolean isf0AnalysisComplete(int startTime, int endTime) {
         // 开始时间和结束时间都往前取，例如500取0
-        int s = startTime / PCM_SPLIT_INTERVAL * PCM_SPLIT_INTERVAL;
-        int e = endTime / PCM_SPLIT_INTERVAL * PCM_SPLIT_INTERVAL;
+        int s = (startTime - offset) / PCM_SPLIT_INTERVAL * PCM_SPLIT_INTERVAL + offset;
+        int e = (endTime - offset) / PCM_SPLIT_INTERVAL * PCM_SPLIT_INTERVAL + offset;
         for (int i = s; i <= e; i += PCM_SPLIT_INTERVAL) {
             if (!f0Complete.contains(i)) {
                 return false;

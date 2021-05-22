@@ -1,5 +1,6 @@
 package com.sjtu.karaoke.util;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.res.AssetFileDescriptor;
 import android.media.MediaPlayer;
@@ -69,16 +70,18 @@ public class MediaPlayerUtil {
         }
     }
 
-    public static void loadAudioFileAndPrepareExoPlayer(SimpleExoPlayer exoPlayer, String fullPath) {
+    public static void loadAudioFileAndPrepareExoPlayer(Activity activity, SimpleExoPlayer exoPlayer, String fullPath) {
         File audioFile = new File(fullPath);
         MediaItem mediaItem = MediaItem.fromUri(Uri.fromFile(audioFile));
-        exoPlayer.setMediaItem(mediaItem);
-        exoPlayer.prepare();
+        activity.runOnUiThread(() -> {
+            exoPlayer.setMediaItem(mediaItem);
+            exoPlayer.prepare();
+        });
     }
 
-    public static void terminateExoPlayer(SimpleExoPlayer player) {
+    public static void terminateExoPlayer(Activity activity, SimpleExoPlayer player) {
         if (player != null) {
-            player.release();
+            activity.runOnUiThread(player::release);
         }
     }
 }

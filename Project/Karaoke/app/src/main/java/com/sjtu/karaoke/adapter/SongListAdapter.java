@@ -25,16 +25,21 @@ import com.sjtu.karaoke.entity.SongInfo;
 import java.util.List;
 
 import static com.sjtu.karaoke.util.Constants.GET_ACCOMPANY_URL;
+import static com.sjtu.karaoke.util.Constants.GET_CHORD_URL;
+import static com.sjtu.karaoke.util.Constants.GET_LYRIC_INSTRUMENT_URL;
 import static com.sjtu.karaoke.util.Constants.GET_LYRIC_URL;
 import static com.sjtu.karaoke.util.Constants.GET_MV_URL;
 import static com.sjtu.karaoke.util.Constants.GET_ORIGINAL_URL;
 import static com.sjtu.karaoke.util.Constants.GET_RATE_URL;
+import static com.sjtu.karaoke.util.FileUtil.areFilesPresent;
 import static com.sjtu.karaoke.util.FileUtil.downloadFiles;
 import static com.sjtu.karaoke.util.FileUtil.isFilePresent;
 import static com.sjtu.karaoke.util.MiscUtil.downloadAndSetAlbumCover;
 import static com.sjtu.karaoke.util.MiscUtil.getAccompanyFullPath;
+import static com.sjtu.karaoke.util.MiscUtil.getAccompanyLyricFullPath;
 import static com.sjtu.karaoke.util.MiscUtil.getAlbumCoverFullPath;
-import static com.sjtu.karaoke.util.MiscUtil.getLyricFullPath;
+import static com.sjtu.karaoke.util.MiscUtil.getChordTransFullPath;
+import static com.sjtu.karaoke.util.MiscUtil.getLyricInsrumentFullPath;
 import static com.sjtu.karaoke.util.MiscUtil.getMVFullPath;
 import static com.sjtu.karaoke.util.MiscUtil.getOriginalFullPath;
 import static com.sjtu.karaoke.util.MiscUtil.getRateFullPath;
@@ -102,67 +107,64 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.ViewHo
         }
 
         // set button onClick listener
-        holder.btnSing.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                // get the song to sing
-                SongInfo selectedSong = songs.get(position);
+        holder.btnSing.setOnClickListener(view -> {
+            // get the song to sing
+            SongInfo selectedSong = songs.get(position);
 
-                // declare dialog
-                Dialog chooseModeDialog = new Dialog(activity);
-                chooseModeDialog.setContentView(R.layout.dialog_mode);
-                chooseModeDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-                ImageButton closeButton = chooseModeDialog.findViewById(R.id.btnClose);
-                Button btnMvMode = chooseModeDialog.findViewById(R.id.btnMvMode);
-                Button btnInsMode = chooseModeDialog.findViewById(R.id.btnInstrumentMode);
+            // declare dialog
+            Dialog chooseModeDialog = new Dialog(activity);
+            chooseModeDialog.setContentView(R.layout.dialog_mode);
+            chooseModeDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+            ImageButton closeButton = chooseModeDialog.findViewById(R.id.btnClose);
+            Button btnMvMode = chooseModeDialog.findViewById(R.id.btnMvMode);
+            Button btnInsMode = chooseModeDialog.findViewById(R.id.btnInstrumentMode);
 
-                closeButton.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        chooseModeDialog.dismiss();
-                    }
-                });
+            closeButton.setOnClickListener(view12 -> chooseModeDialog.dismiss());
 
-                btnMvMode.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        // 伴奏演唱模式
-                        chooseModeDialog.dismiss();
+            btnMvMode.setOnClickListener(view1 -> {
+                // 伴奏演唱模式
+                chooseModeDialog.dismiss();
 
-                        Dialog loadingDialog = showLoadingDialog(activity, "正在下载文件...");
+                Dialog loadingDialog = showLoadingDialog(activity, "正在下载文件...");
 
-                        new Thread(new Runnable() {
-                            @Override
-                            public void run() {
-                                boolean isSuccess = downloadAccompanySingFiles(selectedSong);
-                                loadingDialog.dismiss();
-                                if (isSuccess) {
-                                    Intent intent = new Intent(activity, AccompanySingActivity.class);
-                                    intent.putExtra("id", selectedSong.getId());
-                                    intent.putExtra("songName", selectedSong.getSongName());
-                                    activity.startActivity(intent);
-                                } else {
-                                    Looper.prepare();
-                                    showToast(activity, "未能成功下载文件，请重试");
-                                    Looper.loop();
-                                }
-                            }
-                        }).start();
-                    }
-                });
-
-                btnInsMode.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        chooseModeDialog.dismiss();
-
-                        Intent intent = new Intent(activity, InstrumentSingActivity.class);
+                new Thread(() -> {
+                    boolean isSuccess = downloadAccompanySingFiles(selectedSong);
+                    loadingDialog.dismiss();
+                    if (isSuccess) {
+                        Intent intent = new Intent(activity, AccompanySingActivity.class);
+                        intent.putExtra("id", selectedSong.getId());
+                        intent.putExtra("songName", selectedSong.getSongName());
                         activity.startActivity(intent);
+                    } else {
+                        Looper.prepare();
+                        showToast(activity, "未能成功下载文件，请重试");
+                        Looper.loop();
                     }
-                });
+                }).start();
+            });
 
-                chooseModeDialog.show();
-            }
+            btnInsMode.setOnClickListener(view13 -> {
+                chooseModeDialog.dismiss();
+
+                Dialog loadingDialog = showLoadingDialog(activity, "正在下载文件...");
+
+                new Thread(() -> {
+                    boolean isSuccess = downloadInstrumentSingFiles(selectedSong);
+                    loadingDialog.dismiss();
+                    if (isSuccess) {
+                        Intent intent = new Intent(activity, InstrumentSingActivity.class);
+                        intent.putExtra("id", selectedSong.getId());
+                        intent.putExtra("songName", selectedSong.getSongName());
+                        activity.startActivity(intent);
+                    } else {
+                        Looper.prepare();
+                        showToast(activity, "未能成功下载文件，请重试");
+                        Looper.loop();
+                    }
+                }).start();
+            });
+
+            chooseModeDialog.show();
         });
     }
 
@@ -191,6 +193,18 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.ViewHo
         // download rating txt
         // download mv
 
+        String[] destFullPaths = {
+                getOriginalFullPath(songName),
+                getAccompanyFullPath(songName),
+                getAccompanyLyricFullPath(songName),
+                getRateFullPath(songName),
+                getMVFullPath(songName),
+        };
+
+        if (areFilesPresent(destFullPaths)) {
+            return true;
+        }
+
         String[] urls = {
                 GET_ORIGINAL_URL + requestParam,
                 GET_ACCOMPANY_URL + requestParam,
@@ -199,12 +213,39 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.ViewHo
                 GET_MV_URL + requestParam,
         };
 
+        return downloadFiles(urls, destFullPaths);
+    }
+
+    /**
+     * This method runs on the thread that calls it
+     * @param songInfo
+     * @return true if success, false if some files are not downloaded successfully
+     */
+    public boolean downloadInstrumentSingFiles(SongInfo songInfo) {
+        Integer id = songInfo.getId();
+        String songName = songInfo.getSongName();
+        String requestParam = getRequestParamFromId(id);
+        // download instrument_accompany
+        // download instrument_lyric
+        // download rating txt
+        // download chords
+
         String[] destFullPaths = {
-                getOriginalFullPath(songName),
                 getAccompanyFullPath(songName),
-                getLyricFullPath(songName),
+                getLyricInsrumentFullPath(songName),
                 getRateFullPath(songName),
-                getMVFullPath(songName),
+                getChordTransFullPath(songName),
+        };
+
+        if (areFilesPresent(destFullPaths)) {
+            return true;
+        }
+
+        String[] urls = {
+                GET_ACCOMPANY_URL + requestParam,
+                GET_LYRIC_INSTRUMENT_URL + requestParam,
+                GET_RATE_URL + requestParam,
+                GET_CHORD_URL + requestParam,
         };
 
         return downloadFiles(urls, destFullPaths);

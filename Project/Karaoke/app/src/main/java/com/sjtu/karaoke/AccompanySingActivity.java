@@ -29,6 +29,7 @@ import com.google.android.exoplayer2.ui.AspectRatioFrameLayout;
 import com.google.android.exoplayer2.ui.PlayerView;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.sjtu.karaoke.entity.Score;
 
 import org.sang.lrcview.LrcView;
 import org.sang.lrcview.bean.LrcBean;
@@ -52,10 +53,11 @@ import static com.sjtu.karaoke.util.Constants.RECORD_DELAY_UB;
 import static com.sjtu.karaoke.util.MediaPlayerUtil.loadAudioFileAndPrepareExoPlayer;
 import static com.sjtu.karaoke.util.MediaPlayerUtil.terminateExoPlayer;
 import static com.sjtu.karaoke.util.MiscUtil.getAccompanyFullPath;
-import static com.sjtu.karaoke.util.MiscUtil.getLyricFullPath;
+import static com.sjtu.karaoke.util.MiscUtil.getAccompanyLyricFullPath;
 import static com.sjtu.karaoke.util.MiscUtil.getMVFullPath;
 import static com.sjtu.karaoke.util.MiscUtil.getOriginalFullPath;
 import static com.sjtu.karaoke.util.MiscUtil.getRateFullPath;
+import static com.sjtu.karaoke.util.MiscUtil.parseScore;
 import static com.sjtu.karaoke.util.MiscUtil.showLoadingDialog;
 import static com.sjtu.karaoke.util.MiscUtil.showToast;
 import static com.sjtu.karaoke.util.WavUtil.getWAVDuration;
@@ -79,17 +81,19 @@ public class AccompanySingActivity extends AppCompatActivity {
     ProgressBar progressBar;
     ProgressBar scoreBar;
     FloatingActionButton fab;
-    Runnable progressMonitor;
     AudioRecorder voiceRecorder;
     BottomNavigationView bottomNavigationView;
     Handler handler = new Handler();
+
+    Runnable progressMonitor;
+    Runnable recordMonitor;
 
     // 状态量
     // 当前歌的id
     Integer id;
     // 当前歌名
     String songName;
-    // 歌曲的持续时间，mv和所有伴奏的声音时长一样
+    // 下一次切分pcm的时间
     Integer nextPcmSplitTime;
     // 当前的播放状态，未开始、正在播放、暂停
     State state;
@@ -102,10 +106,9 @@ public class AccompanySingActivity extends AppCompatActivity {
     // 当前歌词
     LrcBean currentLrc;
     // 得分
-    Integer totalScore;
-    Integer accuracyScore;
-    Integer emotionScore;
-    Integer breathScore;
+    Score score;
+    // 当前播放进度
+    int currentPosition;
 
     @RequiresApi(api = Build.VERSION_CODES.N)
     @Override
@@ -126,27 +129,35 @@ public class AccompanySingActivity extends AppCompatActivity {
         super.onStart();
         // return from sing refsult activity or from main activity, initialize all players
         if (state == State.UNSTARTED) {
-            // Player-related initialization
-            accompanyPlayer = new SimpleExoPlayer.Builder(this).build();
-            loadAudioFileAndPrepareExoPlayer(accompanyPlayer, getAccompanyFullPath(songName));
-            originalPlayer = new SimpleExoPlayer.Builder(this).build();
-            loadAudioFileAndPrepareExoPlayer(originalPlayer, getOriginalFullPath(songName));
+            Dialog loadingDialog = showLoadingDialog(this, "正在初始化");
 
-            nextPcmSplitTime = PCM_SPLIT_INTERVAL;
+            new Thread(() -> {
+                // Player-related initialization
+                accompanyPlayer = new SimpleExoPlayer.Builder(this).build();
+                loadAudioFileAndPrepareExoPlayer(this, accompanyPlayer, getAccompanyFullPath(songName));
+                originalPlayer = new SimpleExoPlayer.Builder(this).build();
+                loadAudioFileAndPrepareExoPlayer(this, originalPlayer, getOriginalFullPath(songName));
 
-            initOnCompleteListener(originalPlayer);
-            initRatingSystem();
-            initMVPlayer();
-            initLrcView();
-            initVoiceRecorder();
-            initProgressBar();
-            initScore();
-            initScoreBar();
-            initFab();
-            initState();
-            initBottomNavbar();
+                nextPcmSplitTime = PCM_SPLIT_INTERVAL;
 
-            muteOriginal();
+                initProgressMonitor(originalPlayer);
+                initRecordMonitor();
+                initOnCompleteListener(originalPlayer);
+                initRatingSystem();
+                initMVPlayer();
+                initLrcView();
+                initVoiceRecorder();
+                initProgressBar();
+                initScore();
+                initScoreBar();
+                initFab();
+                initState();
+                initBottomNavbar();
+
+                muteOriginal();
+
+                loadingDialog.dismiss();
+            }).start();
         }
     }
 
@@ -162,8 +173,6 @@ public class AccompanySingActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         if (item.getItemId() == R.id.retry) {
             if (state != State.UNSTARTED) {
-
-                // todo: clear record, reset score, progress bar, terminate async
                 stopActivity(false);
                 onStart();
             }
@@ -185,8 +194,6 @@ public class AccompanySingActivity extends AppCompatActivity {
         if (this.state == State.PLAYING) {
             // 在播放时退出app
             pause();
-        } else {
-
         }
     }
 
@@ -200,9 +207,9 @@ public class AccompanySingActivity extends AppCompatActivity {
             voiceRecorder.stopRecord(false);
         }
         lrcView.alertPlayerReleased();
-        terminateExoPlayer(mvPlayer);
-        terminateExoPlayer(accompanyPlayer);
-        terminateExoPlayer(originalPlayer);
+        terminateExoPlayer(this, mvPlayer);
+        terminateExoPlayer(this, accompanyPlayer);
+        terminateExoPlayer(this, originalPlayer);
     }
 
     private void initSongName() {
@@ -238,11 +245,7 @@ public class AccompanySingActivity extends AppCompatActivity {
     }
 
     private void initRatingSystem() {
-        Dialog loadingDialog = showLoadingDialog(this, "正在初始化");
-        if (init(getRateFullPath(songName), PCM_SPLIT_INTERVAL, RECORD_DELAY_LB, RECORD_DELAY_UB).equals("Done")) {
-            System.out.println("========== Rating init success ==========");
-        }
-        loadingDialog.dismiss();
+        init(getRateFullPath(songName), PCM_SPLIT_INTERVAL, RECORD_DELAY_LB, RECORD_DELAY_UB);
     }
 
     private void initMVPlayer() {
@@ -265,7 +268,7 @@ public class AccompanySingActivity extends AppCompatActivity {
         lrcView = findViewById(R.id.lrcRoller);
         lrcView.setHighLineColor(ContextCompat.getColor(getApplicationContext(), R.color.purple_500));
         try {
-            InputStream is = new FileInputStream(getLyricFullPath(songName));
+            InputStream is = new FileInputStream(getAccompanyLyricFullPath(songName));
 
             String lrc = new BufferedReader(new InputStreamReader(is))
                     .lines().collect(Collectors.joining("\n"));
@@ -283,7 +286,7 @@ public class AccompanySingActivity extends AppCompatActivity {
 
     private void initVoiceRecorder() {
         voiceRecorder = AudioRecorder.getInstance();
-        voiceRecorder.createDefaultAudio(songName);
+        voiceRecorder.createDefaultAudio(songName, 0);
     }
 
     private void initProgressBar() {
@@ -293,10 +296,7 @@ public class AccompanySingActivity extends AppCompatActivity {
     }
 
     private void initScore() {
-        totalScore = 0;
-        accuracyScore = 0;
-        emotionScore = 0;
-        breathScore = 0;
+        score = new Score();
     }
 
     /**
@@ -348,14 +348,23 @@ public class AccompanySingActivity extends AppCompatActivity {
         accompanyPlayer.setVolume(0);
     }
 
-    private void setProgressMonitor(SimpleExoPlayer player) {
+    private void initProgressMonitor(SimpleExoPlayer player) {
         progressMonitor = new Runnable() {
             @Override
             public void run() {
                 // update progress bar
-                int currentPosition = (int) player.getContentPosition();
+                currentPosition = (int) player.getContentPosition();
                 progressBar.setProgress(currentPosition);
 
+                handler.postDelayed(this, PROGRESS_UPDATE_INTERVAL);
+            }
+        };
+    }
+
+    private void initRecordMonitor() {
+        recordMonitor = new Runnable() {
+            @Override
+            public void run() {
                 if (currentPosition >= nextPcmSplitTime) {
                     voiceRecorder.setCurrentPcmStartTime(nextPcmSplitTime - PCM_SPLIT_INTERVAL);
                     if (lrcIterator.hasNext() && currentPosition > currentLrc.getEnd()) {
@@ -368,8 +377,7 @@ public class AccompanySingActivity extends AppCompatActivity {
 
                     nextPcmSplitTime += PCM_SPLIT_INTERVAL;
                 }
-
-                handler.postDelayed(this, PROGRESS_UPDATE_INTERVAL);
+                handler.postDelayed(this, 50);
             }
         };
     }
@@ -396,15 +404,18 @@ public class AccompanySingActivity extends AppCompatActivity {
                             }
                             break;
                         case R.id.singingFinish:
-                            state = State.UNSTARTED;
                             // it has to be placed here, to wait for the merging to complete
                             Dialog loadingDialog = showLoadingDialog(this, "正在处理录音");
-                            stopActivity(true);
-                            loadingDialog.dismiss();
-                            Intent intent = new Intent(getApplicationContext(), SingResultActivity.class);
-                            intent.putExtra("id", id);
-                            intent.putExtra("songName", songName);
-                            startActivity(intent);
+
+                            new Thread(() -> {
+                                stopActivity(true);
+                                Intent intent = new Intent(getApplicationContext(), SingResultActivity.class);
+                                intent.putExtra("id", id);
+                                intent.putExtra("songName", songName);
+                                startActivityForResult(intent, 0);
+                                loadingDialog.dismiss();
+                            }).start();
+
                             break;
                     }
                     return false;
@@ -422,19 +433,17 @@ public class AccompanySingActivity extends AppCompatActivity {
         unmuteOriginal();
     }
 
-    private void pauseRecording() {
-        voiceRecorder.pauseRecord();
-    }
-
     private void startRecording() {
         voiceRecorder.startRecord(null);
     }
 
-    private void stopUpdateProgressBar() {
-        handler.removeCallbacks(progressMonitor);
-    }
-
     private void start() {
+        fab.setImageResource(R.drawable.ic_pause);
+        state = State.PLAYING;
+
+        handler.postDelayed(progressMonitor, 0);
+        handler.postDelayed(recordMonitor, 0);
+
         startRecording();
         startAllPlayers();
     }
@@ -443,42 +452,23 @@ public class AccompanySingActivity extends AppCompatActivity {
         originalPlayer.play();
         accompanyPlayer.play();
         mvPlayer.play();
-        fab.setImageResource(R.drawable.ic_pause);
-        state = State.PLAYING;
-
-        setProgressMonitor(originalPlayer);
-        monitorProgress();
     }
 
     private void pause() {
         // change of state is done in pauseAllPlayers
+        fab.setImageResource(R.drawable.ic_fab_play);
+        state = State.PAUSE;
+        handler.removeCallbacks(progressMonitor);
+        handler.removeCallbacks(recordMonitor);
+
         pauseAllPlayers();
-        pauseRecording();
+        voiceRecorder.pauseRecord();
     }
 
     private void pauseAllPlayers() {
         accompanyPlayer.pause();
         originalPlayer.pause();
         mvPlayer.pause();
-        fab.setImageResource(R.drawable.ic_fab_play);
-        state = State.PAUSE;
-        handler.removeCallbacks(progressMonitor);
-    }
-
-    private void restartAllPlayers() {
-        accompanyPlayer.seekTo(0);
-        accompanyPlayer.pause();
-        originalPlayer.seekTo(0);
-        originalPlayer.pause();
-        mvPlayer.pause();
-        mvPlayer.seekTo(0);
-        fab.setImageResource(R.drawable.ic_fab_play);
-        stopUpdateProgressBar();
-        state = State.UNSTARTED;
-    }
-
-    private void monitorProgress() {
-        handler.postDelayed(progressMonitor, 0);
     }
 
     /**
@@ -487,12 +477,16 @@ public class AccompanySingActivity extends AppCompatActivity {
      */
     private void stopActivity(boolean shouldMergePcm) {
         this.state = State.UNSTARTED;
+
+        handler.removeCallbacks(progressMonitor);
+        handler.removeCallbacks(recordMonitor);
+
+        terminateExoPlayer(this, mvPlayer);
+        terminateExoPlayer(this, accompanyPlayer);
+        terminateExoPlayer(this, originalPlayer);
+
         voiceRecorder.stopRecord(shouldMergePcm);
         lrcView.alertPlayerReleased();
-        handler.removeCallbacks(progressMonitor);
-        terminateExoPlayer(mvPlayer);
-        terminateExoPlayer(accompanyPlayer);
-        terminateExoPlayer(originalPlayer);
     }
 
     private void disableFinishButton() {
@@ -504,7 +498,7 @@ public class AccompanySingActivity extends AppCompatActivity {
      * @param startTime Starting time of the line (ms)
      * @param endTime End time of the line (ms)
      */
-    public void rate(int startTime, int endTime) {
+    private void rate(int startTime, int endTime) {
         new Thread(() -> {
             while (!voiceRecorder.isf0AnalysisComplete(startTime, endTime)) {
                 try {
@@ -514,24 +508,15 @@ public class AccompanySingActivity extends AppCompatActivity {
                 }
             }
             String scoreStr = getScore(startTime, endTime);
-            String[] scores = scoreStr.split(" ");
-            int total = Integer.parseInt(scores[0]);
-            int accuracy = Integer.parseInt(scores[1]);
-            int emotion = Integer.parseInt(scores[2]);
-            int breath = Integer.parseInt(scores[3]);
+            Integer[] scores = parseScore(scoreStr);
+            score.update(scores);
 
-            totalScore += total;
-            accuracyScore += accuracy;
-            emotionScore += emotion;
-            breathScore += breath;
-
-            AccompanySingActivity.this.runOnUiThread(() -> scoreBar.setProgress(totalScore, true));
+            AccompanySingActivity.this.runOnUiThread(() -> scoreBar.setProgress(score.getTotalScore(), true));
 
             Looper.prepare();
-            showToast(AccompanySingActivity.this, Integer.toString(total));
+            showToast(AccompanySingActivity.this, Integer.toString(scores[0]));
             Looper.loop();
         }).start();
-
     }
 
     private enum State {

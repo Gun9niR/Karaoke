@@ -98,7 +98,6 @@ public class RecordListAdapter extends RecyclerView.Adapter<RecordListAdapter.Vi
         }
         holder.btnShare.setOnClickListener(view -> {
             File recordFile = new File(record.getFullPath());
-            System.out.println(activity.getFilesDir());
             Uri uri = FileProvider.getUriForFile(activity, AUTHORITY, recordFile);
 
             Intent chooserIntent = getChooserIntent(uri, activity);
