@@ -18,10 +18,10 @@
 cmake_minimum_required(VERSION 3.4.1)
 
 
-set(PROJECT_NAME "WORLD")
+set(PROJECT_NAME "SingRater")
 project(${PROJECT_NAME})
 FILE(GLOB SRCS "*.cpp" "*.c" "tools/*.cpp" "tools/*.c")
-FILE(GLOB HEADERS "world/*.h" "world/*.hpp" "tools/*.h" "tools/*.hpp")
+FILE(GLOB HEADERS "world/*.h" "world/*.hpp" "tools/*.h" "tools/*.hpp" "*.h" "*.hpp")
 add_definitions (-Wno-format-security)
 add_library(${PROJECT_NAME} SHARED ${SRCS} ${HEADERS})
 target_include_directories(${PROJECT_NAME} PUBLIC "./")
@@ -32,6 +32,6 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11 -Ofast")
 
 
 
-target_link_libraries(WORLD
+target_link_libraries(SingRater
                       android
                       log)

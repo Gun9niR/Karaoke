@@ -1,10 +1,10 @@
 package com.sjtu.karaoke.singrater;
 
-//实时演唱打分系统
+//实时演唱评价系统
 public class RatingUtil {
-    //加载实时歌唱打分系统所需动态链接库。注意，该系统只能在AccompanySingActivity中使用。
+    //加载实时歌唱打分系统所需动态链接库。
     static {
-        System.loadLibrary("WORLD");
+        System.loadLibrary("SingRater");
     }
 
     //对filePath这个wav文件进行基频分析。以伴奏时钟为参考基准，其起始时间为jstartTimeInMicroMS毫秒，
