@@ -25,11 +25,14 @@ import android.widget.Toast;
 import androidx.annotation.RequiresApi;
 import androidx.core.app.ActivityCompat;
 
+import com.arthenica.mobileffmpeg.FFmpeg;
 import com.dreamfish.record.FileUtil;
 import com.sjtu.karaoke.R;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -43,7 +46,9 @@ import okhttp3.Response;
 
 import static com.sjtu.karaoke.util.Constants.ACCOMPANY_ACCOMPANY_DIRECTORY;
 import static com.sjtu.karaoke.util.Constants.ALBUM_COVER_DIRECTORY;
-import static com.sjtu.karaoke.util.Constants.CHORD_DIRECTORY;
+import static com.sjtu.karaoke.util.Constants.ASSET_DIRECTORY;
+import static com.sjtu.karaoke.util.Constants.CHORD_TRANS_DIRECTORY;
+import static com.sjtu.karaoke.util.Constants.CHORD_WAV_DIRECTORY;
 import static com.sjtu.karaoke.util.Constants.GET_ALBUM_COVER_URL;
 import static com.sjtu.karaoke.util.Constants.GET_RECORD_AUDIO;
 import static com.sjtu.karaoke.util.Constants.GET_SONG_INFO_URL;
@@ -57,8 +62,11 @@ import static com.sjtu.karaoke.util.Constants.PERMISSIONS_RECORDER;
 import static com.sjtu.karaoke.util.Constants.RATE_DIRECTORY;
 import static com.sjtu.karaoke.util.Constants.RECORD_DIRECTORY;
 import static com.sjtu.karaoke.util.Constants.ROOT_DIRECTORY;
+import static com.sjtu.karaoke.util.Constants.TEMPORARY_DIRECTORY;
 import static com.sjtu.karaoke.util.Constants.TRIMMED_VOICE_WAV_DIRECTORY;
+import static com.sjtu.karaoke.util.Constants.USER_PLAY_DIRECTORY;
 import static com.sjtu.karaoke.util.Constants.WAV_DIRECTORY;
+import static com.sjtu.karaoke.util.FileUtil.isFilePresent;
 import static com.sjtu.karaoke.util.FileUtil.saveFileFromResponse;
 
 /*
@@ -99,11 +107,19 @@ public class MiscUtil {
         // MV
         dirs.add(new File(MV_DIRECTORY));
         // 和弦文件
-        dirs.add(new File(CHORD_DIRECTORY));
+        dirs.add(new File(CHORD_TRANS_DIRECTORY));
+        // 临时文件目录
+        dirs.add(new File(TEMPORARY_DIRECTORY));
+        // asset文件
+        dirs.add(new File(ASSET_DIRECTORY));
+        // 和弦合成文件
+        dirs.add(new File(CHORD_WAV_DIRECTORY));
+        // 用户弹奏文件
+        dirs.add(new File(USER_PLAY_DIRECTORY));
 
         for (File dir : dirs) {
             if (!dir.exists()) {
-                dir.mkdir();
+                dir.mkdirs();
             }
         }
 
@@ -246,6 +262,10 @@ public class MiscUtil {
         return ALBUM_COVER_DIRECTORY + songName + ".png";
     }
 
+    public static String getUserPlayFullPath(String songName) {
+        return USER_PLAY_DIRECTORY + songName + ".wav";
+    }
+
     public static String getRequestParamFromId(Integer id) {
         return "?id=" + id;
     }
@@ -270,8 +290,8 @@ public class MiscUtil {
         return ORIGINAL_DIRECTORY + songName + ".wav";
     }
 
-    public static String getChordFullPath(String songName) {
-        return CHORD_DIRECTORY + songName + ".chordTrans";
+    public static String getChordTransFullPath(String songName) {
+        return CHORD_TRANS_DIRECTORY + songName + ".chordtrans";
     }
     /**
      * Get name of the record file from song name
@@ -326,5 +346,56 @@ public class MiscUtil {
                 Integer.parseInt(scores[2]),
                 Integer.parseInt(scores[3]),
         };
+    }
+
+    /*
+     * Given asset fileName(with extension), extract it into a temporary folder
+     */
+    public static String getAssetFullPath(Context context, String fileName) {
+        String destPath = ASSET_DIRECTORY + fileName;
+
+        if (isFilePresent(destPath)) {
+            return destPath;
+        }
+
+        File fileToWrite = new File(destPath);
+
+        try {
+            try (InputStream inputStream = context.getAssets().open(fileName)) {
+                try (FileOutputStream outputStream = new FileOutputStream(fileToWrite)) {
+                    byte[] buf = new byte[1024];
+                    int len;
+                    while ((len = inputStream.read(buf)) > 0) {
+                        outputStream.write(buf, 0, len);
+                    }
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return destPath;
+    }
+
+    public static String getChordWavFullPath(String chordName) {
+        return CHORD_WAV_DIRECTORY + chordName + ".wav";
+    }
+
+    public static String mergeNotesToChord(String chordName, List<String> notes) {
+        String destPath = getChordWavFullPath(chordName);
+        int noteNum = notes.size();
+
+        StringBuilder command = new StringBuilder("-y ");
+        for (String note: notes) {
+            command.append("-i ").append(note).append(" ");
+        }
+
+        command.append("-filter_complex amix=inputs=").append(notes.size());
+        command.append(":duration=longest,volume=").append(noteNum).append(" ");
+        command.append(destPath);
+
+        FFmpeg.execute(command.toString());
+
+        return destPath;
     }
 }

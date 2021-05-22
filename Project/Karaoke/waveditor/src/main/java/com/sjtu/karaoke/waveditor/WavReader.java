@@ -104,7 +104,6 @@ public class WavReader {
                 Log.d(TAG, "Skip LIST chunk");
                 wavInputStream.read(buffer);
                 int listChunkSize = byteArrayToInt(buffer);
-                System.out.println("List chunk size: " + listChunkSize);
 
                 wavInputStream.skip(listChunkSize);
                 wavInputStream.read(buffer);

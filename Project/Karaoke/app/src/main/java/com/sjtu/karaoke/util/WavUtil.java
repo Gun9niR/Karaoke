@@ -71,7 +71,6 @@ public class WavUtil {
             e.printStackTrace();
         }
 
-        System.out.println("========== Trimming " + from + " finished ==========");
     }
 
     public static double getWAVDuration(String fullPath) {

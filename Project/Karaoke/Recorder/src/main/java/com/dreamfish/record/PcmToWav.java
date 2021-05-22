@@ -119,7 +119,7 @@ public class PcmToWav {
      * @return
      */
     public static boolean makePCMFileToWAVFile(String pcmPath, String destinationPath, boolean deletePcmFile) {
-        System.out.println("Making pcm from " + pcmPath + " to " + destinationPath);
+        // System.out.println("Making pcm from " + pcmPath + " to " + destinationPath);
         byte buffer[] = null;
         int TOTAL_SIZE = 0;
         File file = new File(pcmPath);
@@ -185,7 +185,6 @@ public class PcmToWav {
         if (deletePcmFile) {
             file.delete();
         }
-        Log.i("PcmToWav", "makePCMFileToWAVFile  success!" + new SimpleDateFormat("yyyy-MM-dd hh:mm").format(new Date()));
         return true;
 
     }

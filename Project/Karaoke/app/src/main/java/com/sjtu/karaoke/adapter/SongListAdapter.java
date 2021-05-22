@@ -38,7 +38,7 @@ import static com.sjtu.karaoke.util.MiscUtil.downloadAndSetAlbumCover;
 import static com.sjtu.karaoke.util.MiscUtil.getAccompanyFullPath;
 import static com.sjtu.karaoke.util.MiscUtil.getAccompanyLyricFullPath;
 import static com.sjtu.karaoke.util.MiscUtil.getAlbumCoverFullPath;
-import static com.sjtu.karaoke.util.MiscUtil.getChordFullPath;
+import static com.sjtu.karaoke.util.MiscUtil.getChordTransFullPath;
 import static com.sjtu.karaoke.util.MiscUtil.getLyricInsrumentFullPath;
 import static com.sjtu.karaoke.util.MiscUtil.getMVFullPath;
 import static com.sjtu.karaoke.util.MiscUtil.getOriginalFullPath;
@@ -234,7 +234,7 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.ViewHo
                 getAccompanyFullPath(songName),
                 getLyricInsrumentFullPath(songName),
                 getRateFullPath(songName),
-                getChordFullPath(songName),
+                getChordTransFullPath(songName),
         };
 
         if (areFilesPresent(destFullPaths)) {

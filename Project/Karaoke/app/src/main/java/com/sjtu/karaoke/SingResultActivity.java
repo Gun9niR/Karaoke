@@ -2,6 +2,7 @@ package com.sjtu.karaoke;
 
 import android.annotation.SuppressLint;
 import android.app.Dialog;
+import android.content.ComponentName;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Build;
@@ -60,6 +61,8 @@ import static com.sjtu.karaoke.util.WavUtil.trimWav;
 public class SingResultActivity extends AppCompatActivity {
     final int INITIAL_OFFSET = 0;
 
+    Class<? extends ComponentName> callingActivity;
+
     Toolbar toolbar;
     BottomNavigationView bottomNavbarResult;
     TextView titleText, playerPosition, playerDuration;
@@ -100,28 +103,33 @@ public class SingResultActivity extends AppCompatActivity {
         setContentView(R.layout.activity_sing_result);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
+        // initialize song info and mode info
         Intent intent = getIntent();
         id = intent.getIntExtra("id", 0);
         songName = intent.getStringExtra("songName");
+        callingActivity = getCallingActivity().getClass();
+
         getFilePaths();
 
         voicePlayer = new SimpleExoPlayer.Builder(this).build();
-        loadAudioFileAndPrepareExoPlayer(voicePlayer, voiceFullPath);
+        loadAudioFileAndPrepareExoPlayer(this, voicePlayer, voiceFullPath);
         voiceDuration = (int) getWAVDuration(voiceFullPath);
         // trim accompany
         trimWav(getAccompanyFullPath(songName), trimmedAccompanyFullPath, 0, voiceDuration);
 
         accompanyPlayer = new SimpleExoPlayer.Builder(this).build();
-        loadAudioFileAndPrepareExoPlayer(accompanyPlayer, trimmedAccompanyFullPath);
+        loadAudioFileAndPrepareExoPlayer(this, accompanyPlayer, trimmedAccompanyFullPath);
         voiceOffset = INITIAL_OFFSET;
         this.state = State.UNSTARTED;
 
+        // init UI part that is mode-irrelevant
         initAlbumCover();
         initProgressUpdater();
         initToolBar();
         initTitle();
         initBottomNavbar();
         initPlaySeekbar();
+
         initButtonControl();
         initTuneSeekbar();
         initAlignSeekbar();
@@ -207,7 +215,6 @@ public class SingResultActivity extends AppCompatActivity {
         progressUpdater = new Runnable() {
             @Override
             public void run() {
-                System.out.println(voicePlayer.getCurrentPosition() - accompanyPlayer.getCurrentPosition());
                 seekBarResultProgress.setProgress((int) accompanyPlayer.getCurrentPosition());
                 handler.postDelayed(this, PROGRESS_UPDATE_INTERVAL);
             }
@@ -248,8 +255,8 @@ public class SingResultActivity extends AppCompatActivity {
                     deleteOneFile(trimmedAccompanyFullPath);
                     deleteOneFile(voiceFullPath);
                     handler.removeCallbacks(progressUpdater);
-                    terminateExoPlayer(voicePlayer);
-                    terminateExoPlayer(accompanyPlayer);
+                    terminateExoPlayer(this, voicePlayer);
+                    terminateExoPlayer(this, accompanyPlayer);
                     onBackPressed();
                     break;
                 case R.id.resultShare:
@@ -307,6 +314,8 @@ public class SingResultActivity extends AppCompatActivity {
                     SingResultActivity.this.state = State.UNSTARTED;
                     btnPause.setVisibility(View.GONE);
                     btnPlay.setVisibility(View.VISIBLE);
+
+                    // todo: change playing according to mode
                     accompanyPlayer.pause();
                     accompanyPlayer.seekTo(0);
                     voicePlayer.pause();
@@ -317,22 +326,13 @@ public class SingResultActivity extends AppCompatActivity {
             }
         });
 
-        btnPlay.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startAllPlayers();
-            }
-        });
+        btnPlay.setOnClickListener(v -> startAllPlayers());
 
-        btnPause.setOnClickListener((new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                pauseAllPlayers();
-            }
-        }));
+        btnPause.setOnClickListener((v -> pauseAllPlayers()));
     }
 
     private void pauseAllPlayers() {
+        // todo: change playing according to mode
         this.state = State.PAUSE;
         btnPause.setVisibility(View.GONE);
         btnPlay.setVisibility(View.VISIBLE);
@@ -410,8 +410,8 @@ public class SingResultActivity extends AppCompatActivity {
         deleteOneFile(trimmedAccompanyFullPath);
         deleteOneFile(voiceFullPath);
         handler.removeCallbacks(progressUpdater);
-        terminateExoPlayer(voicePlayer);
-        terminateExoPlayer(accompanyPlayer);
+        terminateExoPlayer(this, voicePlayer);
+        terminateExoPlayer(this, accompanyPlayer);
     }
 
     @SuppressLint("DefaultLocale")
