@@ -27,11 +27,11 @@ public class Constants {
     @SuppressLint("SdCardPath")
     public static final String ROOT_DIRECTORY = "/data/data/com.sjtu.karaoke/";
 
-    public static final String WAV_DIRECTORY = ROOT_DIRECTORY + "wav/";
+    public static final String VOICE_DIRECTORY = ROOT_DIRECTORY + "wav/";
 
     public static final String PCM_DIRECTORY = ROOT_DIRECTORY + "pcm/";
 
-    public static final String ACCOMPANY_ACCOMPANY_DIRECTORY = ROOT_DIRECTORY + "accompany/";
+    public static final String ACCOMPANY_DIRECTORY = ROOT_DIRECTORY + "accompany/";
 
     public static final String RECORD_DIRECTORY = ROOT_DIRECTORY + "record/";
 
@@ -39,7 +39,7 @@ public class Constants {
 
     public static final String RATE_DIRECTORY = ROOT_DIRECTORY + "rating/";
 
-    public static final String TRIMMED_VOICE_WAV_DIRECTORY = WAV_DIRECTORY + "trimmed_voice/";
+    public static final String TRIMMED_VOICE_WAV_DIRECTORY = VOICE_DIRECTORY + "trimmed_voice/";
 
     public static final String ALBUM_COVER_DIRECTORY = ROOT_DIRECTORY + "album_cover/";
 

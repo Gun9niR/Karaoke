@@ -35,14 +35,14 @@ import static com.sjtu.karaoke.util.FileUtil.areFilesPresent;
 import static com.sjtu.karaoke.util.FileUtil.downloadFiles;
 import static com.sjtu.karaoke.util.FileUtil.isFilePresent;
 import static com.sjtu.karaoke.util.MiscUtil.downloadAndSetAlbumCover;
-import static com.sjtu.karaoke.util.MiscUtil.getAccompanyFullPath;
-import static com.sjtu.karaoke.util.MiscUtil.getAccompanyLyricFullPath;
-import static com.sjtu.karaoke.util.MiscUtil.getAlbumCoverFullPath;
-import static com.sjtu.karaoke.util.MiscUtil.getChordTransFullPath;
-import static com.sjtu.karaoke.util.MiscUtil.getLyricInsrumentFullPath;
-import static com.sjtu.karaoke.util.MiscUtil.getMVFullPath;
-import static com.sjtu.karaoke.util.MiscUtil.getOriginalFullPath;
-import static com.sjtu.karaoke.util.MiscUtil.getRateFullPath;
+import static com.sjtu.karaoke.util.PathUtil.getAccompanyFullPath;
+import static com.sjtu.karaoke.util.PathUtil.getAccompanyLyricFullPath;
+import static com.sjtu.karaoke.util.PathUtil.getAlbumCoverFullPath;
+import static com.sjtu.karaoke.util.PathUtil.getChordTransFullPath;
+import static com.sjtu.karaoke.util.PathUtil.getLyricInstrumentFullPath;
+import static com.sjtu.karaoke.util.PathUtil.getMVFullPath;
+import static com.sjtu.karaoke.util.PathUtil.getOriginalFullPath;
+import static com.sjtu.karaoke.util.PathUtil.getRateFullPath;
 import static com.sjtu.karaoke.util.MiscUtil.getRequestParamFromId;
 import static com.sjtu.karaoke.util.MiscUtil.setImageFromFile;
 import static com.sjtu.karaoke.util.MiscUtil.showLoadingDialog;
@@ -232,7 +232,7 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.ViewHo
 
         String[] destFullPaths = {
                 getAccompanyFullPath(songName),
-                getLyricInsrumentFullPath(songName),
+                getLyricInstrumentFullPath(songName),
                 getRateFullPath(songName),
                 getChordTransFullPath(songName),
         };

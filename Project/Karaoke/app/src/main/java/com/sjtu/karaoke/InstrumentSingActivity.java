@@ -60,12 +60,12 @@ import static com.sjtu.karaoke.util.Constants.RECORD_DELAY_UB;
 import static com.sjtu.karaoke.util.FileUtil.deleteOneFile;
 import static com.sjtu.karaoke.util.MediaPlayerUtil.loadAudioFileAndPrepareExoPlayer;
 import static com.sjtu.karaoke.util.MediaPlayerUtil.terminateExoPlayer;
-import static com.sjtu.karaoke.util.MiscUtil.getAccompanyFullPath;
-import static com.sjtu.karaoke.util.MiscUtil.getAssetFullPath;
-import static com.sjtu.karaoke.util.MiscUtil.getChordTransFullPath;
-import static com.sjtu.karaoke.util.MiscUtil.getLyricInsrumentFullPath;
-import static com.sjtu.karaoke.util.MiscUtil.getRateFullPath;
-import static com.sjtu.karaoke.util.MiscUtil.getUserPlayFullPath;
+import static com.sjtu.karaoke.util.PathUtil.getAccompanyFullPath;
+import static com.sjtu.karaoke.util.PathUtil.getAssetFullPath;
+import static com.sjtu.karaoke.util.PathUtil.getChordTransFullPath;
+import static com.sjtu.karaoke.util.PathUtil.getLyricInstrumentFullPath;
+import static com.sjtu.karaoke.util.PathUtil.getRateFullPath;
+import static com.sjtu.karaoke.util.PathUtil.getUserPlayFullPath;
 import static com.sjtu.karaoke.util.MiscUtil.mergeNotesToChord;
 import static com.sjtu.karaoke.util.MiscUtil.parseScore;
 import static com.sjtu.karaoke.util.MiscUtil.showLoadingDialog;
@@ -83,9 +83,6 @@ import static com.sjtu.karaoke.util.MiscUtil.showToast;
  *                  3. 在播放时监控进度、更新得分（不以得分条的形式显示）
  *                  4. 录音
  */
-
-// fixme: on completion, pressing back will cause error
-// todo: think of a way to record f0a completion
 
 public class InstrumentSingActivity extends AppCompatActivity {
 
@@ -546,7 +543,7 @@ public class InstrumentSingActivity extends AppCompatActivity {
         lrcView = findViewById(R.id.lrcRoller);
         lrcView.setHighLineColor(ContextCompat.getColor(getApplicationContext(), R.color.purple_500));
         try {
-            InputStream is = new FileInputStream(getLyricInsrumentFullPath(songName));
+            InputStream is = new FileInputStream(getLyricInstrumentFullPath(songName));
 
             String lrc = new BufferedReader(new InputStreamReader(is))
                     .lines().collect(Collectors.joining("\n"));
