@@ -87,6 +87,9 @@ void classifyBeat() {
     }
 }
 
+string getScore() {
+    return "86";
+}
 
 
 
