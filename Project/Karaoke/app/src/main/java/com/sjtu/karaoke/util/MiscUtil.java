@@ -26,13 +26,9 @@ import androidx.annotation.RequiresApi;
 import androidx.core.app.ActivityCompat;
 
 import com.arthenica.mobileffmpeg.FFmpeg;
-import com.dreamfish.record.FileUtil;
 import com.sjtu.karaoke.R;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -44,29 +40,12 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
-import static com.sjtu.karaoke.util.Constants.ACCOMPANY_ACCOMPANY_DIRECTORY;
 import static com.sjtu.karaoke.util.Constants.ALBUM_COVER_DIRECTORY;
-import static com.sjtu.karaoke.util.Constants.ASSET_DIRECTORY;
-import static com.sjtu.karaoke.util.Constants.CHORD_TRANS_DIRECTORY;
-import static com.sjtu.karaoke.util.Constants.CHORD_WAV_DIRECTORY;
 import static com.sjtu.karaoke.util.Constants.GET_ALBUM_COVER_URL;
 import static com.sjtu.karaoke.util.Constants.GET_RECORD_AUDIO;
 import static com.sjtu.karaoke.util.Constants.GET_SONG_INFO_URL;
-import static com.sjtu.karaoke.util.Constants.LYRIC_DIRECTORY;
-import static com.sjtu.karaoke.util.Constants.LYRIC_INSTRUMENT_DIRECTORY;
-import static com.sjtu.karaoke.util.Constants.MV_DIRECTORY;
-import static com.sjtu.karaoke.util.Constants.ORIGINAL_DIRECTORY;
 import static com.sjtu.karaoke.util.Constants.PACKAGES_FOR_SHARING;
-import static com.sjtu.karaoke.util.Constants.PCM_DIRECTORY;
 import static com.sjtu.karaoke.util.Constants.PERMISSIONS_RECORDER;
-import static com.sjtu.karaoke.util.Constants.RATE_DIRECTORY;
-import static com.sjtu.karaoke.util.Constants.RECORD_DIRECTORY;
-import static com.sjtu.karaoke.util.Constants.ROOT_DIRECTORY;
-import static com.sjtu.karaoke.util.Constants.TEMPORARY_DIRECTORY;
-import static com.sjtu.karaoke.util.Constants.TRIMMED_VOICE_WAV_DIRECTORY;
-import static com.sjtu.karaoke.util.Constants.USER_PLAY_DIRECTORY;
-import static com.sjtu.karaoke.util.Constants.WAV_DIRECTORY;
-import static com.sjtu.karaoke.util.FileUtil.isFilePresent;
 import static com.sjtu.karaoke.util.FileUtil.saveFileFromResponse;
 
 /*
@@ -79,52 +58,6 @@ import static com.sjtu.karaoke.util.FileUtil.saveFileFromResponse;
 
 public class MiscUtil {
     public static Toast toast;
-
-    public static void makeDirectories() {
-        List<File> dirs = new ArrayList<>();
-        // 保存文件的根目录
-        dirs.add(new File(ROOT_DIRECTORY));
-        // 录音结果，由pcm合成
-        dirs.add(new File(WAV_DIRECTORY));
-        // 录音过程中产生的pcm文件
-        dirs.add(new File(PCM_DIRECTORY));
-        // 伴奏和合成最终结果时被截短的伴奏
-        dirs.add(new File(ACCOMPANY_ACCOMPANY_DIRECTORY));
-        // 伴奏和录音合成结果
-        dirs.add(new File(RECORD_DIRECTORY));
-        // 原唱
-        dirs.add(new File(ORIGINAL_DIRECTORY));
-        // 打分文件
-        dirs.add(new File(RATE_DIRECTORY));
-        // 录音过程中一句话的pcm转换成wav的结果
-        dirs.add(new File(TRIMMED_VOICE_WAV_DIRECTORY));
-        // 专辑封面
-        dirs.add(new File(ALBUM_COVER_DIRECTORY));
-        // 伴奏演唱模式歌词文件
-        dirs.add(new File(LYRIC_DIRECTORY));
-        // 自弹自唱模式歌词文件
-        dirs.add(new File(LYRIC_INSTRUMENT_DIRECTORY));
-        // MV
-        dirs.add(new File(MV_DIRECTORY));
-        // 和弦文件
-        dirs.add(new File(CHORD_TRANS_DIRECTORY));
-        // 临时文件目录
-        dirs.add(new File(TEMPORARY_DIRECTORY));
-        // asset文件
-        dirs.add(new File(ASSET_DIRECTORY));
-        // 和弦合成文件
-        dirs.add(new File(CHORD_WAV_DIRECTORY));
-        // 用户弹奏文件
-        dirs.add(new File(USER_PLAY_DIRECTORY));
-
-        for (File dir : dirs) {
-            if (!dir.exists()) {
-                dir.mkdirs();
-            }
-        }
-
-        FileUtil.setBaseDirectories(ROOT_DIRECTORY);
-    }
 
     public static Intent getChooserIntent(Uri uri, Context context) {
         List<LabeledIntent> targetedShareIntents = new ArrayList<>();
@@ -214,27 +147,8 @@ public class MiscUtil {
         return loadingDialog;
     }
 
-    public static String getAccompanyFullPath(String songName) {
-        return ACCOMPANY_ACCOMPANY_DIRECTORY + songName + ".wav";
-    }
-
     public static void getSongInfo(Callback callback) {
         getRequest(GET_SONG_INFO_URL, callback);
-    }
-
-    /**
-     * Append -trim to the filePath given
-     *
-     * @param songName
-     * @return
-     */
-    public static String getTrimmedAccompanyFullPath(String songName) {
-        String newFileName = songName + "-trim.wav";
-        return ACCOMPANY_ACCOMPANY_DIRECTORY + newFileName;
-    }
-
-    public static String getVoiceFullPath(String songName) {
-        return WAV_DIRECTORY + songName + ".wav";
     }
 
     /**
@@ -258,41 +172,10 @@ public class MiscUtil {
         imageView.setImageBitmap(bmp);
     }
 
-    public static String getAlbumCoverFullPath(String songName) {
-        return ALBUM_COVER_DIRECTORY + songName + ".png";
-    }
-
-    public static String getUserPlayFullPath(String songName) {
-        return USER_PLAY_DIRECTORY + songName + ".wav";
-    }
-
     public static String getRequestParamFromId(Integer id) {
         return "?id=" + id;
     }
 
-    public static String getMVFullPath(String songName) {
-        return MV_DIRECTORY + songName + ".mp4";
-    }
-
-    public static String getRateFullPath(String songName) {
-        return RATE_DIRECTORY + songName + ".f0a";
-    }
-
-    public static String getAccompanyLyricFullPath(String songName) {
-        return LYRIC_DIRECTORY + songName + ".lrc";
-    }
-
-    public static String getLyricInsrumentFullPath(String songName) {
-        return LYRIC_INSTRUMENT_DIRECTORY + songName + ".lrc";
-    }
-
-    public static String getOriginalFullPath(String songName) {
-        return ORIGINAL_DIRECTORY + songName + ".wav";
-    }
-
-    public static String getChordTransFullPath(String songName) {
-        return CHORD_TRANS_DIRECTORY + songName + ".chordtrans";
-    }
     /**
      * Get name of the record file from song name
      * Naming strategy is: <songName>-<year>-<month>-<date>-<hour>-<minute>
@@ -348,41 +231,8 @@ public class MiscUtil {
         };
     }
 
-    /*
-     * Given asset fileName(with extension), extract it into a temporary folder
-     */
-    public static String getAssetFullPath(Context context, String fileName) {
-        String destPath = ASSET_DIRECTORY + fileName;
-
-        if (isFilePresent(destPath)) {
-            return destPath;
-        }
-
-        File fileToWrite = new File(destPath);
-
-        try {
-            try (InputStream inputStream = context.getAssets().open(fileName)) {
-                try (FileOutputStream outputStream = new FileOutputStream(fileToWrite)) {
-                    byte[] buf = new byte[1024];
-                    int len;
-                    while ((len = inputStream.read(buf)) > 0) {
-                        outputStream.write(buf, 0, len);
-                    }
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        return destPath;
-    }
-
-    public static String getChordWavFullPath(String chordName) {
-        return CHORD_WAV_DIRECTORY + chordName + ".wav";
-    }
-
     public static String mergeNotesToChord(String chordName, List<String> notes) {
-        String destPath = getChordWavFullPath(chordName);
+        String destPath = PathUtil.getChordWavFullPath(chordName);
         int noteNum = notes.size();
 
         StringBuilder command = new StringBuilder("-y ");

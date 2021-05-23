@@ -24,7 +24,7 @@ import de.hdodenhof.circleimageview.CircleImageView;
 
 import static com.sjtu.karaoke.util.MediaPlayerUtil.loadFileAndPrepareMediaPlayer;
 import static com.sjtu.karaoke.util.MediaPlayerUtil.terminateMediaPlayer;
-import static com.sjtu.karaoke.util.MiscUtil.getAlbumCoverFullPath;
+import static com.sjtu.karaoke.util.PathUtil.getAlbumCoverFullPath;
 import static com.sjtu.karaoke.util.MiscUtil.setImageFromFile;
 
 /*

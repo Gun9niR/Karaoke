@@ -60,16 +60,16 @@ import static com.sjtu.karaoke.util.Constants.RECORD_DELAY_UB;
 import static com.sjtu.karaoke.util.FileUtil.deleteOneFile;
 import static com.sjtu.karaoke.util.MediaPlayerUtil.loadAudioFileAndPrepareExoPlayer;
 import static com.sjtu.karaoke.util.MediaPlayerUtil.terminateExoPlayer;
-import static com.sjtu.karaoke.util.MiscUtil.getAccompanyFullPath;
-import static com.sjtu.karaoke.util.MiscUtil.getAssetFullPath;
-import static com.sjtu.karaoke.util.MiscUtil.getChordTransFullPath;
-import static com.sjtu.karaoke.util.MiscUtil.getLyricInsrumentFullPath;
-import static com.sjtu.karaoke.util.MiscUtil.getRateFullPath;
-import static com.sjtu.karaoke.util.MiscUtil.getUserPlayFullPath;
 import static com.sjtu.karaoke.util.MiscUtil.mergeNotesToChord;
 import static com.sjtu.karaoke.util.MiscUtil.parseScore;
 import static com.sjtu.karaoke.util.MiscUtil.showLoadingDialog;
 import static com.sjtu.karaoke.util.MiscUtil.showToast;
+import static com.sjtu.karaoke.util.PathUtil.getAccompanyFullPath;
+import static com.sjtu.karaoke.util.PathUtil.getAssetFullPath;
+import static com.sjtu.karaoke.util.PathUtil.getChordTransFullPath;
+import static com.sjtu.karaoke.util.PathUtil.getLyricInstrumentFullPath;
+import static com.sjtu.karaoke.util.PathUtil.getRateFullPath;
+import static com.sjtu.karaoke.util.PathUtil.getUserPlayFullPath;
 
 
 /*
@@ -83,9 +83,6 @@ import static com.sjtu.karaoke.util.MiscUtil.showToast;
  *                  3. 在播放时监控进度、更新得分（不以得分条的形式显示）
  *                  4. 录音
  */
-
-// fixme: on completion, pressing back will cause error
-// todo: think of a way to record f0a completion
 
 public class InstrumentSingActivity extends AppCompatActivity {
 
@@ -167,6 +164,7 @@ public class InstrumentSingActivity extends AppCompatActivity {
         initTopRightButtons();
     }
 
+    @Override
     protected void onStart() {
         super.onStart();
 
@@ -200,8 +198,138 @@ public class InstrumentSingActivity extends AppCompatActivity {
         }
     }
 
-    private Integer getHintTime(Integer time) {
-        return time - HINT_DURATION;
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if (this.state == State.PLAYING) {
+            pause();
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (voiceRecorder.getStatus() == AudioRecorder.Status.STATUS_PAUSE || voiceRecorder.getStatus() == AudioRecorder.Status.STATUS_START) {
+            voiceRecorder.stopRecord(false);
+        }
+        lrcView.alertPlayerReleased();
+        terminateExoPlayer(this, accompanyPlayer);
+        chordPlayer.release();
+    }
+
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        if (hasFocus) {
+            getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                    | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                    | View.SYSTEM_UI_FLAG_FULLSCREEN
+                    | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+        }
+    }
+
+    private void initSongName() {
+        Intent intent = getIntent();
+        id = intent.getIntExtra("id", 0);
+        songName = intent.getStringExtra("songName");
+    }
+
+    private void initState() {
+        state = State.UNSTARTED;
+    }
+
+    private void initProgressMonitor() {
+        progressMonitor = new Runnable() {
+            @Override
+            public void run() {
+                currentPosition = (int) accompanyPlayer.getCurrentPosition();
+                handler.postDelayed(this, PROGRESS_UPDATE_INTERVAL);
+            }
+        };
+    }
+
+    private void initRecordMonitor() {
+        recordMonitor = new Runnable() {
+            @Override
+            public void run() {
+                if (currentPosition >= nextPcmSplitTime) {
+                    voiceRecorder.setCurrentPcmStartTime(nextPcmSplitTime - PCM_SPLIT_INTERVAL);
+                    nextPcmSplitTime += PCM_SPLIT_INTERVAL;
+
+                    if (lrcIterator.hasNext() && currentPosition > currentLrc.getEnd()) {
+                        if (currentLrc.shouldRate()) {
+                            rate((int) currentLrc.getStart(), (int) currentLrc.getEnd());
+                        }
+                        currentLrc = lrcIterator.next();
+                    }
+                    voiceRecorder.setShouldStartNewPcm(true);
+                }
+                handler.postDelayed(this, 50);
+            }
+        };
+    }
+
+    private void initHintMonitor() {
+        hintMonitor = new Runnable() {
+            @Override
+            public void run() {
+                if (currentPosition > nextHintTime && !standardSequence.isEmpty()) {
+                    displayHint(nextHintTime, nextHintChord);
+                    nextHintChord = standardSequence.remove(0);
+                    nextHintTime = getHintTime(nextHintChord.getTime());
+                }
+                handler.postDelayed(this, 50);
+            }
+        };
+    }
+
+    private void initTopRightButtons() {
+        finishButton = findViewById(R.id.instrumentFinishBtn);
+        backButton = findViewById(R.id.instrumentBackBtn);
+        retryButton = findViewById(R.id.instrumentRetryBtn);
+
+        finishButton.setOnClickListener(v -> {
+            Dialog loadingDialog = showLoadingDialog(this, "正在处理录音");
+            int len = userSequence.size();
+
+            new Thread(() -> {
+                stopActivity(true);
+
+                double[] userTimeSequence = new double[len];
+                String[] userChordNameSequence = new String[len];
+                for (int i = 0; i < len; ++i) {
+                    PlayChordRecord r = userSequence.get(i);
+                    userTimeSequence[i] = (double) r.getTime();
+                    userChordNameSequence[i] = r.getChord().getName();
+                }
+                // todo: pass sing score and piano play score
+                Intent intent = new Intent(InstrumentSingActivity.this, SingResultActivity.class);
+                intent.putExtra("id", id);
+                intent.putExtra("songName", songName);
+                intent.putExtra("pianoScore",
+                        com.sjtu.pianorater.PianoRater.getScore(
+                                getChordTransFullPath(songName),
+                                len,
+                                userTimeSequence,
+                                userChordNameSequence
+                        )
+                );
+                startActivityForResult(intent, 0);
+                loadingDialog.dismiss();
+            }).start();
+        });
+
+        backButton.setOnClickListener(v -> {
+            if (this.state != State.UNSTARTED) {
+                stopActivity(false);
+            }
+            onBackPressed();
+        });
+
+        retryButton.setOnClickListener(v -> {
+            retry();
+        });
     }
 
     private void parseChordFile() {
@@ -271,69 +399,89 @@ public class InstrumentSingActivity extends AppCompatActivity {
         }
     }
 
-    private void initRecordMonitor() {
-        recordMonitor = new Runnable() {
-            @Override
-            public void run() {
-                if (currentPosition >= nextPcmSplitTime) {
-                    voiceRecorder.setCurrentPcmStartTime(nextPcmSplitTime - PCM_SPLIT_INTERVAL);
-                    nextPcmSplitTime += PCM_SPLIT_INTERVAL;
+    private void initSoundPool() {
+        chordPlayer = new SoundPool.Builder()
+                .setMaxStreams(chordNum)
+                .build();
 
-                    if (lrcIterator.hasNext() && currentPosition > currentLrc.getEnd()) {
-                        if (currentLrc.shouldRate()) {
-                            rate((int) currentLrc.getStart(), (int) currentLrc.getEnd());
+        for (Chord chord: chords) {
+            chord.setSoundId(chordPlayer.load(chord.getFilePath(), 1));
+        }
+    }
+
+    private void initInstrumentButtons() {
+        this.runOnUiThread((Runnable) () -> {
+            LinearLayout btnContainer = (LinearLayout) findViewById(R.id.instrumentButtonsContainer);
+
+            btnContainer.removeAllViews();
+
+            ListIterator<Chord> chordIt = chords.listIterator();
+            chordToBtn = new HashMap<>();
+
+            while (chordIt.hasNext()) {
+                Chord chord = chordIt.next();
+                // add relative layout
+                RelativeLayout relativeLayout = new RelativeLayout(InstrumentSingActivity.this);
+                LinearLayout.LayoutParams params1 = new LinearLayout.LayoutParams(
+                        0,
+                        LinearLayout.LayoutParams.WRAP_CONTENT,
+                        (float) 1.0);
+                relativeLayout.setGravity(Gravity.CENTER);
+                relativeLayout.setLayoutParams(params1);
+
+                // add progress bar
+                ProgressBar instrumentBtn = new ProgressBar(InstrumentSingActivity.this, null, android.R.attr.progressBarStyleHorizontal);
+                Drawable progressDrawable = ContextCompat.getDrawable(InstrumentSingActivity.this, R.drawable.custom_instrument_button);
+                RelativeLayout.LayoutParams params2 = new RelativeLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.MATCH_PARENT
+                );
+                params2.addRule(RelativeLayout.CENTER_IN_PARENT, RelativeLayout.TRUE);
+                instrumentBtn.setProgressBackgroundTintList(ColorStateList.valueOf(getColor(R.color.gainsboro)));
+                instrumentBtn.setIndeterminateDrawable(progressDrawable);
+                instrumentBtn.setProgressDrawable(progressDrawable);
+                instrumentBtn.setLayoutParams(params2);
+                instrumentBtn.setMax(100);
+                instrumentBtn.setProgress(0);
+                // fixme: probably set in progress monitor?
+                instrumentBtn.setOnClickListener(v -> {
+                            chordPlayer.play(chord.getSoundId(), 1, 1, 1, 0, 1);
+                            userSequence.add(new PlayChordRecord(chord, currentPosition));
                         }
-                        currentLrc = lrcIterator.next();
-                    }
-                    voiceRecorder.setShouldStartNewPcm(true);
+                );
+                chordToBtn.put(chord, instrumentBtn);
+                relativeLayout.addView(instrumentBtn);
+
+                // add text view
+                TextView chordLabel = new TextView(InstrumentSingActivity.this);
+                RelativeLayout.LayoutParams params3 = new RelativeLayout.LayoutParams(
+                        ViewGroup.LayoutParams.WRAP_CONTENT,
+                        ViewGroup.LayoutParams.WRAP_CONTENT
+                );
+                params3.addRule(RelativeLayout.CENTER_IN_PARENT, RelativeLayout.TRUE);
+                chordLabel.setText(chord.getName());
+                chordLabel.setTextColor(getColor(R.color.purple_700));
+                chordLabel.setTypeface(Typeface.DEFAULT_BOLD);
+                chordLabel.setTextSize(15);
+                chordLabel.setLayoutParams(params3);
+                relativeLayout.addView(chordLabel);
+
+                btnContainer.addView(relativeLayout);
+
+                // add space
+                if (chordIt.hasNext()) {
+                    Space space = new Space(InstrumentSingActivity.this);
+                    LinearLayout.LayoutParams params4 = new LinearLayout.LayoutParams(
+                            ViewGroup.LayoutParams.WRAP_CONTENT,
+                            ViewGroup.LayoutParams.WRAP_CONTENT,
+                            1.0f
+                    );
+                    space.setLayoutParams(params4);
+                    btnContainer.addView(space);
                 }
-                handler.postDelayed(this, 50);
             }
-        };
-    }
-
-    private void initTopRightButtons() {
-        finishButton = findViewById(R.id.instrumentFinishBtn);
-        backButton = findViewById(R.id.instrumentBackBtn);
-        retryButton = findViewById(R.id.instrumentRetryBtn);
-
-        finishButton.setOnClickListener(v -> {
-            Dialog loadingDialog = showLoadingDialog(this, "正在处理录音");
-
-            new Thread(() -> {
-                stopActivity(true);
-                Intent intent = new Intent(InstrumentSingActivity.this, SingResultActivity.class);
-                intent.putExtra("id", id);
-                intent.putExtra("songName", songName);
-                startActivityForResult(intent, 0);
-                loadingDialog.dismiss();
-            }).start();
         });
 
-        backButton.setOnClickListener(v -> {
-            if (this.state != State.UNSTARTED) {
-                stopActivity(false);
-            }
-            onBackPressed();
-        });
-
-        retryButton.setOnClickListener(v -> {
-            retry();
-        });
-    }
-
-    private void initHintMonitor() {
-        hintMonitor = new Runnable() {
-            @Override
-            public void run() {
-                if (currentPosition > nextHintTime && !standardSequence.isEmpty()) {
-                    displayHint(nextHintTime, nextHintChord);
-                    nextHintChord = standardSequence.remove(0);
-                    nextHintTime = getHintTime(nextHintChord.getTime());
-                }
-                handler.postDelayed(this, 50);
-            }
-        };
     }
 
     private void initAccompanyPlayer() {
@@ -343,17 +491,12 @@ public class InstrumentSingActivity extends AppCompatActivity {
         runOnUiThread(() -> accompanyPlayer.seekTo(playbackStartTime));
     }
 
+    private Integer getHintTime(Integer time) {
+        return time - HINT_DURATION;
+    }
+
     private void initRatingSystem() {
         init(getRateFullPath(songName), PCM_SPLIT_INTERVAL, RECORD_DELAY_LB, RECORD_DELAY_UB);
-    }
-
-    private void initVoiceRecorder() {
-        voiceRecorder = AudioRecorder.getInstance();
-        voiceRecorder.createDefaultAudio(songName, playbackStartTime % PCM_SPLIT_INTERVAL);
-    }
-
-    private void initScore() {
-        score = new Score();
     }
 
     private void initOnCompleteListener() {
@@ -369,38 +512,34 @@ public class InstrumentSingActivity extends AppCompatActivity {
         };
     }
 
-    private void initSongName() {
-        Intent intent = getIntent();
-        id = intent.getIntExtra("id", 0);
-        songName = intent.getStringExtra("songName");
-    }
+    @RequiresApi(api = Build.VERSION_CODES.N)
+    private void initLrcView() {
+        lrcView = findViewById(R.id.lrcRoller);
+        lrcView.setHighLineColor(ContextCompat.getColor(getApplicationContext(), R.color.purple_500));
+        try {
+            InputStream is = new FileInputStream(getLyricInstrumentFullPath(songName));
 
-    private void initState() {
-        state = State.UNSTARTED;
-    }
+            String lrc = new BufferedReader(new InputStreamReader(is))
+                    .lines().collect(Collectors.joining("\n"));
 
-    private void initSoundPool() {
-        chordPlayer = new SoundPool.Builder()
-                .setMaxStreams(chordNum)
-                .build();
+            lrcs = lrcView.setLrc(lrc);
+            lrcIterator = lrcs.listIterator();
+            currentLrc = lrcIterator.next();
 
-        for (Chord chord: chords) {
-            chord.setSoundId(chordPlayer.load(chord.getFilePath(), 1));
+            lrcView.setPlayer(accompanyPlayer);
+            lrcView.init();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
-    private void startAllPlayers() {
-        accompanyPlayer.play();
+    private void initVoiceRecorder() {
+        voiceRecorder = AudioRecorder.getInstance();
+        voiceRecorder.createDefaultAudio(songName, playbackStartTime % PCM_SPLIT_INTERVAL);
     }
 
-    private void initProgressMonitor() {
-        progressMonitor = new Runnable() {
-            @Override
-            public void run() {
-                currentPosition = (int) accompanyPlayer.getCurrentPosition();
-                handler.postDelayed(this, PROGRESS_UPDATE_INTERVAL);
-            }
-        };
+    private void initScore() {
+        score = new Score();
     }
 
     private void displayHint(int startTime, PlayChordRecord hintChord) {
@@ -416,6 +555,10 @@ public class InstrumentSingActivity extends AppCompatActivity {
         }).start();
     }
 
+    private void startAllPlayers() {
+        accompanyPlayer.play();
+    }
+
     private void start() {
         state = State.PLAYING;
 
@@ -428,12 +571,8 @@ public class InstrumentSingActivity extends AppCompatActivity {
         startAllPlayers();
     }
 
-    @Override
-    protected void onStop() {
-        super.onStop();
-        if (this.state == State.PLAYING) {
-            pause();
-        }
+    private void pauseAllPlayers() {
+        accompanyPlayer.pause();
     }
 
     private void pause() {
@@ -446,120 +585,6 @@ public class InstrumentSingActivity extends AppCompatActivity {
 
         voiceRecorder.pauseRecord();
         pauseAllPlayers();
-    }
-
-    private void pauseAllPlayers() {
-        accompanyPlayer.pause();
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        if (voiceRecorder.getStatus() == AudioRecorder.Status.STATUS_PAUSE || voiceRecorder.getStatus() == AudioRecorder.Status.STATUS_START) {
-            voiceRecorder.stopRecord(false);
-        }
-        lrcView.alertPlayerReleased();
-        terminateExoPlayer(this, accompanyPlayer);
-        chordPlayer.release();
-    }
-
-    private void initInstrumentButtons() {
-        this.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                LinearLayout btnContainer = (LinearLayout) findViewById(R.id.instrumentButtonsContainer);
-
-                btnContainer.removeAllViews();
-
-                ListIterator<Chord> chordIt = chords.listIterator();
-                chordToBtn = new HashMap<>();
-
-                while (chordIt.hasNext()) {
-                    Chord chord = chordIt.next();
-                    // add relative layout
-                    RelativeLayout relativeLayout = new RelativeLayout(InstrumentSingActivity.this);
-                    LinearLayout.LayoutParams params1 = new LinearLayout.LayoutParams(
-                            0,
-                            LinearLayout.LayoutParams.WRAP_CONTENT,
-                            (float) 1.0);
-                    relativeLayout.setGravity(Gravity.CENTER);
-                    relativeLayout.setLayoutParams(params1);
-
-                    // add progress bar
-                    ProgressBar instrumentBtn = new ProgressBar(InstrumentSingActivity.this, null, android.R.attr.progressBarStyleHorizontal);
-                    Drawable progressDrawable = ContextCompat.getDrawable(InstrumentSingActivity.this, R.drawable.custom_instrument_button);
-                    RelativeLayout.LayoutParams params2 = new RelativeLayout.LayoutParams(
-                            ViewGroup.LayoutParams.MATCH_PARENT,
-                            ViewGroup.LayoutParams.MATCH_PARENT
-                    );
-                    params2.addRule(RelativeLayout.CENTER_IN_PARENT, RelativeLayout.TRUE);
-                    instrumentBtn.setProgressBackgroundTintList(ColorStateList.valueOf(getColor(R.color.gainsboro)));
-                    instrumentBtn.setIndeterminateDrawable(progressDrawable);
-                    instrumentBtn.setProgressDrawable(progressDrawable);
-                    instrumentBtn.setLayoutParams(params2);
-                    instrumentBtn.setMax(100);
-                    instrumentBtn.setProgress(0);
-                    // fixme: probably set in progress monitor?
-                    instrumentBtn.setOnClickListener(v -> {
-                                chordPlayer.play(chord.getSoundId(), 1, 1, 1, 0, 1);
-                                userSequence.add(new PlayChordRecord(chord, currentPosition));
-                            }
-                    );
-                    chordToBtn.put(chord, instrumentBtn);
-                    relativeLayout.addView(instrumentBtn);
-
-                    // add text view
-                    TextView chordLabel = new TextView(InstrumentSingActivity.this);
-                    RelativeLayout.LayoutParams params3 = new RelativeLayout.LayoutParams(
-                            ViewGroup.LayoutParams.WRAP_CONTENT,
-                            ViewGroup.LayoutParams.WRAP_CONTENT
-                    );
-                    params3.addRule(RelativeLayout.CENTER_IN_PARENT, RelativeLayout.TRUE);
-                    chordLabel.setText(chord.getName());
-                    chordLabel.setTextColor(getColor(R.color.purple_700));
-                    chordLabel.setTypeface(Typeface.DEFAULT_BOLD);
-                    chordLabel.setTextSize(15);
-                    chordLabel.setLayoutParams(params3);
-                    relativeLayout.addView(chordLabel);
-
-                    btnContainer.addView(relativeLayout);
-
-                    // add space
-                    if (chordIt.hasNext()) {
-                        Space space = new Space(InstrumentSingActivity.this);
-                        LinearLayout.LayoutParams params4 = new LinearLayout.LayoutParams(
-                                ViewGroup.LayoutParams.WRAP_CONTENT,
-                                ViewGroup.LayoutParams.WRAP_CONTENT,
-                                1.0f
-                        );
-                        space.setLayoutParams(params4);
-                        btnContainer.addView(space);
-                    }
-                }
-            }
-        });
-
-    }
-
-    @RequiresApi(api = Build.VERSION_CODES.N)
-    private void initLrcView() {
-        lrcView = findViewById(R.id.lrcRoller);
-        lrcView.setHighLineColor(ContextCompat.getColor(getApplicationContext(), R.color.purple_500));
-        try {
-            InputStream is = new FileInputStream(getLyricInsrumentFullPath(songName));
-
-            String lrc = new BufferedReader(new InputStreamReader(is))
-                    .lines().collect(Collectors.joining("\n"));
-
-            lrcs = lrcView.setLrc(lrc);
-            lrcIterator = lrcs.listIterator();
-            currentLrc = lrcIterator.next();
-
-            lrcView.setPlayer(accompanyPlayer);
-            lrcView.init();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
     private void retry() {
@@ -631,17 +656,6 @@ public class InstrumentSingActivity extends AppCompatActivity {
         FFmpeg.execute(command.toString());
 
         deleteOneFile(silencePath);
-    }
-
-    @Override
-    public void onWindowFocusChanged(boolean hasFocus) {
-        super.onWindowFocusChanged(hasFocus);
-        if (hasFocus) {
-            getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                            | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                            | View.SYSTEM_UI_FLAG_FULLSCREEN
-                            | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
-        }
     }
 
     /**

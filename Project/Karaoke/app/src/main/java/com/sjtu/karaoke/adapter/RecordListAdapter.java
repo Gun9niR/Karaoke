@@ -29,7 +29,7 @@ import static com.sjtu.karaoke.util.FileUtil.deleteOneFile;
 import static com.sjtu.karaoke.util.FileUtil.getFullPathsInDirectory;
 import static com.sjtu.karaoke.util.FileUtil.isFilePresent;
 import static com.sjtu.karaoke.util.MiscUtil.downloadAndSetAlbumCover;
-import static com.sjtu.karaoke.util.MiscUtil.getAlbumCoverFullPath;
+import static com.sjtu.karaoke.util.PathUtil.getAlbumCoverFullPath;
 import static com.sjtu.karaoke.util.MiscUtil.getChooserIntent;
 import static com.sjtu.karaoke.util.MiscUtil.setImageFromFile;
 
