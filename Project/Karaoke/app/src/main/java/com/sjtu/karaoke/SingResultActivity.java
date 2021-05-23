@@ -96,6 +96,9 @@ public class SingResultActivity extends AppCompatActivity {
     // 上一个activity中录制的录音
     String voiceFullPath;
 
+    /*===============自弹自唱模式==============*/
+    String pianoScore;
+
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -107,8 +110,10 @@ public class SingResultActivity extends AppCompatActivity {
         Intent intent = getIntent();
         id = intent.getIntExtra("id", 0);
         songName = intent.getStringExtra("songName");
-        callingActivity = getCallingActivity().getClass();
+        pianoScore = intent.getStringExtra("pianoScore");
+        showToast(this, pianoScore);
 
+        callingActivity = getCallingActivity().getClass();
         getFilePaths();
 
         voicePlayer = new SimpleExoPlayer.Builder(this).build();

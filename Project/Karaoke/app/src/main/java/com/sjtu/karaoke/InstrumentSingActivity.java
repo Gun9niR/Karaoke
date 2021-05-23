@@ -291,12 +291,30 @@ public class InstrumentSingActivity extends AppCompatActivity {
 
         finishButton.setOnClickListener(v -> {
             Dialog loadingDialog = showLoadingDialog(this, "正在处理录音");
+            int len = userSequence.size();
 
             new Thread(() -> {
                 stopActivity(true);
+
+                double[] userTimeSequence = new double[len];
+                String[] userChordNameSequence = new String[len];
+                for (int i = 0; i < len; ++i) {
+                    PlayChordRecord r = userSequence.get(i);
+                    userTimeSequence[i] = (double) r.getTime();
+                    userChordNameSequence[i] = r.getChord().getName();
+                }
+                // todo: pass sing score and piano play score
                 Intent intent = new Intent(InstrumentSingActivity.this, SingResultActivity.class);
                 intent.putExtra("id", id);
                 intent.putExtra("songName", songName);
+                intent.putExtra("pianoScore",
+                        com.sjtu.pianorater.PianoRater.getScore(
+                                getChordTransFullPath(songName),
+                                len,
+                                userTimeSequence,
+                                userChordNameSequence
+                        )
+                );
                 startActivityForResult(intent, 0);
                 loadingDialog.dismiss();
             }).start();
