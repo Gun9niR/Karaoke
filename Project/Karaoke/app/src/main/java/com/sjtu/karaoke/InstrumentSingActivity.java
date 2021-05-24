@@ -300,7 +300,7 @@ public class InstrumentSingActivity extends AppCompatActivity {
                 String[] userChordNameSequence = new String[len];
                 for (int i = 0; i < len; ++i) {
                     PlayChordRecord r = userSequence.get(i);
-                    userTimeSequence[i] = (double) r.getTime();
+                    userTimeSequence[i] = (double) (r.getTime() - startTime);
                     userChordNameSequence[i] = r.getChord().getName();
                 }
                 // todo: pass sing score and piano play score
