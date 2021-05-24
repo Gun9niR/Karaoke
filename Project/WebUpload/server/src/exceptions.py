@@ -12,3 +12,6 @@ class UploadQuantityException(Exception):
 
 class SongNotExistException(Exception):
     pass
+
+class InvalidSongSegment(Exception):
+    pass

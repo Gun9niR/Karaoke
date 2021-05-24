@@ -1,5 +1,6 @@
 import os
 import shutil
+from src.exceptions import InvalidSongSegment
 import subprocess
 from flask import current_app as app
 from . import socketio
@@ -52,8 +53,13 @@ def trans_chord(real_app, org_chord_path, song_info):
 def generate_instrument_sing_files(real_app, chord_path, lyric_path, original_path, song_info):
 
     start_time, end_time = read_chord(chord_path)
+    
+    if start_time - app.config['BUTTON_ANI_SEC'] < 0:
+        raise InvalidSongSegment
+
     lrc_thread = Thread(target=trim_lrc, args=(real_app, lyric_path, start_time, end_time,))
-    track_thread = Thread(target=separate_audio_track, args=(real_app, original_path, start_time, end_time))
+    track_thread = Thread(target=separate_audio_track, args=(real_app, original_path, 
+                                                             start_time - app.config['BUTTON_ANI_SEC'], end_time,))
 
     lrc_thread.start()
     track_thread.start()
