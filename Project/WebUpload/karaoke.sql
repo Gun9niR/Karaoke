@@ -16,4 +16,8 @@ create table songs (
    unique key `unique_song` (`song_name`, `singer`)
 ) charset = utf8;
 
+insert into songs values (
+   NULL,  'Attention', 'Charlie Puth', 
+   '.', '.', '.', '.', '.', '.', '.', '.'
+);
 

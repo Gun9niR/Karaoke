@@ -6,7 +6,7 @@ import Songs from '../components/Songs.vue';
 
 Vue.use(Router);
 
-export default new Router({
+const router = new Router({
   mode: 'history',
   base: process.env.BASE_URL,
   routes: [
@@ -27,6 +27,27 @@ export default new Router({
       path: '/songs',
       name: 'Songs',
       component: Songs,
+      meta : {
+        requireAuth: true, 
+      },
     }
   ]
 });
+
+router.beforeEach((to, from, next) => {
+  if (to.matched.some((r) => r.meta.requireAuth)) {
+    const user = localStorage.getItem('user');
+    if (user && Object.keys(user).length !== 0) {
+      next();
+    } else {
+      next({
+        path: '/login',
+        query: {redirect: to.fullPath}
+      });
+    }
+  } else {
+    next();
+  }
+});
+
+export default router;
