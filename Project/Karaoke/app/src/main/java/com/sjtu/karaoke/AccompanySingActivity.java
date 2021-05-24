@@ -250,17 +250,24 @@ public class AccompanySingActivity extends AppCompatActivity {
 
     private void initMVPlayer() {
         // set up mv player and the view it should attach to
-        mvPlayer = new SimpleExoPlayer.Builder(this).build();
-        PlayerView mvPlayerView = findViewById(R.id.mvView);
-        mvPlayerView.setResizeMode(AspectRatioFrameLayout.RESIZE_MODE_FILL);
-        mvPlayerView.setPlayer(mvPlayer);
-        mvPlayerView.setUseController(false);
+        this.runOnUiThread(new Runnable() {
 
-        File mvFile = new File(getMVFullPath(songName));
-        MediaItem mv = MediaItem.fromUri(Uri.fromFile(mvFile));
-        mvPlayer.setMediaItem(mv);
-        mvPlayer.prepare();
-        mvPlayer.setVolume(0);
+            @Override
+            public void run() {
+                mvPlayer = new SimpleExoPlayer.Builder(AccompanySingActivity.this).build();
+                File mvFile = new File(getMVFullPath(songName));
+                MediaItem mv = MediaItem.fromUri(Uri.fromFile(mvFile));
+                mvPlayer.setMediaItem(mv);
+                mvPlayer.prepare();
+                mvPlayer.setVolume(0);
+
+                PlayerView mvPlayerView = findViewById(R.id.mvView);
+                mvPlayerView.setResizeMode(AspectRatioFrameLayout.RESIZE_MODE_FILL);
+                mvPlayerView.setPlayer(mvPlayer);
+                mvPlayerView.setUseController(false);
+            }
+        });
+
     }
 
     @RequiresApi(api = Build.VERSION_CODES.N)
@@ -336,8 +343,11 @@ public class AccompanySingActivity extends AppCompatActivity {
      * Mute original, unmute accompany
      */
     private void muteOriginal() {
-        accompanyPlayer.setVolume(1);
-        originalPlayer.setVolume(0);
+        this.runOnUiThread(() -> {
+            accompanyPlayer.setVolume(1);
+            originalPlayer.setVolume(0);
+        });
+
     }
 
     /**
@@ -384,43 +394,49 @@ public class AccompanySingActivity extends AppCompatActivity {
 
     private void initBottomNavbar() {
         bottomNavigationView = findViewById(R.id.bottomNavigationView);
-        bottomNavigationView.setBackground(null);
-        // 禁用中间的占位item
-        bottomNavigationView.getMenu().getItem(0).setTitle("伴唱");
-        bottomNavigationView.getMenu().getItem(1).setEnabled(false);
-        // 禁用完成，因为录音还没有开始
-        disableFinishButton();
+        this.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                bottomNavigationView.setBackground(null);
+                // 禁用中间的占位item
+                bottomNavigationView.getMenu().getItem(0).setTitle("伴唱");
+                bottomNavigationView.getMenu().getItem(1).setEnabled(false);
+                // 禁用完成，因为录音还没有开始
+                disableFinishButton();
 
-        bottomNavigationView.setOnNavigationItemSelectedListener(
-                item -> {
-                    switch (item.getItemId()) {
-                        case R.id.singingMode:
-                            if (singMode == SingMode.WITH_ORIGINAL) {
-                                item.setTitle("伴唱");
-                                withOriginalMode();
-                            } else {
-                                item.setTitle("原唱");
-                                withoutOriginalMode();
+                bottomNavigationView.setOnNavigationItemSelectedListener(
+                        item -> {
+                            switch (item.getItemId()) {
+                                case R.id.singingMode:
+                                    if (singMode == SingMode.WITH_ORIGINAL) {
+                                        item.setTitle("伴唱");
+                                        withOriginalMode();
+                                    } else {
+                                        item.setTitle("原唱");
+                                        withoutOriginalMode();
+                                    }
+                                    break;
+                                case R.id.singingFinish:
+                                    // it has to be placed here, to wait for the merging to complete
+                                    Dialog loadingDialog = showLoadingDialog(AccompanySingActivity.this, "正在处理录音");
+
+                                    new Thread(() -> {
+                                        stopActivity(true);
+                                        Intent intent = new Intent(getApplicationContext(), SingResultActivity.class);
+                                        intent.putExtra("id", id);
+                                        intent.putExtra("songName", songName);
+                                        startActivityForResult(intent, 0);
+                                        loadingDialog.dismiss();
+                                    }).start();
+
+                                    break;
                             }
-                            break;
-                        case R.id.singingFinish:
-                            // it has to be placed here, to wait for the merging to complete
-                            Dialog loadingDialog = showLoadingDialog(this, "正在处理录音");
+                            return false;
+                        }
+                );
+            }
+        });
 
-                            new Thread(() -> {
-                                stopActivity(true);
-                                Intent intent = new Intent(getApplicationContext(), SingResultActivity.class);
-                                intent.putExtra("id", id);
-                                intent.putExtra("songName", songName);
-                                startActivityForResult(intent, 0);
-                                loadingDialog.dismiss();
-                            }).start();
-
-                            break;
-                    }
-                    return false;
-                }
-        );
     }
 
     private void withOriginalMode() {
