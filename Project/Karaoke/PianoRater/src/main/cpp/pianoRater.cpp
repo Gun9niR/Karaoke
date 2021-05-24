@@ -22,9 +22,7 @@ Java_com_sjtu_pianorater_PianoRater_getScore(JNIEnv *env, jclass clazz, jstring 
         jstring str = static_cast<jstring>(env->GetObjectArrayElement(_chordName, i));
         const char* s = env->GetStringUTFChars(str,NULL);
         chordName[i] = s;
-        originChord[i] = *env->GetDoubleArrayElements(_chord, NULL);
-        __android_log_print(ANDROID_LOG_INFO, "Rater",
-                            "获取java的参数:%s\n", s);
+        originChord[i] = env->GetDoubleArrayElements(_chord, NULL)[i];
     }
     return env->NewStringUTF(runRater().c_str());
 }
@@ -55,7 +53,7 @@ void readFile() {
     file >> timePerBeat >> beatN >> beatM >> startTime >> endTime;
     getline(file, str);getline(file, str);
     beatCount = (endTime - startTime) / timePerBeat + 0.5;
-    beat = new Beat[beatCount];
+    beat = new Beat[beatCount + 5];
     //读入和弦字典
     while (getline(file, str)) {
         if (str == "")  break;
