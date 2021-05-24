@@ -3,10 +3,13 @@
     <el-header class="header-wrapper">
       <h1 class="header-title">添加歌曲</h1>
       <div class="header-button">
-        <el-button size="middle" type="success" @click="onSubmit" :loading="uploading">上传文件</el-button>
+        <el-button size="middle" type="success" @click="onSubmit">上传文件</el-button>
       </div>
       <div class="header-button">
         <el-button size="middle" @click="redirectToSongs">查看曲库</el-button>
+      </div>
+      <div class="header-button">
+        <el-button size="middle" @click="drawer = true">查看上传</el-button>
       </div>
     </el-header>
 
@@ -21,27 +24,55 @@
           </el-col>
           <el-col :span="8">
             <instrument-sing-form ref="instrumentSing" class="upload-card" />
-            <!-- <rating-form ref="rating" id="rating-form" class="upload-card" /> -->
           </el-col>
         </el-row>
       </div>
+
+      <el-drawer
+        class="drawer"
+        title="上传歌曲"
+        :visible.sync="drawer"
+        direction="btt">
+        <div v-if="this.$store.state.uploadRequests.length === 0" class="empty-upload">
+          没有正在上传的歌曲
+        </div>
+        <ul v-else style="list-style: none;">
+          <li v-for="song in this.$store.state.uploadRequests" :key="song.songInfo">
+            <progress-monitor 
+              :song-info="song.songInfo" 
+              :uploadFinished="song.uploadFinished"
+              :chordFinished="song.chordFinished"
+              :instrumentFinished="song.instrumentFinished"
+              :rateFinished="song.rateFinished"
+              :socket="socket"
+            />
+          </li>
+        </ul>
+      </el-drawer>
     </el-main>
 
   </el-container>
 </template>
 
 <script>
+const io = require('socket.io-client')
+
 import axios from 'axios';
 import SongInfoForm from "./SongInfoForm";
 import AccompanySingForm from "./AccompanySingForm";
 import InstrumentSingForm from "./InstrumentSingForm";
-// import RatingForm from './RatingForm.vue';
+import ProgressMonitor from "./ProgressMonitor";
 
 export default {
   data() {
     return {
-      uploading: false,
+      socket: io('127.0.0.1:5000/karaoke', {
+        transports: ['websocket']
+      }),
+      striped: true,
       files: [],
+      progress: [],
+      drawer: false,
     };
   },
 
@@ -49,19 +80,39 @@ export default {
     SongInfoForm,
     AccompanySingForm,
     InstrumentSingForm,
-    // RatingForm, 
+    ProgressMonitor,
+  },
+
+  mounted() {
+    this.socket.on('upload', (songInfo) => {
+      console.log('receive upload');
+      this.$store.commit('onUploadFinish', songInfo);
+    });
+    this.socket.on('chord', (songInfo) => {
+      console.log('receive chord');
+      this.$store.commit('onChordFinish', songInfo);
+    });
+    this.socket.on('instrument', (songInfo) => {
+      console.log('receive instrument');
+      this.$store.commit('onInstrumentFinish', songInfo);
+    });
+    this.socket.on('rate', (songInfo) => {
+      console.log('receive rate');
+      this.$store.commit('onRateFinish', songInfo);
+    });
   },
 
   methods: {
+
     redirectToSongs() {
       this.$router.push({path: '/songs'});
     },
+
     onSubmit() {
-
-      this.uploading = true;
-
       let config = { 
-        headers: { "Content-Type": "multipart/form-data" }
+        headers: { 
+          "Content-Type": "multipart/form-data",
+        }
       };
       let uploadForm = new FormData();
 
@@ -90,16 +141,18 @@ export default {
       }
 
       let instrumentFiles = this.$refs.instrumentSing.uploadFiles;
-      if (Object.keys(instrumentFiles).length !== 2) {
+      if (Object.keys(instrumentFiles).length !== 1) {
         this.$message.error("请上传自弹自唱模式相关文件！");
         return;
       }
 
-      // let ratingFiles = this.$refs.rating.uploadFiles;
-      // if (Object.keys(ratingFiles).length !== 1) {
-      //   this.$message.error("请上传歌曲打分相关文件！");
-      //   return;
-      // }
+      let songInfo = songName + '-' + singer;
+      this.$store.state.uploadRequests.forEach(song => {
+        if (song.songInfo === songInfo) {
+          this.$message.error('上传歌曲重复!');
+          return;
+        }
+      });
 
       uploadForm.append('song_name', songName);
       uploadForm.append('singer', singer);
@@ -111,28 +164,36 @@ export default {
       for (let key in instrumentFiles) 
         uploadForm.append(key, instrumentFiles[key]);
 
-      // for (let key in ratingFiles)
-      //   uploadForm.append(key, ratingFiles[key]);
+      let songRequest = {
+        songInfo: songInfo,
+        uploadFinished: false,
+        chordFinished: false,
+        instrumentFinished: false,
+        rateFinished: false,
+      }
+      this.$store.commit('addUploadingSong', songRequest);
+
+      this.$refs.songInfo.clearInfo();
+      this.$refs.accompanySing.clearFiles();
+      this.$refs.instrumentSing.clearFiles();
 
       const url = process.env.VUE_APP_AJAX_URL + '/uploadSong';
-
       axios.post(url, uploadForm, config)
         .then(() => {
-            this.$message({
-              message: '歌曲上传成功！',
-              type: 'success',
-            });
-            this.$refs.songInfo.clearInfo();
-            this.$refs.accompanySing.clearFiles();
-            this.$refs.instrumentSing.clearFiles();
-            this.$refs.rating.clearFiles();
-            this.uploading = false;
-          })
-          .catch(() => {
-            this.$message.error('歌曲上传失败。');
-            this.uploading = false;
+          this.$store.commit('deleteUploadingSong', songInfo);
+          this.$message({
+            message: songInfo + '上传成功！',
+            type: 'success',
           });
-    }
+        })
+        .catch(() => {
+          this.$store.commit('deleteUploadingSong', songInfo);
+          this.$message({
+            message: songInfo + '上传失败！',
+            type: 'error',
+          });        
+        });
+    },
   },
 
   computed: {
@@ -174,7 +235,7 @@ export default {
 }
 
 .box-card {
-  max-width: 400px;
+  width: 400px;
   height: 450px;
 }
 
@@ -195,6 +256,11 @@ export default {
 }
 .clearfix:after {
   clear: both
+}
+
+.empty-upload {
+  left: 20%;
+  margin: 3% 45%;
 }
 
 </style>

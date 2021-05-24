@@ -4,6 +4,7 @@
       <h1 class="header-title">曲库</h1>
       <div class="header-button">
         <el-button size="middle" type="success" @click="redirectToUpload">添加歌曲</el-button>
+        <logout-button />
       </div>
     </el-header>
 
@@ -57,6 +58,7 @@
 import axios from 'axios';
 import SongInfoEditer from './SongInfoEditer';
 import SongUploadDialog from './SongUploadDialog';
+import LogoutButton from './LogoutButton';
 
 export default {
   data() {
@@ -70,6 +72,7 @@ export default {
   components: {
     SongInfoEditer,
     SongUploadDialog,
+    LogoutButton,
   },
 
   methods: {
@@ -127,6 +130,7 @@ export default {
           alert("Error!");
         });
     },
+
     deleteSong(song, instance, done) {
       const url = process.env.VUE_APP_AJAX_URL + '/deleteSong';
       axios.delete(url, { data: { id: song.id }})
@@ -140,6 +144,7 @@ export default {
           alert("Error!");
         });
     },
+
     submitSongInfo(song) {
       const url = process.env.VUE_APP_AJAX_URL + '/updateSongInfo';
       axios.post(url, song)
@@ -193,6 +198,7 @@ export default {
 
   created() {
     this.getSongData();
+    // this.socket.emit('connect');
   }
 };
 </script>
@@ -219,7 +225,7 @@ export default {
 }
 
 .box-card {
-  max-width: 400px;
+  width: 400px;
   height: 450px;
 }
 

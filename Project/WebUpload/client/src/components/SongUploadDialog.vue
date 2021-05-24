@@ -87,7 +87,7 @@ export default {
               label: '原唱音频',
             },
             {
-              value: 'accompany_accompany',
+              value: 'accompany',
               label: '伴奏音频',
             },
             {
@@ -105,12 +105,8 @@ export default {
           label: '自弹自唱模式',
           children: [
             {
-              value: 'instrument',
+              value: 'chord',
               label: '和弦',
-            },
-            {
-              value: 'accompany_instrument',
-              label: '伴奏',
             },
           ],
         },
@@ -125,11 +121,10 @@ export default {
     fileSuffix: function() {
       const typeToSuffix = {
         'original': 'wav',
-        'accompany_accompany': 'wav',
+        'accompany': 'wav',
         'lyric': 'lrc',
         'mv': 'mp4',
-        'instrument': 'txt',
-        'accompany_instrument': 'wav',
+        'chord': 'txt',
       };
       if (this.field in typeToSuffix)
         return typeToSuffix[this.field];
