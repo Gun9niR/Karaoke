@@ -31,6 +31,7 @@ import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.sjtu.karaoke.entity.Chord;
 import com.sjtu.karaoke.entity.PlayChordRecord;
 import com.sjtu.karaoke.entity.Score;
+import com.sjtu.pianorater.PianoRater;
 
 import org.apache.commons.io.FileUtils;
 import org.sang.lrcview.LrcView;
@@ -300,15 +301,17 @@ public class InstrumentSingActivity extends AppCompatActivity {
                 String[] userChordNameSequence = new String[len];
                 for (int i = 0; i < len; ++i) {
                     PlayChordRecord r = userSequence.get(i);
-                    userTimeSequence[i] = (double) (r.getTime() - startTime);
+                    userTimeSequence[i] = (double) (r.getTime() - HINT_DURATION);
                     userChordNameSequence[i] = r.getChord().getName();
+                    System.out.println("=========");
+                    System.out.println(userTimeSequence[i]);
                 }
                 // todo: pass sing score and piano play score
                 Intent intent = new Intent(InstrumentSingActivity.this, SingResultActivity.class);
                 intent.putExtra("id", id);
                 intent.putExtra("songName", songName);
                 intent.putExtra("pianoScore",
-                        com.sjtu.pianorater.PianoRater.getScore(
+                        PianoRater.getScore(
                                 getChordTransFullPath(songName),
                                 len,
                                 userTimeSequence,
@@ -603,7 +606,9 @@ public class InstrumentSingActivity extends AppCompatActivity {
         terminateExoPlayer(this, accompanyPlayer);
 
         voiceRecorder.stopRecord(shouldMergePcm);
-        mergeUserChords(userSequence);
+        if (shouldMergePcm) {
+            mergeUserChords(userSequence);
+        }
         lrcView.alertPlayerReleased();
         resetProgressBar();
     }
