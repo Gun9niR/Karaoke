@@ -1,7 +1,6 @@
 .DS_Store
 Project/WebUpload/client/node_modules
 Project/WebUpload/.vscode
-Project/WebUpload/client/.env
 Project/WebUpload/server/__pycache__/
 UIPrototype/Karaoke/.idea/
 UIPrototype/Karaoke/.gradle/
