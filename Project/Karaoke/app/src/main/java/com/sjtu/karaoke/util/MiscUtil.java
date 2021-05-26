@@ -125,14 +125,18 @@ public class MiscUtil {
         toast.show();
     }
 
+    public static LoadingDialog showLoadingDialog(Activity activity, String text) {
+        return showLoadingDialog(activity, text, false);
+    }
+
     /**
      * Display loading dialog, with provided text as hint
      *
      * @param activity
      * @param text
      */
-    public static LoadingDialog showLoadingDialog(Activity activity, String text) {
-        LoadingDialog loadingDialog = new LoadingDialog(activity, text);
+    public static LoadingDialog showLoadingDialog(Activity activity, String text, boolean showProgress) {
+        LoadingDialog loadingDialog = new LoadingDialog(activity, text, showProgress);
 
         loadingDialog.show();
         return loadingDialog;

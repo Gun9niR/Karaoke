@@ -2,6 +2,8 @@ package com.sjtu.karaoke.util;
 
 import android.util.Log;
 
+import com.sjtu.karaoke.component.LoadingDialog;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -68,7 +70,40 @@ public class FileUtil {
         AtomicInteger numOfFilesDownloaded = new AtomicInteger(0);
 
         for (int i = 0; i < numOfFilesToDownload; ++i) {
-            downloadFile(urls[i], destFullPaths[i], countDownLatch, numOfFilesDownloaded);
+            downloadFile(urls[i], destFullPaths[i]);
+        }
+
+        try {
+            countDownLatch.await();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        if (numOfFilesDownloaded.get() == numOfFilesToDownload) {
+            return true;
+        } else {
+            for (String destFullPath: destFullPaths) {
+                deleteOneFile(destFullPath);
+            }
+            return false;
+        }
+    }
+
+    /**
+     * Same effect as previous method, except update progress bar
+     *
+     * @param urls
+     * @param destFullPaths
+     * @return true if all files are downloaded successfully or exist already, false otherwise
+     */
+    public static boolean downloadFiles(String[] urls, String[] destFullPaths, LoadingDialog loadingDialog) {
+        int numOfFilesToDownload = urls.length;
+
+        CountDownLatch countDownLatch = new CountDownLatch(numOfFilesToDownload);
+        AtomicInteger numOfFilesDownloaded = new AtomicInteger(0);
+
+        for (int i = 0; i < numOfFilesToDownload; ++i) {
+            downloadFile(urls[i], destFullPaths[i], countDownLatch, numOfFilesDownloaded, loadingDialog, 100 / numOfFilesToDownload);
         }
 
         try {
@@ -93,7 +128,33 @@ public class FileUtil {
      * @param url          Url to send the request to
      * @param destFullPath Destination to save the file
      */
-    public static void downloadFile(String url, String destFullPath, CountDownLatch countDownLatch, AtomicInteger numOfFilesDownloaded) {
+    public static void downloadFile(String url, String destFullPath) {
+        System.out.println("========== Downloading from " + url + " to " + destFullPath + " ==========");
+        getRequest(url, new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                Log.e("downloadFile", "Failed to download file from " + url);
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) {
+                // receive and save the file
+                if (!saveFileFromResponse(response, destFullPath)) {
+                    Log.e("downloadFile", "Failed to save file at " + destFullPath);
+                }
+            }
+        });
+    }
+
+    /**
+     * Download one file from url to destFullPath, and update loadingDialog
+     */
+    public static void downloadFile(String url,
+                                    String destFullPath,
+                                    CountDownLatch countDownLatch,
+                                    AtomicInteger numOfFilesDownloaded,
+                                    LoadingDialog loadingDialog,
+                                    int increment) {
         System.out.println("========== Downloading from " + url + " to " + destFullPath + " ==========");
         getRequest(url, new Callback() {
             @Override
@@ -103,7 +164,7 @@ public class FileUtil {
                         countDownLatch.countDown();
                     }
                 }
-                Log.e("Error when downloading file", "Failed to download file " + destFullPath);
+                Log.e("downloadFile", "Failed to download file from " + url);
             }
 
             @Override
@@ -114,6 +175,7 @@ public class FileUtil {
                     if (countDownLatch != null) {
                         countDownLatch.countDown();
                         numOfFilesDownloaded.incrementAndGet();
+                        loadingDialog.incrementProgress(increment);
                     }
                 } else {
                     while (countDownLatch.getCount() != 0) {

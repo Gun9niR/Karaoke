@@ -170,7 +170,7 @@ public class InstrumentSingActivity extends AppCompatActivity {
         super.onStart();
 
         if (state == State.UNSTARTED) {
-            LoadingDialog loadingDialog = showLoadingDialog(this, "正在初始化");
+            LoadingDialog loadingDialog = showLoadingDialog(this, "正在初始化", true);
 
             new Thread(() -> {
                 parseChordFile();
