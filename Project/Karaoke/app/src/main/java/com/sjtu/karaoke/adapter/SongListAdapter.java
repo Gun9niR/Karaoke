@@ -20,33 +20,40 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.sjtu.karaoke.AccompanySingActivity;
 import com.sjtu.karaoke.InstrumentSingActivity;
 import com.sjtu.karaoke.R;
+import com.sjtu.karaoke.component.LoadingDialog;
 import com.sjtu.karaoke.entity.SongInfo;
 
 import java.util.List;
 
 import static com.sjtu.karaoke.util.Constants.GET_ACCOMPANY_URL;
+import static com.sjtu.karaoke.util.Constants.GET_BASS_URL;
 import static com.sjtu.karaoke.util.Constants.GET_CHORD_URL;
+import static com.sjtu.karaoke.util.Constants.GET_DRUM_URL;
 import static com.sjtu.karaoke.util.Constants.GET_LYRIC_INSTRUMENT_URL;
 import static com.sjtu.karaoke.util.Constants.GET_LYRIC_URL;
 import static com.sjtu.karaoke.util.Constants.GET_MV_URL;
+import static com.sjtu.karaoke.util.Constants.GET_ORCHESTRA_URL;
 import static com.sjtu.karaoke.util.Constants.GET_ORIGINAL_URL;
 import static com.sjtu.karaoke.util.Constants.GET_RATE_URL;
 import static com.sjtu.karaoke.util.FileUtil.areFilesPresent;
 import static com.sjtu.karaoke.util.FileUtil.downloadFiles;
 import static com.sjtu.karaoke.util.FileUtil.isFilePresent;
 import static com.sjtu.karaoke.util.MiscUtil.downloadAndSetAlbumCover;
-import static com.sjtu.karaoke.util.PathUtil.getAccompanyFullPath;
-import static com.sjtu.karaoke.util.PathUtil.getAccompanyLyricFullPath;
-import static com.sjtu.karaoke.util.PathUtil.getAlbumCoverFullPath;
-import static com.sjtu.karaoke.util.PathUtil.getChordTransFullPath;
-import static com.sjtu.karaoke.util.PathUtil.getLyricInstrumentFullPath;
-import static com.sjtu.karaoke.util.PathUtil.getMVFullPath;
-import static com.sjtu.karaoke.util.PathUtil.getOriginalFullPath;
-import static com.sjtu.karaoke.util.PathUtil.getRateFullPath;
 import static com.sjtu.karaoke.util.MiscUtil.getRequestParamFromId;
 import static com.sjtu.karaoke.util.MiscUtil.setImageFromFile;
 import static com.sjtu.karaoke.util.MiscUtil.showLoadingDialog;
 import static com.sjtu.karaoke.util.MiscUtil.showToast;
+import static com.sjtu.karaoke.util.PathUtil.getAccompanyFullPath;
+import static com.sjtu.karaoke.util.PathUtil.getAccompanyLyricFullPath;
+import static com.sjtu.karaoke.util.PathUtil.getAlbumCoverFullPath;
+import static com.sjtu.karaoke.util.PathUtil.getBassFullPath;
+import static com.sjtu.karaoke.util.PathUtil.getChordTransFullPath;
+import static com.sjtu.karaoke.util.PathUtil.getDrumFullPath;
+import static com.sjtu.karaoke.util.PathUtil.getLyricInstrumentFullPath;
+import static com.sjtu.karaoke.util.PathUtil.getMVFullPath;
+import static com.sjtu.karaoke.util.PathUtil.getOrchestraFullPath;
+import static com.sjtu.karaoke.util.PathUtil.getOriginalFullPath;
+import static com.sjtu.karaoke.util.PathUtil.getRateFullPath;
 
 /*
  * @ClassName: SongListAdapter
@@ -71,10 +78,10 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.ViewHo
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
-            songName = (TextView) itemView.findViewById(R.id.songName);
-            singer = (TextView) itemView.findViewById(R.id.singer);
-            image = (ImageView) itemView.findViewById(R.id.cover);
-            btnSing = (Button) itemView.findViewById(R.id.btnSing);
+            songName = itemView.findViewById(R.id.songName);
+            singer = itemView.findViewById(R.id.singer);
+            image = itemView.findViewById(R.id.cover);
+            btnSing = itemView.findViewById(R.id.btnSing);
         }
     }
 
@@ -125,7 +132,7 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.ViewHo
                 // 伴奏演唱模式
                 chooseModeDialog.dismiss();
 
-                Dialog loadingDialog = showLoadingDialog(activity, "正在下载文件...");
+                LoadingDialog loadingDialog = showLoadingDialog(activity, "正在下载文件...");
 
                 new Thread(() -> {
                     boolean isSuccess = downloadAccompanySingFiles(selectedSong);
@@ -146,7 +153,7 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.ViewHo
             btnInsMode.setOnClickListener(view13 -> {
                 chooseModeDialog.dismiss();
 
-                Dialog loadingDialog = showLoadingDialog(activity, "正在下载文件...");
+                LoadingDialog loadingDialog = showLoadingDialog(activity, "正在下载文件...");
 
                 new Thread(() -> {
                     boolean isSuccess = downloadInstrumentSingFiles(selectedSong);
@@ -229,12 +236,18 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.ViewHo
         // download instrument_lyric
         // download rating txt
         // download chords
+        // download drum
+        // download bass
+        // download orchestra
 
         String[] destFullPaths = {
                 getAccompanyFullPath(songName),
                 getLyricInstrumentFullPath(songName),
                 getRateFullPath(songName),
                 getChordTransFullPath(songName),
+                getDrumFullPath(songName),
+                getBassFullPath(songName),
+                getOrchestraFullPath(songName),
         };
 
         if (areFilesPresent(destFullPaths)) {
@@ -246,6 +259,9 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.ViewHo
                 GET_LYRIC_INSTRUMENT_URL + requestParam,
                 GET_RATE_URL + requestParam,
                 GET_CHORD_URL + requestParam,
+                GET_DRUM_URL + requestParam,
+                GET_BASS_URL + requestParam,
+                GET_ORCHESTRA_URL + requestParam
         };
 
         return downloadFiles(urls, destFullPaths);

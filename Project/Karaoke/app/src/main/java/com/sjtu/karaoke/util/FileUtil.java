@@ -125,13 +125,17 @@ public class FileUtil {
     }
 
     public static boolean saveFileFromResponse(Response response, String destPath) {
+        if (!response.isSuccessful()) {
+            return false;
+        }
         File destFile = new File(destPath);
         try {
             if (destFile.exists()) {
                 destFile.delete();
             }
-            BufferedSink sink = Okio.buffer(Okio.sink(destFile));
+
             System.out.println("========== Saving file to " + destPath + " ==========");
+            BufferedSink sink = Okio.buffer(Okio.sink(destFile));
             sink.writeAll(response.body().source());
             sink.close();
             return true;

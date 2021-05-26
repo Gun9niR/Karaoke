@@ -1,6 +1,5 @@
 package com.sjtu.karaoke;
 
-import android.app.Dialog;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
@@ -29,6 +28,7 @@ import com.google.android.exoplayer2.ui.AspectRatioFrameLayout;
 import com.google.android.exoplayer2.ui.PlayerView;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.sjtu.karaoke.component.LoadingDialog;
 import com.sjtu.karaoke.entity.Score;
 
 import org.sang.lrcview.LrcView;
@@ -52,14 +52,14 @@ import static com.sjtu.karaoke.util.Constants.RECORD_DELAY_LB;
 import static com.sjtu.karaoke.util.Constants.RECORD_DELAY_UB;
 import static com.sjtu.karaoke.util.MediaPlayerUtil.loadAudioFileAndPrepareExoPlayer;
 import static com.sjtu.karaoke.util.MediaPlayerUtil.terminateExoPlayer;
+import static com.sjtu.karaoke.util.MiscUtil.parseScore;
+import static com.sjtu.karaoke.util.MiscUtil.showLoadingDialog;
+import static com.sjtu.karaoke.util.MiscUtil.showToast;
 import static com.sjtu.karaoke.util.PathUtil.getAccompanyFullPath;
 import static com.sjtu.karaoke.util.PathUtil.getAccompanyLyricFullPath;
 import static com.sjtu.karaoke.util.PathUtil.getMVFullPath;
 import static com.sjtu.karaoke.util.PathUtil.getOriginalFullPath;
 import static com.sjtu.karaoke.util.PathUtil.getRateFullPath;
-import static com.sjtu.karaoke.util.MiscUtil.parseScore;
-import static com.sjtu.karaoke.util.MiscUtil.showLoadingDialog;
-import static com.sjtu.karaoke.util.MiscUtil.showToast;
 import static com.sjtu.karaoke.util.WavUtil.getWAVDuration;
 /*
  * @ClassName: AccompanySingActivity
@@ -129,7 +129,7 @@ public class AccompanySingActivity extends AppCompatActivity {
         super.onStart();
         // return from sing refsult activity or from main activity, initialize all players
         if (state == State.UNSTARTED) {
-            Dialog loadingDialog = showLoadingDialog(this, "正在初始化");
+            LoadingDialog loadingDialog = showLoadingDialog(this, "正在初始化");
 
             new Thread(() -> {
                 // Player-related initialization
@@ -418,7 +418,7 @@ public class AccompanySingActivity extends AppCompatActivity {
                                     break;
                                 case R.id.singingFinish:
                                     // it has to be placed here, to wait for the merging to complete
-                                    Dialog loadingDialog = showLoadingDialog(AccompanySingActivity.this, "正在处理录音");
+                                    LoadingDialog loadingDialog = showLoadingDialog(AccompanySingActivity.this, "正在处理录音");
 
                                     new Thread(() -> {
                                         stopActivity(true);

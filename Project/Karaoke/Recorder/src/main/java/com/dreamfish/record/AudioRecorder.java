@@ -269,7 +269,6 @@ public class AudioRecorder {
                             PcmToWav.makePCMFileToWAVFile(pcmFullPath, wavFullPath, false);
 
                             f0analysis(wavFullPath, currentPcmStartTime);
-                            System.out.println(startTime + ": f0a complete");
                             f0Complete.add(startTime);
                         }
                     }).start();

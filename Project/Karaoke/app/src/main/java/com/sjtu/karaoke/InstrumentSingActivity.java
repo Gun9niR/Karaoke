@@ -1,6 +1,5 @@
 package com.sjtu.karaoke;
 
-import android.app.Dialog;
 import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.graphics.Typeface;
@@ -28,6 +27,7 @@ import androidx.core.content.ContextCompat;
 import com.arthenica.mobileffmpeg.FFmpeg;
 import com.dreamfish.record.AudioRecorder;
 import com.google.android.exoplayer2.SimpleExoPlayer;
+import com.sjtu.karaoke.component.LoadingDialog;
 import com.sjtu.karaoke.entity.Chord;
 import com.sjtu.karaoke.entity.PlayChordRecord;
 import com.sjtu.karaoke.entity.Score;
@@ -170,23 +170,33 @@ public class InstrumentSingActivity extends AppCompatActivity {
         super.onStart();
 
         if (state == State.UNSTARTED) {
-            Dialog loadingDialog = showLoadingDialog(this, "正在初始化");
+            LoadingDialog loadingDialog = showLoadingDialog(this, "正在初始化");
 
             new Thread(() -> {
                 parseChordFile();
+                loadingDialog.setProgress(15);
+
                 initSoundPool();
+                loadingDialog.setProgress(25);
+
                 initInstrumentButtons();
+                loadingDialog.setProgress(40);
 
                 nextPcmSplitTime = PCM_SPLIT_INTERVAL + playbackStartTime;
-
                 initAccompanyPlayer();
+                loadingDialog.setProgress(50);
+
                 initRatingSystem();
+                loadingDialog.setProgress(65);
+
                 initOnCompleteListener();
                 initLrcView();
+                loadingDialog.setProgress(80);
                 initVoiceRecorder();
                 initScore();
+                loadingDialog.setProgress(90);
 
-                nextHintChord = standardSequence.remove(0);
+                nextHintChord = standardSequence.get(0);
                 nextHintTime = getHintTime(nextHintChord.getTime());
 
                 loadingDialog.dismiss();
@@ -276,9 +286,9 @@ public class InstrumentSingActivity extends AppCompatActivity {
             @Override
             public void run() {
                 if (currentPosition > nextHintTime && !standardSequence.isEmpty()) {
-                    displayHint(nextHintTime, nextHintChord);
                     nextHintChord = standardSequence.remove(0);
                     nextHintTime = getHintTime(nextHintChord.getTime());
+                    displayHint(nextHintTime, nextHintChord);
                 }
                 handler.postDelayed(this, 50);
             }
@@ -291,7 +301,7 @@ public class InstrumentSingActivity extends AppCompatActivity {
         retryButton = findViewById(R.id.instrumentRetryBtn);
 
         finishButton.setOnClickListener(v -> {
-            Dialog loadingDialog = showLoadingDialog(this, "正在处理录音");
+            LoadingDialog loadingDialog = showLoadingDialog(this, "正在处理录音");
             int len = userSequence.size();
 
             new Thread(() -> {
@@ -301,11 +311,12 @@ public class InstrumentSingActivity extends AppCompatActivity {
                 String[] userChordNameSequence = new String[len];
                 for (int i = 0; i < len; ++i) {
                     PlayChordRecord r = userSequence.get(i);
-                    userTimeSequence[i] = (double) (r.getTime() - HINT_DURATION);
+                    userTimeSequence[i] = (r.getTime() - HINT_DURATION);
                     userChordNameSequence[i] = r.getChord().getName();
                     System.out.println("=========");
                     System.out.println(userTimeSequence[i]);
                 }
+
                 // todo: pass sing score and piano play score
                 Intent intent = new Intent(InstrumentSingActivity.this, SingResultActivity.class);
                 intent.putExtra("id", id);
@@ -390,8 +401,10 @@ public class InstrumentSingActivity extends AppCompatActivity {
 
             // generate sequence in which buttons display animation
             int time = startTime;
+
             while (scanner.hasNext()) {
                 line = scanner.nextLine();
+                System.out.println(line);
                 String[] params = line.split(" ");
                 int duration = Integer.parseInt(params[1]);
                 standardSequence.add(new PlayChordRecord(nameToChord.get(params[0]), time, duration));
