@@ -1,7 +1,6 @@
 package com.sjtu.karaoke;
 
 import android.annotation.SuppressLint;
-import android.app.Dialog;
 import android.content.Intent;
 import android.graphics.Color;
 import android.net.Uri;
@@ -85,10 +84,6 @@ public class SingResultActivity extends AppCompatActivity {
 
     Integer id;
     String songName;
-
-    private enum From {
-        ACCOMPANY, INSTRUMENT
-    }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
@@ -533,5 +528,9 @@ public class SingResultActivity extends AppCompatActivity {
 
     private enum State {
         PLAYING, PAUSE, UNSTARTED
+    }
+
+    private enum From {
+        ACCOMPANY, INSTRUMENT
     }
 }

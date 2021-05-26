@@ -3,14 +3,14 @@
 class Beat {
 public:
     Beat(string _chordName = ""): chordName(_chordName) {
-        delay[1] = -1;
-        delay[2] = -1;
-        delay[3] = -1;
-        delay[4] = -1;
+        memset(delay, -1, sizeof(delay));
     }
+    int id;
     string chordName;
-    double delay[5];
+    int delay[SPLIT_NUMBER + 1];
+    void insert(double time);
     double getScore();
+    double calcScoreWithMath(double delay);
 };
 
 extern "C"
