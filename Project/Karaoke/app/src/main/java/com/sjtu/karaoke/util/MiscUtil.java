@@ -2,7 +2,6 @@ package com.sjtu.karaoke.util;
 
 import android.Manifest;
 import android.app.Activity;
-import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
@@ -11,8 +10,6 @@ import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Build;
 import android.util.Log;
@@ -26,7 +23,7 @@ import androidx.annotation.RequiresApi;
 import androidx.core.app.ActivityCompat;
 
 import com.arthenica.mobileffmpeg.FFmpeg;
-import com.sjtu.karaoke.R;
+import com.sjtu.karaoke.component.LoadingDialog;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -131,18 +128,12 @@ public class MiscUtil {
     /**
      * Display loading dialog, with provided text as hint
      *
-     * @param context
+     * @param activity
      * @param text
      */
-    public static Dialog showLoadingDialog(Context context, String text) {
-        Dialog loadingDialog = new Dialog(context);
-        loadingDialog.setContentView(R.layout.dialog_loading);
-        loadingDialog.setCanceledOnTouchOutside(false);
-        if (text != null) {
-            TextView textView = (TextView) (loadingDialog.findViewById(R.id.textLoading));
-            textView.setText(text);
-        }
-        loadingDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+    public static LoadingDialog showLoadingDialog(Activity activity, String text) {
+        LoadingDialog loadingDialog = new LoadingDialog(activity, text);
+
         loadingDialog.show();
         return loadingDialog;
     }

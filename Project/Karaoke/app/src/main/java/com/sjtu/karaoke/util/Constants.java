@@ -33,6 +33,14 @@ public class Constants {
 
     public static final String ACCOMPANY_DIRECTORY = ROOT_DIRECTORY + "accompany/";
 
+    public static final String ACCOMPANY_INSTRUMENT_DIRECTORY = ROOT_DIRECTORY + "i_accompany/";
+
+    public static final String DRUM_DIRECTORY = ACCOMPANY_INSTRUMENT_DIRECTORY + "drum/";
+
+    public static final String BASS_DIRECTORY = ACCOMPANY_INSTRUMENT_DIRECTORY + "bass/";
+
+    public static final String ORCHESTRA_DIRECORY = ACCOMPANY_INSTRUMENT_DIRECTORY + "orchestra/";
+
     public static final String RECORD_DIRECTORY = ROOT_DIRECTORY + "record/";
 
     public static final String ORIGINAL_DIRECTORY = ROOT_DIRECTORY + "original/";
@@ -65,7 +73,7 @@ public class Constants {
     public static final String AUTHORITY = PACKAGE_NAME + ".fileprovider";
 
     // request URL
-    public static final String SERVER_IP = "http://192.168.1.125:5000";
+    public static final String SERVER_IP = "http://10.162.185.109:5000";
 
     public static final String GET_FILE_ROOT_URL = SERVER_IP + "/getFile";
 
@@ -75,9 +83,15 @@ public class Constants {
 
     public static final String GET_ORIGINAL_URL = GET_FILE_ROOT_URL + "/original";
 
-    public static final String GET_ACCOMPANY_URL = GET_FILE_ROOT_URL + "/accompany_accompany";
+    public static final String GET_ACCOMPANY_URL = GET_FILE_ROOT_URL + "/accompany";
 
-    public static final String GET_LYRIC_URL = GET_FILE_ROOT_URL + "/lyric";
+    public static final String GET_DRUM_URL = GET_FILE_ROOT_URL + "/drum";
+
+    public static final String GET_BASS_URL = GET_FILE_ROOT_URL + "/bass";
+
+    public static final String GET_ORCHESTRA_URL = GET_FILE_ROOT_URL + "/orchestra";
+
+    public static final String GET_LYRIC_URL = GET_FILE_ROOT_URL + "/lyric_accompany";
 
     public static final String GET_LYRIC_INSTRUMENT_URL = GET_FILE_ROOT_URL + "/lyric_instrument";
 

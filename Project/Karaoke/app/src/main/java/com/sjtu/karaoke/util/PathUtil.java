@@ -1,6 +1,9 @@
 package com.sjtu.karaoke.util;
 
 import android.content.Context;
+import android.os.Build;
+
+import androidx.annotation.RequiresApi;
 
 import com.dreamfish.record.FileUtil;
 
@@ -12,13 +15,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.sjtu.karaoke.util.Constants.ACCOMPANY_DIRECTORY;
+import static com.sjtu.karaoke.util.Constants.ACCOMPANY_INSTRUMENT_DIRECTORY;
 import static com.sjtu.karaoke.util.Constants.ALBUM_COVER_DIRECTORY;
 import static com.sjtu.karaoke.util.Constants.ASSET_DIRECTORY;
+import static com.sjtu.karaoke.util.Constants.BASS_DIRECTORY;
 import static com.sjtu.karaoke.util.Constants.CHORD_TRANS_DIRECTORY;
 import static com.sjtu.karaoke.util.Constants.CHORD_WAV_DIRECTORY;
+import static com.sjtu.karaoke.util.Constants.DRUM_DIRECTORY;
 import static com.sjtu.karaoke.util.Constants.LYRIC_DIRECTORY;
 import static com.sjtu.karaoke.util.Constants.LYRIC_INSTRUMENT_DIRECTORY;
 import static com.sjtu.karaoke.util.Constants.MV_DIRECTORY;
+import static com.sjtu.karaoke.util.Constants.ORCHESTRA_DIRECORY;
 import static com.sjtu.karaoke.util.Constants.ORIGINAL_DIRECTORY;
 import static com.sjtu.karaoke.util.Constants.PCM_DIRECTORY;
 import static com.sjtu.karaoke.util.Constants.RATE_DIRECTORY;
@@ -29,6 +36,7 @@ import static com.sjtu.karaoke.util.Constants.TRIMMED_VOICE_WAV_DIRECTORY;
 import static com.sjtu.karaoke.util.Constants.USER_PLAY_DIRECTORY;
 import static com.sjtu.karaoke.util.Constants.VOICE_DIRECTORY;
 import static com.sjtu.karaoke.util.FileUtil.isFilePresent;
+import static com.sjtu.karaoke.util.MiscUtil.getRecordName;
 
 public class PathUtil {
 
@@ -68,6 +76,14 @@ public class PathUtil {
         dirs.add(new File(CHORD_WAV_DIRECTORY));
         // 用户弹奏文件
         dirs.add(new File(USER_PLAY_DIRECTORY));
+        // 自弹自唱伴奏
+        dirs.add(new File(ACCOMPANY_INSTRUMENT_DIRECTORY));
+        // drum
+        dirs.add(new File(DRUM_DIRECTORY));
+        // bass
+        dirs.add(new File(BASS_DIRECTORY));
+        // orchestra
+        dirs.add(new File(ORCHESTRA_DIRECORY));
 
         for (File dir : dirs) {
             if (!dir.exists()) {
@@ -84,6 +100,18 @@ public class PathUtil {
 
     public static String getAccompanyFullPath(String songName) {
         return ACCOMPANY_DIRECTORY + songName + ".wav";
+    }
+
+    public static String getDrumFullPath(String songName) {
+        return DRUM_DIRECTORY + songName + ".wav";
+    }
+
+    public static String getBassFullPath(String songName) {
+        return BASS_DIRECTORY + songName + ".wav";
+    }
+
+    public static String getOrchestraFullPath(String songName) {
+        return ORCHESTRA_DIRECORY + songName + ".wav";
     }
 
     public static String getOriginalFullPath(String songName) {
@@ -114,6 +142,11 @@ public class PathUtil {
         return CHORD_TRANS_DIRECTORY + songName + ".chordtrans";
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    public static String getRecordFullPath(int id, String songName) {
+        return RECORD_DIRECTORY + getRecordName(id, songName);
+
+    }
     /*
      * Given asset fileName(with extension), extract it into a temporary folder
      */

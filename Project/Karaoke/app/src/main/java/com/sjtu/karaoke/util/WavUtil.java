@@ -1,31 +1,31 @@
 package com.sjtu.karaoke.util;
 
-import com.arthenica.mobileffmpeg.FFmpeg;
 import com.sjtu.karaoke.waveditor.WavHeader;
 import com.sjtu.karaoke.waveditor.WavReader;
 import com.sjtu.karaoke.waveditor.WavWriter;
 
 import java.io.IOException;
+import java.util.List;
 
 public class WavUtil {
+
     /**
-     * Merge multiple pcm files into one single wav file stored at <destPath>
-     * @param destPath
-     * @param trimmedAccompanyFullPath
-     * @param voiceFullPath
-     * @param accompanyVolume
-     * @param voiceVolume
-     * @param voiceOffset
+     * Merge multiple wav files into one file
+     * @param destPath          Destination path of the output file
+     * @param voiceFullPath     Full path to voice file
+     * @param voiceVolume       Volume of voice
+     * @param accompanyPaths    A list of full paths to accompany files. One file for AccompanySing,
+     *                          three for instrument
+     * @param accompanyVolumes  A list of volumes that corresponds to accompany files
+     * @param voiceOffset       Time in ms for which the voice should be delayed
      */
-    public static void mergeWAVs(String destPath, String trimmedAccompanyFullPath, String voiceFullPath,
-                                   float accompanyVolume, float voiceVolume, int voiceOffset) {
-        FFmpeg.execute("-y" +
-                " -i " + trimmedAccompanyFullPath +
-                " -i " + voiceFullPath +
-                " -filter_complex" +
-                " \"[0]volume=" + accompanyVolume * 2 + ", adelay=" + voiceOffset + "|" + voiceOffset + "[a];" +
-                "[1]volume=" + voiceVolume * 2 + "[b];" +
-                "[a][b]amix=inputs=2:duration=longest:dropout_transition=1\" " + destPath);
+    public static void mergeWAVs(String destPath,
+                                 String voiceFullPath,
+                                 Float voiceVolume,
+                                 List<String> accompanyPaths,
+                                 List<Float> accompanyVolumes,
+                                 int voiceOffset) {
+        // todo: cyx will implement this
     }
 
     /**
