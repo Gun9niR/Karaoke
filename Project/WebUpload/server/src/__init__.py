@@ -15,5 +15,6 @@ db = SQLAlchemy()
 db.init_app(app)
 
 with app.app_context():
+    from src import models
     db.create_all()  # Create sql tables for our data models
     socketio = SocketIO(app, cors_allowed_origins='*', always_connect=True)
