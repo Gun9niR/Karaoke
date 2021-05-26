@@ -1,5 +1,6 @@
 import os
 import shutil
+from src.exceptions import InvalidSongSegment
 import subprocess
 from flask import current_app as app
 from . import socketio
@@ -52,8 +53,9 @@ def trans_chord(real_app, org_chord_path, song_info):
 def generate_instrument_sing_files(real_app, chord_path, lyric_path, original_path, song_info):
 
     start_time, end_time = read_chord(chord_path)
+
     lrc_thread = Thread(target=trim_lrc, args=(real_app, lyric_path, start_time, end_time,))
-    track_thread = Thread(target=separate_audio_track, args=(real_app, original_path, start_time, end_time))
+    track_thread = Thread(target=separate_audio_track, args=(real_app, original_path, start_time, end_time,))
 
     lrc_thread.start()
     track_thread.start()
@@ -68,6 +70,11 @@ def generate_instrument_sing_files(real_app, chord_path, lyric_path, original_pa
 def separate_audio_track(real_app, original_path, start_time, end_time):
 
     with real_app.app_context():
+
+        start_time = start_time - app.config['BUTTON_ANI_SEC']
+        if start_time  < 0:
+            raise InvalidSongSegment
+
         trimmed_wav_path = trim_wav(original_path, start_time, end_time)
         generate_inst_wav(trimmed_wav_path)
 
@@ -124,6 +131,7 @@ def generate_rate_file(single_track_file_path):
 def trim_lrc(real_app, org_lrc_path, start_time, end_time):
 
     with real_app.app_context():
+
         directory, _ = os.path.split(org_lrc_path)
         new_lrc_path = os.path.join(directory, app.config['LYRIC_INSTRUMENT_FILENAME'])
         
