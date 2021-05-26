@@ -66,8 +66,12 @@ void readFile() {
         int arg2, lastBeat;
         ss >> arg1 >> arg2;
         lastBeat = arg2 / timePerBeat + 0.5;
-        for (int i = 0; i < lastBeat; i++)
-            beat[++curBeat].chordName = arg1;
+        for (int i = 0; i < lastBeat; i++) {
+            beat[curBeat].chordName = arg1;
+            beat[curBeat].id = i;
+            curBeat++;
+        }
+
     }
 }
 
@@ -78,15 +82,68 @@ void recycleSpace() {
     delete[] beat;
 }
 
+void Beat::insert(double time) {
+    double minval = INT_MAX;
+    int id = 0;
+    for (int i = 0; i < SPLIT_NUMBER; i++) {
+        double timeNow = timePerBeat * i / SPLIT_NUMBER;
+        if (fabs(timeNow - time) < minval) {
+            minval = fabs(timeNow - time);
+            id = i;
+        }
+    }
+    if (delay[id] != -1)    errorCount++;
+    else    delay[id] = minval;
+}
+
+bool validID(int id) {
+    return id >= 0 && id < beatCount;
+}
+
 void classifyBeat() {
     errorCount = 0;
     for (int i = 0; i < chordCount; i++) {
-
+        int id = chord[i] / timePerBeat;
+        if (validID(id) && chordName[i] == beat[id].chordName)
+            beat[id].insert(chord[i] - id * timePerBeat);
+        else
+            if (validID(id + 1) && chord[i] > (id + 0.5) * timePerBeat && chordName[i] == beat[id + 1].chordName)
+                beat[id + 1].insert(chord[i] - (id + 1) * timePerBeat);
+        else
+            if (validID(id - 1) && chord[i] < (id + 0.5) * timePerBeat && chordName[i] == beat[id - 1].chordName)
+                beat[id - 1].insert(chord[i] - (id - 1) * timePerBeat);
+        else    errorCount++;
     }
 }
 
+double Beat::calcScoreWithMath(double delay) {
+    double y = -40 * delay * delay + 10;
+    return y >= 0 ? y : 0;
+}
+
+double Beat::getScore() {
+    int cnt = 0;
+    double sum = 0;
+    for (int i = 0; i < SPLIT_NUMBER; i++) {
+        if (delay[i] != -1) {
+            sum += calcScoreWithMath(delay[i] / timePerBeat);
+            cnt++;
+        }
+    }
+    return cnt == 0 ? 0 : sum / cnt;
+}
+
 string getScore() {
-    return "86";
+    double score = 0;
+    for (int i = 0; i < beatCount; i++) {
+        score += beat[i].getScore();
+    }
+    score /= beatCount;
+    score -= errorCount * PER_ERR_PUNISH;
+    if (chordCount <= beatCount - 3)    score = min(score, 3.0);
+    if (chordCount <= beatCount * 1.5 - 3)    score = min(score, 6.0);
+    score = max(score, 1.0);
+    return to_string(int(score + 0.5));
 }
 
 

@@ -65,7 +65,7 @@ public class Constants {
     public static final String AUTHORITY = PACKAGE_NAME + ".fileprovider";
 
     // request URL
-    public static final String SERVER_IP = "http://10.164.180.17:5000";
+    public static final String SERVER_IP = "http://192.168.1.125:5000";
 
     public static final String GET_FILE_ROOT_URL = SERVER_IP + "/getFile";
 
