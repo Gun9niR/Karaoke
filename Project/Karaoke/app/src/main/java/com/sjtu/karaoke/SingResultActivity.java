@@ -18,6 +18,7 @@ import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -26,6 +27,7 @@ import androidx.core.content.FileProvider;
 
 import com.google.android.exoplayer2.Player;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.sjtu.karaoke.component.LoadingDialog;
 import com.sjtu.karaoke.entity.Score;
@@ -97,7 +99,8 @@ public class SingResultActivity extends AppCompatActivity {
         id = intent.getIntExtra("id", 0);
         songName = intent.getStringExtra("songName");
 
-        callingActivity = getCallingActivity().getClass().getName().equals("AccompanySingActivity") ? From.ACCOMPANY : From.INSTRUMENT;
+        System.out.println("className: " + getCallingActivity().getShortClassName());
+        callingActivity = getCallingActivity().getShortClassName().equals(".AccompanySingActivity") ? From.ACCOMPANY : From.INSTRUMENT;
 
         initPlayerGroup();
 
@@ -331,7 +334,6 @@ public class SingResultActivity extends AppCompatActivity {
     }
 
     private void initTuneSeekbar() {
-
         // voice tuner shared by both modes
         SeekBar seekbarTuneVoice = findViewById(R.id.seekbarTuneVoice);
         seekbarTuneVoice.setMax(100);
@@ -353,10 +355,11 @@ public class SingResultActivity extends AppCompatActivity {
 
         LinearLayout tuneWrapper = findViewById(R.id.tuneWrapper);
         if (isFromAccompanySingActivity()) {
+            System.out.println("from accompany");
             ConstraintLayout wrapper = findViewById(R.id.singResultWrapper);
 
             tuneWrapper.removeView(findViewById(R.id.wrapperTunePiano));
-            // todo: remove button that triggers the drawer
+            wrapper.removeView(findViewById(R.id.bottomSheetWrapper));
 
             SeekBar seekbarTuneAccompany = findViewById(R.id.seekbarTuneAccompany);
             seekbarTuneAccompany.setMax(100);
@@ -381,6 +384,27 @@ public class SingResultActivity extends AppCompatActivity {
             });
         } else {
             tuneWrapper.removeView(findViewById(R.id.wrapperTuneAccompany));
+
+            BottomSheetBehavior<View> bottomSheetBehavior = BottomSheetBehavior.from(findViewById(R.id.trackBottomSheet));
+            final LinearLayout trackSeekBarWrapper = findViewById(R.id.trackSeekBarWrapper);
+            trackSeekBarWrapper.setOutlineAmbientShadowColor(getResources().getColor(R.color.black));
+            trackSeekBarWrapper.setVisibility(View.GONE);
+            bottomSheetBehavior.setHideable(false);
+            bottomSheetBehavior.addBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
+                @Override
+                public void onStateChanged(@NonNull View bottomSheet, int newState) {
+                    if (newState == BottomSheetBehavior.STATE_COLLAPSED) {
+                        trackSeekBarWrapper.setVisibility(View.GONE);
+                    } else {
+                        trackSeekBarWrapper.setVisibility(View.VISIBLE);
+                    }
+                }
+
+                @Override
+                public void onSlide(@NonNull View bottomSheet, float slideOffset) {
+                    findViewById(R.id.singResultBackgroundDummy).setAlpha(slideOffset / 2);
+                }
+            });
 
             SeekBar seekBarTunePiano = findViewById(R.id.seekbarTunePiano);
             seekBarTunePiano.setMax(100);

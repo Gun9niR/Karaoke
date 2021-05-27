@@ -54,7 +54,7 @@ import static com.sjtu.karaoke.util.FileUtil.saveFileFromResponse;
  */
 
 public class MiscUtil {
-    public static Toast toast;
+    private static Toast toast;
 
     public static Intent getChooserIntent(Uri uri, Context context) {
         List<LabeledIntent> targetedShareIntents = new ArrayList<>();
@@ -114,6 +114,7 @@ public class MiscUtil {
     }
 
     public static void showToast(Context context, String message) {
+
         if (toast != null) {
             toast.cancel();
         }
@@ -243,4 +244,6 @@ public class MiscUtil {
 
         return destPath;
     }
+
+
 }
