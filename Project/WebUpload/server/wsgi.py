@@ -8,6 +8,13 @@ from src.exceptions import *
 def connect():
     print('connected!')
 
+@socketio.on('sync', namespace='/karaoke')
+def sync(song_id, song_info):
+    try:
+        services.sync_files(song_id, song_info)
+    except:
+        socketio.emit('sync-fail', song_info)
+
 
 @app.route('/login', methods=['POST'])
 def login():
@@ -52,7 +59,6 @@ def delete_song():
 def update_song_info():
     try:
         song = request.get_json()
-        print(song)
         services.update_song_info(song)
     except DuplicateSongException:
         return 'Song already exists.', 400
@@ -74,8 +80,9 @@ def upload_song():
 
 @app.route("/uploadOneFile/<song_id>", methods=['POST'])
 def upload_one_file(song_id):
+    print('enter upload one file')
     try:
-        services.upload_one_file(request.files)
+        services.upload_one_file(song_id, request.files)
     except:
         return 'Fail to upload the file.', 400
 
