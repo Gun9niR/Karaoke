@@ -170,7 +170,7 @@ def upload_one_file(song_id, upload_files):
 
     if file_type == 'chord':
         utils.trans_chord(real_app, new_file_path, '')
-        new_song['chord'] = os.path.join(song_upload_dir, app.config['CHORD_TRANS_FILENAME'])
+        d_song['chord'] = os.path.join(song_dir, app.config['CHORD_TRANS_FILENAME'])
 
     # Update the file path in database
     song_to_save = Song.from_dict(d_song)
