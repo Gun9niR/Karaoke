@@ -54,7 +54,7 @@ import static com.sjtu.karaoke.util.FileUtil.saveFileFromResponse;
  */
 
 public class MiscUtil {
-    public static Toast toast;
+    private static Toast toast;
 
     public static Intent getChooserIntent(Uri uri, Context context) {
         List<LabeledIntent> targetedShareIntents = new ArrayList<>();
@@ -114,6 +114,7 @@ public class MiscUtil {
     }
 
     public static void showToast(Context context, String message) {
+
         if (toast != null) {
             toast.cancel();
         }
@@ -125,14 +126,18 @@ public class MiscUtil {
         toast.show();
     }
 
+    public static LoadingDialog showLoadingDialog(Activity activity, String text) {
+        return showLoadingDialog(activity, text, false);
+    }
+
     /**
      * Display loading dialog, with provided text as hint
      *
      * @param activity
      * @param text
      */
-    public static LoadingDialog showLoadingDialog(Activity activity, String text) {
-        LoadingDialog loadingDialog = new LoadingDialog(activity, text);
+    public static LoadingDialog showLoadingDialog(Activity activity, String text, boolean showProgress) {
+        LoadingDialog loadingDialog = new LoadingDialog(activity, text, showProgress);
 
         loadingDialog.show();
         return loadingDialog;
@@ -239,4 +244,6 @@ public class MiscUtil {
 
         return destPath;
     }
+
+
 }

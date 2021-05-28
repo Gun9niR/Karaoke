@@ -10,16 +10,22 @@ import android.widget.TextView;
 import com.mikhaellopez.circularprogressbar.CircularProgressBar;
 import com.sjtu.karaoke.R;
 
+import java.util.concurrent.Semaphore;
+
 public class LoadingDialog {
-    boolean showProgressText;
+    public final static int MAX_PROGRESS = 100;
 
     Activity activity;
     Dialog dialog;
     CircularProgressBar progressBar;
     TextView progressText;
 
+    Semaphore semaphore;
+
     public LoadingDialog(Activity activity, String text) {
         this.activity = activity;
+
+        semaphore = new Semaphore(1);
 
         dialog = new Dialog(activity);
         dialog.setContentView(R.layout.dialog_loading);
@@ -34,10 +40,13 @@ public class LoadingDialog {
 
         progressText = dialog.findViewById(R.id.progressText);
         progressText.setText(formatProgress(0));
+        progressBar.setIndeterminateMode(true);
     }
 
-    public LoadingDialog(Activity activity, String text, boolean showProgressText) {
+    public LoadingDialog(Activity activity, String text, boolean showProgress) {
         this.activity = activity;
+
+        semaphore = new Semaphore(1);
 
         dialog = new Dialog(activity);
         dialog.setContentView(R.layout.dialog_loading);
@@ -50,10 +59,11 @@ public class LoadingDialog {
 
         progressBar = dialog.findViewById(R.id.circularProgressBar);
 
-        progressText = activity.findViewById(R.id.progressText);
-        if (!showProgressText) {
+        progressText = dialog.findViewById(R.id.progressText);
+        if (!showProgress) {
             progressText.setVisibility(View.INVISIBLE);
         }
+        progressBar.setIndeterminateMode(true);
     }
 
     public void show() {
@@ -65,18 +75,16 @@ public class LoadingDialog {
     }
 
     public void setProgress(int progress) {
-        setProgress(progress, false);
-    }
-
-    public void setProgress(int progress, boolean animated) {
         activity.runOnUiThread(() -> {
-            if (animated) {
-                progressBar.setProgressWithAnimation(progress);
-            } else {
-                progressBar.setProgress(progress);
-            }
+            progressBar.setProgress(progress);
             progressText.setText(formatProgress(progress));
         });
+    }
+
+    public void incrementProgress(int incr) {
+        semaphore.acquireUninterruptibly();
+        setProgress((int) progressBar.getProgress() + incr);
+        semaphore.release();
     }
 
     private String formatProgress(int progress) {

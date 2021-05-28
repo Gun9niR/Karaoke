@@ -129,7 +129,7 @@ public class AccompanySingActivity extends AppCompatActivity {
         super.onStart();
         // return from sing refsult activity or from main activity, initialize all players
         if (state == State.UNSTARTED) {
-            LoadingDialog loadingDialog = showLoadingDialog(this, "正在初始化");
+            LoadingDialog loadingDialog = showLoadingDialog(this, "正在初始化", true);
 
             new Thread(() -> {
                 // Player-related initialization
@@ -138,18 +138,33 @@ public class AccompanySingActivity extends AppCompatActivity {
                 originalPlayer = new SimpleExoPlayer.Builder(this).build();
                 loadAudioFileAndPrepareExoPlayer(this, originalPlayer, getOriginalFullPath(songName));
 
+                loadingDialog.setProgress(20);
+
                 nextPcmSplitTime = PCM_SPLIT_INTERVAL;
 
                 initProgressMonitor(originalPlayer);
                 initRecordMonitor();
+
+                loadingDialog.setProgress(40);
+
+
                 initOnCompleteListener(originalPlayer);
                 initRatingSystem();
+
+                loadingDialog.setProgress(60);
+
                 initMVPlayer();
                 initLrcView();
+
+                loadingDialog.setProgress(80);
+
                 initVoiceRecorder();
                 initProgressBar();
                 initScore();
                 initScoreBar();
+
+                loadingDialog.setProgress(90);
+
                 initFab();
                 initState();
                 initBottomNavbar();

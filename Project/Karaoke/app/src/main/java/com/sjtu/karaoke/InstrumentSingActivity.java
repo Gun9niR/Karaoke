@@ -163,6 +163,14 @@ public class InstrumentSingActivity extends AppCompatActivity {
         initRecordMonitor();
         initHintMonitor();
         initTopRightButtons();
+        initFullScreen();
+    }
+
+    private void initFullScreen() {
+        getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                | View.SYSTEM_UI_FLAG_FULLSCREEN
+                | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
     }
 
     @Override
@@ -170,7 +178,7 @@ public class InstrumentSingActivity extends AppCompatActivity {
         super.onStart();
 
         if (state == State.UNSTARTED) {
-            LoadingDialog loadingDialog = showLoadingDialog(this, "正在初始化");
+            LoadingDialog loadingDialog = showLoadingDialog(this, "正在初始化", true);
 
             new Thread(() -> {
                 parseChordFile();
@@ -227,17 +235,6 @@ public class InstrumentSingActivity extends AppCompatActivity {
         lrcView.alertPlayerReleased();
         terminateExoPlayer(this, accompanyPlayer);
         chordPlayer.release();
-    }
-
-    @Override
-    public void onWindowFocusChanged(boolean hasFocus) {
-        super.onWindowFocusChanged(hasFocus);
-        if (hasFocus) {
-            getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                    | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                    | View.SYSTEM_UI_FLAG_FULLSCREEN
-                    | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
-        }
     }
 
     private void initSongName() {
@@ -313,8 +310,6 @@ public class InstrumentSingActivity extends AppCompatActivity {
                     PlayChordRecord r = userSequence.get(i);
                     userTimeSequence[i] = (r.getTime() - HINT_DURATION);
                     userChordNameSequence[i] = r.getChord().getName();
-                    System.out.println("=========");
-                    System.out.println(userTimeSequence[i]);
                 }
 
                 // todo: pass sing score and piano play score
@@ -633,15 +628,11 @@ public class InstrumentSingActivity extends AppCompatActivity {
     }
 
     private void mergeUserChords(List<PlayChordRecord> userSequence) {
-        if (userSequence.size() == 0) {
-            return;
-        }
-
         int duration = finishTime - playbackStartTime;
         String destPath = getUserPlayFullPath(songName);
         String silencePath = getUserPlayFullPath("silence");
-        int labelId = 0;
-
+        int labelId = 1;
+        int volumeMultiply = userSequence.size() + 1;
         // generate silent audio
         StringBuilder command = new StringBuilder("-f lavfi -i anullsrc -t ");
 
@@ -652,16 +643,19 @@ public class InstrumentSingActivity extends AppCompatActivity {
 
         command.append("-i ").append(silencePath).append(" ");
 
+        System.out.println("===== user chord =====");
         for (PlayChordRecord userRecord: userSequence) {
             userRecord.decrementTime(playbackStartTime);
+            System.out.println(userRecord.getTime());
             command.append("-i ").append(userRecord.getChord().getFilePath()).append(" ");
         }
 
         command.append("-filter_complex \"");
-
+        command.append(String.format(Locale.CHINA, "[0]volume=%d[00];", volumeMultiply));
         for (PlayChordRecord userRecord: userSequence) {
-            String fmt = String.format(Locale.CHINA, "[%d]volume=%d,adelay=%d|%d[0%d];", labelId, userSequence.size() + 1,userRecord.getTime(), userRecord.getTime(), labelId);
-            command.append(fmt);
+            int time = userRecord.getTime();
+            command.append(String.format(Locale.CHINA, "[%d]volume=%d,adelay=%d|%d[0%d];",
+                    labelId, volumeMultiply, time, time, labelId));
             ++labelId;
         }
         for (int i = 0; i < labelId; ++i) {

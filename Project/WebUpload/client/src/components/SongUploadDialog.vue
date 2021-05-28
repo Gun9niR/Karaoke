@@ -7,6 +7,11 @@
   >
 
   <div class="dialog-body">
+
+    <div class="upload-dialog-note">
+    请在上传原唱音频、歌词文件或和弦文件后进行文件同步。
+    </div>
+
     <el-cascader
       class="file-type-selector"
       placeholder="请选择文件类型"
@@ -91,7 +96,7 @@ export default {
               label: '伴奏音频',
             },
             {
-              value: 'lyric',
+              value: 'lyric_accompany',
               label: '歌词',
             },
             {
@@ -208,6 +213,13 @@ export default {
 .file-type-selector {
   margin-bottom: 20px;
   width: 200px;
+}
+
+.upload-dialog-note {
+  color: gray; 
+  font-size: 10px;
+  margin-left: 5px;
+  margin-bottom: 5px;
 }
 
 </style>

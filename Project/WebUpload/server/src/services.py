@@ -82,43 +82,6 @@ def update_song_info(req_song):
     song_to_save = Song.from_dict(new_song)
     song_to_save.id = song_id
     dao.update_song(song_to_save)
-    
-
-def upload_one_file(song_id, upload_files):
-
-    d_song = dao.get_song_by_id(song_id).as_dict()
-    song_dir = utils.generate_song_directory(d_song)
-
-    if len(upload_files.keys()) != 1:
-        raise UploadQuantityException
-    
-    file_type, upload_file = upload_files.keys()[0]
-
-    # Remove the previous file
-    prev_file_path = d_song[file_type]
-    if (os.path.exist(prev_file_path)):
-        os.remove(prev_file_path)
-
-    # Save the file to local
-    new_file_path = os.path.join(song_dir, upload_file.filename)
-    upload_file.save(new_file_path)
-
-    d_song[file_type] = new_file_path
-
-    if file_type == 'original':
-        rate_file_path = os.path.join(song_dir, app.config['RATE_FILENAME'])
-        if os.path.exists(rate_file_path):
-            os.remove(rate_file_path)
-        d_song['rate'] = rate_file_path
-        rate_file_path = utils.rate_by_original(new_file_path, song_dir)
-    
-    elif file_type == 'lyric_accompany':
-        pass
-
-    # Update the file path in database
-    song_to_save = Song.from_dict(d_song)
-    song_to_save.id = d_song['id']
-    dao.update_song(song_to_save)
 
 
 def upload_song(req_song, req_files):
@@ -180,6 +143,66 @@ def upload_song(req_song, req_files):
     dao.save_song(song_to_save)
     
     socketio.emit('finish', song_info, namespace='/karaoke')
+
+
+def upload_one_file(song_id, upload_files):
+
+    real_app = app._get_current_object()
+    d_song = dao.get_song_by_id(song_id).as_dict()
+    song_dir = utils.generate_song_directory(d_song)
+
+    if len(upload_files.keys()) != 1:
+        raise UploadQuantityException
+    
+    upload_stuff = list(upload_files.items())[0]
+    file_type, upload_file = upload_stuff[0], upload_stuff[1]
+
+    # Remove the previous file
+    prev_file_path = d_song[file_type]
+    if (os.path.exists(prev_file_path)):
+        os.remove(prev_file_path)
+
+    # Save the file to local
+    new_file_path = os.path.join(song_dir, upload_file.filename)
+    upload_file.save(new_file_path)
+
+    d_song[file_type] = new_file_path
+
+    if file_type == 'chord':
+        utils.trans_chord(real_app, new_file_path, '')
+        d_song['chord'] = os.path.join(song_dir, app.config['CHORD_TRANS_FILENAME'])
+
+    # Update the file path in database
+    song_to_save = Song.from_dict(d_song)
+    song_to_save.id = d_song['id']
+    dao.update_song(song_to_save)
+
+
+def sync_files(song_id, song_info):
+
+    song_in_db = dao.get_song_by_id(song_id)
+    if song_in_db is None:
+        raise SongNotExistException
+
+    d_song = song_in_db.as_dict()
+    song_info_from_db = d_song['song_name'] + '-' + d_song['singer']
+    if song_info != song_info_from_db:
+        raise UnmatchedSongInfoException
+        
+    real_app = app._get_current_object()
+
+    rate_thread = Thread(target=utils.rate_by_original, args=(real_app, d_song['original'], song_info,))
+    rate_thread.start()
+
+    instrument_sing_thread = Thread(target=utils.generate_instrument_sing_files, 
+                                    args=(real_app, d_song['chord'], d_song['lyric_accompany'], 
+                                          d_song['original'], song_info,))
+    instrument_sing_thread.start()
+
+    rate_thread.join()
+    instrument_sing_thread.join()
+
+    socketio.emit('sync-success', song_info, namespace='/karaoke')
 
 
 def get_file_path(song_id, file_type):

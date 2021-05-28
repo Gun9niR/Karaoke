@@ -25,6 +25,7 @@ import com.sjtu.karaoke.entity.SongInfo;
 
 import java.util.List;
 
+import static com.sjtu.karaoke.component.LoadingDialog.MAX_PROGRESS;
 import static com.sjtu.karaoke.util.Constants.GET_ACCOMPANY_URL;
 import static com.sjtu.karaoke.util.Constants.GET_BASS_URL;
 import static com.sjtu.karaoke.util.Constants.GET_CHORD_URL;
@@ -132,10 +133,10 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.ViewHo
                 // 伴奏演唱模式
                 chooseModeDialog.dismiss();
 
-                LoadingDialog loadingDialog = showLoadingDialog(activity, "正在下载文件...");
+                LoadingDialog loadingDialog = showLoadingDialog(activity, "正在下载文件...", true);
 
                 new Thread(() -> {
-                    boolean isSuccess = downloadAccompanySingFiles(selectedSong);
+                    boolean isSuccess = downloadAccompanySingFiles(selectedSong, loadingDialog);
                     loadingDialog.dismiss();
                     if (isSuccess) {
                         Intent intent = new Intent(activity, AccompanySingActivity.class);
@@ -153,7 +154,7 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.ViewHo
             btnInsMode.setOnClickListener(view13 -> {
                 chooseModeDialog.dismiss();
 
-                LoadingDialog loadingDialog = showLoadingDialog(activity, "正在下载文件...");
+                LoadingDialog loadingDialog = showLoadingDialog(activity, "正在下载文件...", true);
 
                 new Thread(() -> {
                     boolean isSuccess = downloadInstrumentSingFiles(selectedSong);
@@ -190,7 +191,7 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.ViewHo
      * @param songInfo
      * @return true if success, false if some files are not downloaded successfully
      */
-    public boolean downloadAccompanySingFiles(SongInfo songInfo) {
+    public boolean downloadAccompanySingFiles(SongInfo songInfo, LoadingDialog loadingDialog) {
         Integer id = songInfo.getId();
         String songName = songInfo.getSongName();
         String requestParam = getRequestParamFromId(id);
@@ -209,6 +210,7 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.ViewHo
         };
 
         if (areFilesPresent(destFullPaths)) {
+            loadingDialog.setProgress(MAX_PROGRESS);
             return true;
         }
 
@@ -220,7 +222,7 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.ViewHo
                 GET_MV_URL + requestParam,
         };
 
-        return downloadFiles(urls, destFullPaths);
+        return downloadFiles(urls, destFullPaths, loadingDialog);
     }
 
     /**

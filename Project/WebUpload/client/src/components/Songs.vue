@@ -42,6 +42,11 @@
               @click="handleUpload(scope.row)">上传文件</el-button>
             <el-button
               size="mini"
+              type="primary"
+              :loading="syncing"
+              @click="handleSync(scope.row)">同步文件</el-button>
+            <el-button
+              size="mini"
               type="danger"
               @click="handleDelete(scope.row)">删除</el-button>
           </template>
@@ -55,6 +60,8 @@
 </template>
 
 <script>
+const io = require('socket.io-client')
+
 import axios from 'axios';
 import SongInfoEditer from './SongInfoEditer';
 import SongUploadDialog from './SongUploadDialog';
@@ -63,9 +70,13 @@ import LogoutButton from './LogoutButton';
 export default {
   data() {
     return {
+      socket: io('127.0.0.1:5000/karaoke', {
+        transports: ['websocket']
+      }),
       songData: [],
       editSong: {},
       editerVisible: false,
+      syncing: false,
     };
   },
 
@@ -75,20 +86,48 @@ export default {
     LogoutButton,
   },
 
+  mounted() {
+    this.socket.on('sync-success', (songInfo) => {
+      this.syncing = false;
+      console.log('Successfully synchronized all the files.');
+      this.$message({
+        message: '成功同步' + songInfo + '的所有文件。',
+        type: 'success',
+      });
+    });
+    this.socket.on('sync-fail', (songInfo) => {
+      this.syncing = false;
+      console.log('Fail to synchronize the files.');
+      this.$message({
+        message: '同步' + songInfo + '文件失败。',
+        type: 'error',
+      });
+    });
+  },
+
   methods: {
     redirectToUpload() {
       this.$router.push({path: '/upload'});
     },
+
     handleEdit(row) {
       let song = JSON.parse(JSON.stringify(row));
       this.$refs.songInfoEditer.song = song;
       this.$refs.songInfoEditer.visible = true;
     },
+
     handleUpload(row) {
       let song = JSON.parse(JSON.stringify(row));
       this.$refs.songUploadDialog.song = song;
       this.$refs.songUploadDialog.visible = true;
     },
+
+    handleSync(row) {
+      let song = JSON.parse(JSON.stringify(row));
+      let song_info = song.song_name + '-' + song.singer;
+      this.syncSong(song.id, song_info);
+    },
+
     handleDelete(row) {
       const h = this.$createElement;
       this.$msgbox({
@@ -194,11 +233,15 @@ export default {
           });
         });
     },
+
+    syncSong(song_id, song_info) {
+      this.socket.emit('sync', song_id, song_info);
+      this.syncing = true;
+    },
   },
 
   created() {
     this.getSongData();
-    // this.socket.emit('connect');
   }
 };
 </script>
