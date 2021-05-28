@@ -10,11 +10,11 @@ class Config:
     FLASK_APP = environ.get('FLASK_APP')
     FLASK_ENV = environ.get('FLASK_ENV')
 
-    SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://root:haveagoodday@localhost/karaoke'
+    SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://root:@localhost/karaoke'
     SQLALCHEMY_ECHO = False
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
-    FILE_UPLOAD_DIR = '/Users/cyx/College/2021Spring/SE/test/'
+    FILE_UPLOAD_DIR = 'C:\Academic\UnderGraduate\Sophomore-2\Principle_and_Practice_of_Software_Engineering\project\data'
     WORKING_DIR = './utils/'
     CHORD_TRANS_WORKING_DIR = './utils/chordTranslator/'
 
