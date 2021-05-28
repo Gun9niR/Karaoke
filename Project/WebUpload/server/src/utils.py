@@ -1,6 +1,6 @@
 import os
 import shutil
-from src.exceptions import InvalidSongSegment
+from src.exceptions import InvalidSongSegmentException
 import subprocess
 from flask import current_app as app
 from . import socketio
@@ -27,7 +27,8 @@ def rate_by_original(real_app, original_file_path, song_info):
         single_track_file_path = generate_single_track_file(vocal_file_path)
         generate_rate_file(single_track_file_path)
 
-        socketio.emit('rate', song_info, namespace='/karaoke')
+        if song_info:
+            socketio.emit('rate', song_info, namespace='/karaoke')
 
 
 def trans_chord(real_app, org_chord_path, song_info):
@@ -47,7 +48,8 @@ def trans_chord(real_app, org_chord_path, song_info):
         except OSError:
             pass
 
-        socketio.emit('chord', song_info, namespace='/karaoke')
+        if song_info:
+            socketio.emit('chord', song_info, namespace='/karaoke')
 
 
 def generate_instrument_sing_files(real_app, chord_path, lyric_path, original_path, song_info):
@@ -63,7 +65,8 @@ def generate_instrument_sing_files(real_app, chord_path, lyric_path, original_pa
     lrc_thread.join()
     track_thread.join()
 
-    socketio.emit('instrument', song_info, namespace='/karaoke')
+    if song_info:
+        socketio.emit('instrument', song_info, namespace='/karaoke')
 
 
 
@@ -73,7 +76,7 @@ def separate_audio_track(real_app, original_path, start_time, end_time):
 
         start_time = start_time - app.config['BUTTON_ANI_SEC']
         if start_time  < 0:
-            raise InvalidSongSegment
+            raise InvalidSongSegmentException
 
         trimmed_wav_path = trim_wav(original_path, start_time, end_time)
         generate_inst_wav(trimmed_wav_path)
