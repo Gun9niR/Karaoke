@@ -5,9 +5,12 @@ import android.util.Log;
 import com.sjtu.karaoke.component.LoadingDialog;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -170,12 +173,12 @@ public class FileUtil {
             @Override
             public void onResponse(Call call, Response response) throws IOException {
                 // receive and save the file
-                if (saveFileFromResponse(response, destFullPath)) {
+                // todo: increment progress in save file from download
+                if (saveFileFromResponse(response, destFullPath, loadingDialog, increment)) {
                     // countDownLatch and numOfFilesDownloaded are absent or present at the same time
                     if (countDownLatch != null) {
                         countDownLatch.countDown();
                         numOfFilesDownloaded.incrementAndGet();
-                        loadingDialog.incrementProgress(increment);
                     }
                 } else {
                     while (countDownLatch.getCount() != 0) {
@@ -186,19 +189,27 @@ public class FileUtil {
         });
     }
 
+    /**
+     * Save file that is stored in response body. Use BufferedSink to get maximum efficiency.
+     * @param response Response of download request
+     * @param destPath Destination path where the file is to be stored, including file name
+     * @return Whether the file has been successfully saved
+     */
     public static boolean saveFileFromResponse(Response response, String destPath) {
         if (!response.isSuccessful()) {
             return false;
         }
+
         File destFile = new File(destPath);
         try {
+            System.out.println("========== Saving file to " + destPath + " ==========");
+            BufferedSink sink;
+
             if (destFile.exists()) {
                 destFile.delete();
             }
-
-            System.out.println("========== Saving file to " + destPath + " ==========");
-            BufferedSink sink = Okio.buffer(Okio.sink(destFile));
-            sink.writeAll(response.body().source());
+            sink = Okio.buffer(Okio.sink(destFile));
+            sink.writeAll(Objects.requireNonNull(response.body()).source());
             sink.close();
             return true;
         } catch (IOException e) {
@@ -209,8 +220,73 @@ public class FileUtil {
     }
 
     /**
+     * Save file that is stored in response body. Use BufferedSink to get maximum efficiency.
+     * @param response Response of download request
+     * @param destPath Destination path where the file is to be stored, including file name
+     * @return Whether the file has been successfully saved
+     */
+    public static boolean saveFileFromResponse(Response response, String destPath,
+                                               LoadingDialog loadingDialog, int increment) {
+        if (!response.isSuccessful()) {
+            return false;
+        }
+
+        try {
+            System.out.println("========== Saving file to " + destPath + " ==========");
+
+            File destFile = new File(destPath);
+            String contentLength = response.header("Content-Length", null);
+
+            // debug
+            int percent = 0;
+            if (contentLength == null) {
+                BufferedSink sink;
+                sink = Okio.buffer(Okio.sink(destFile));
+                sink.writeAll(Objects.requireNonNull(response.body()).source());
+                sink.close();
+                loadingDialog.incrementProgress(increment);
+            } else {
+                byte[] buffer = new byte[4096];
+
+                InputStream is = Objects.requireNonNull(response.body()).byteStream();
+                FileOutputStream fos = new FileOutputStream(destFile);
+                int n;
+                final int totalBytes = Integer.parseInt(contentLength);
+                final int bytesPerOnePercent = totalBytes / increment;
+                int bytesToCount = 0;
+
+                if (destFile.exists()) {
+                    destFile.delete();
+                }
+
+                while ((n = is.read(buffer)) != -1) {
+                    fos.write(buffer, 0, n);
+
+                    bytesToCount += n;
+
+                    while (bytesToCount >= bytesPerOnePercent) {
+                        bytesToCount -= bytesPerOnePercent;
+                        loadingDialog.incrementProgress(1);
+                        ++percent;
+                    }
+                }
+
+                is.close();
+                fos.close();
+            }
+
+            System.out.println("========== Finished file to " + destPath + " ==========");
+            return true;
+        } catch (IOException e) {
+            System.err.println("Failed to download file to " + destPath);
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    /**
      * Get all file paths in a directory
-     * @param dirPath
+     * @param dirPath Directory name
      * @return The full paths to all files in the directory
      */
     public static List<String> getFullPathsInDirectory(String dirPath) {
