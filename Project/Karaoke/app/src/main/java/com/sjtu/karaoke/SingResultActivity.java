@@ -23,6 +23,7 @@ import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 
 import com.google.android.exoplayer2.Player;
@@ -194,17 +195,17 @@ public class SingResultActivity extends AppCompatActivity {
         fabSave.setOnClickListener(view -> {
             if (isFileSaved) {
                 showToast(getApplicationContext(), "文件已经保存");
+            } else {
+                LoadingDialog loadingDialog = showLoadingDialog(SingResultActivity.this, "正在生成作品...");
+                new Thread(() -> {
+                    Looper.prepare();
+                    playerGroup.mergeWav(getRecordFullPath(id, songName));
+                    loadingDialog.dismiss();
+                    showToast(getApplicationContext(), "录音已成功保存");
+                    Looper.loop();
+                    isFileSaved = true;
+                }).start();
             }
-            // merge two .wav files, and put under .../Karaoke/record/
-            LoadingDialog loadingDialog = showLoadingDialog(SingResultActivity.this, "正在生成作品...");
-            new Thread(() -> {
-                Looper.prepare();
-                playerGroup.mergeWav(getRecordFullPath(id, songName));
-                loadingDialog.dismiss();
-                showToast(getApplicationContext(), "录音已成功保存");
-                Looper.loop();
-                isFileSaved = true;
-            }).start();
         });
     }
 
@@ -333,6 +334,7 @@ public class SingResultActivity extends AppCompatActivity {
         handler.removeCallbacks(progressUpdater);
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.P)
     private void initTuneSeekbar() {
         // voice tuner shared by both modes
         SeekBar seekbarTuneVoice = findViewById(R.id.seekbarTuneVoice);
@@ -387,7 +389,7 @@ public class SingResultActivity extends AppCompatActivity {
 
             BottomSheetBehavior<View> bottomSheetBehavior = BottomSheetBehavior.from(findViewById(R.id.trackBottomSheet));
             final LinearLayout trackSeekBarWrapper = findViewById(R.id.trackSeekBarWrapper);
-            trackSeekBarWrapper.setOutlineAmbientShadowColor(getResources().getColor(R.color.black));
+            trackSeekBarWrapper.setOutlineAmbientShadowColor(ContextCompat.getColor(this, R.color.black));
             trackSeekBarWrapper.setVisibility(View.GONE);
             bottomSheetBehavior.setHideable(false);
             bottomSheetBehavior.addBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
@@ -550,11 +552,11 @@ public class SingResultActivity extends AppCompatActivity {
         return callingActivity.equals(From.ACCOMPANY);
     }
 
-    private enum State {
-        PLAYING, PAUSE, UNSTARTED
-    }
-
     private enum From {
         ACCOMPANY, INSTRUMENT
+    }
+
+    private enum State {
+        PLAYING, PAUSE, UNSTARTED
     }
 }

@@ -37,6 +37,7 @@ public class LoadingDialog {
         dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
 
         progressBar = dialog.findViewById(R.id.circularProgressBar);
+        progressBar.setProgressMax(MAX_PROGRESS);
 
         progressText = dialog.findViewById(R.id.progressText);
         progressText.setText(formatProgress(0));
@@ -75,9 +76,10 @@ public class LoadingDialog {
     }
 
     public void setProgress(int progress) {
+        int actualProgress = Math.min(progress, MAX_PROGRESS);
         activity.runOnUiThread(() -> {
-            progressBar.setProgress(progress);
-            progressText.setText(formatProgress(progress));
+            progressBar.setProgress(actualProgress);
+            progressText.setText(formatProgress(actualProgress));
         });
     }
 
@@ -87,6 +89,9 @@ public class LoadingDialog {
         semaphore.release();
     }
 
+    public int getProgress() {
+        return (int) progressBar.getProgress();
+    }
     private String formatProgress(int progress) {
         return progress + "%";
     }

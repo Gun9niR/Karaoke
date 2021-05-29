@@ -27,11 +27,8 @@ import static com.sjtu.karaoke.util.Constants.AUTHORITY;
 import static com.sjtu.karaoke.util.Constants.RECORD_DIRECTORY;
 import static com.sjtu.karaoke.util.FileUtil.deleteOneFile;
 import static com.sjtu.karaoke.util.FileUtil.getFullPathsInDirectory;
-import static com.sjtu.karaoke.util.FileUtil.isFilePresent;
 import static com.sjtu.karaoke.util.MiscUtil.downloadAndSetAlbumCover;
-import static com.sjtu.karaoke.util.PathUtil.getAlbumCoverFullPath;
 import static com.sjtu.karaoke.util.MiscUtil.getChooserIntent;
-import static com.sjtu.karaoke.util.MiscUtil.setImageFromFile;
 
 /*
  * @ClassName: RecordListAdapter
@@ -90,12 +87,8 @@ public class RecordListAdapter extends RecyclerView.Adapter<RecordListAdapter.Vi
         String songName = record.getSongName();
         holder.recordName.setText(songName);
         holder.recordTime.setText(record.getRecordTime());
-        // download it if it does not exist
-        if (isFilePresent(getAlbumCoverFullPath(songName))) {
-            setImageFromFile(getAlbumCoverFullPath(songName), holder.recordCover);
-        } else {
-            downloadAndSetAlbumCover(record.getId(), songName, activity, holder.recordCover);
-        }
+        // download album cover
+        downloadAndSetAlbumCover(record.getId(), songName, activity, holder.recordCover);
         holder.btnShare.setOnClickListener(view -> {
             File recordFile = new File(record.getFullPath());
             Uri uri = FileProvider.getUriForFile(activity, AUTHORITY, recordFile);
