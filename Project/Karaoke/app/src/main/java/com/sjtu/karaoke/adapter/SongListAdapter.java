@@ -155,7 +155,7 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.ViewHo
                 LoadingDialog loadingDialog = showLoadingDialog(activity, "正在下载文件...", true);
 
                 new Thread(() -> {
-                    boolean isSuccess = downloadInstrumentSingFiles(selectedSong);
+                    boolean isSuccess = downloadInstrumentSingFiles(selectedSong, loadingDialog);
                     loadingDialog.dismiss();
                     if (isSuccess) {
                         Intent intent = new Intent(activity, InstrumentSingActivity.class);
@@ -223,7 +223,7 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.ViewHo
      * @param songInfo
      * @return true if success, false if some files are not downloaded successfully
      */
-    public boolean downloadInstrumentSingFiles(SongInfo songInfo) {
+    public boolean downloadInstrumentSingFiles(SongInfo songInfo, LoadingDialog loadingDialog) {
         Integer id = songInfo.getId();
         String songName = songInfo.getSongName();
         String requestParam = getRequestParamFromId(id);
@@ -255,6 +255,6 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.ViewHo
                 GET_ORCHESTRA_URL + requestParam
         };
 
-        return downloadFiles(urls, destFullPaths);
+        return downloadFiles(urls, destFullPaths, loadingDialog);
     }
 }
