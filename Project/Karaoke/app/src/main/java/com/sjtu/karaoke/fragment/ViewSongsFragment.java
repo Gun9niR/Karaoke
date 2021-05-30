@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -56,7 +55,7 @@ import static com.sjtu.karaoke.util.MiscUtil.showToast;
 
 public class ViewSongsFragment extends Fragment {
     View view;
-    Context context;
+    Activity activity;
 
     private ViewPager2 carousel;
     private final Handler carouselHandler = new Handler();
@@ -85,19 +84,16 @@ public class ViewSongsFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) { super.onCreate(savedInstanceState); }
 
-    /**
-     * Keep activity reference
-     * @param context
-     */
+
     @Override
     public void onAttach(@NotNull Context context) {
         super.onAttach(context);
-        this.context = context;
+        this.activity = getActivity();
     }
 
     public void onDetach() {
         super.onDetach();
-        this.context = null;
+        this.activity = null;
     }
 
     @Override
@@ -127,7 +123,7 @@ public class ViewSongsFragment extends Fragment {
         adapter = new SongListAdapter(songList);
         songRecyclerView.setAdapter(adapter);
         refreshListener.onRefresh();
-        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(context);
+        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(activity);
         songRecyclerView.setLayoutManager(layoutManager);
         songRecyclerView.setNestedScrollingEnabled(false);
     }
@@ -153,7 +149,7 @@ public class ViewSongsFragment extends Fragment {
             public boolean onMenuItemClick(MenuItem item) {
                 // go to search activity
                 // put the list of SongInfo to the intent, so that SearchSongActivity won't have to get them from server again
-                Intent intent = new Intent(context, SearchActivity.class);
+                Intent intent = new Intent(activity, SearchActivity.class);
                 ArrayList<SongInfo> songs = new ArrayList<>(songList);
                 intent.putParcelableArrayListExtra("songList", songs);
                 startActivity(intent);
@@ -172,12 +168,10 @@ public class ViewSongsFragment extends Fragment {
                     @Override
                     public void onFailure(Call call, IOException e) {
                         e.printStackTrace();
-                        Looper.prepare();
-                        if (context != null) {
-                            showToast(context, "从服务器获取数据失败，请重试!");
+                        if (activity != null) {
+                            showToast(activity, "从服务器获取数据失败，请重试!");
                         }
                         swipeRefreshLayout.setRefreshing(false);
-                        Looper.loop();
                     }
 
                     @Override
@@ -198,11 +192,9 @@ public class ViewSongsFragment extends Fragment {
                             setSongs(songList);
 
                         } catch (JSONException e) {
-                            Looper.prepare();
-                            showToast(context, "从服务器获取异常数据，请重试!");
+                            showToast(activity, "从服务器获取异常数据，请重试!");
                             swipeRefreshLayout.setRefreshing(false);
                             e.printStackTrace();
-                            Looper.loop();
                         }
 
                         swipeRefreshLayout.setRefreshing(false);

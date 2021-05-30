@@ -194,15 +194,13 @@ public class SingResultActivity extends AppCompatActivity {
         FloatingActionButton fabSave = findViewById(R.id.fabSave);
         fabSave.setOnClickListener(view -> {
             if (isFileSaved) {
-                showToast(getApplicationContext(), "文件已经保存");
+                showToast(SingResultActivity.this, "文件已经保存");
             } else {
                 LoadingDialog loadingDialog = showLoadingDialog(SingResultActivity.this, "正在生成作品...");
                 new Thread(() -> {
-                    Looper.prepare();
                     playerGroup.mergeWav(getRecordFullPath(id, songName));
                     loadingDialog.dismiss();
-                    showToast(getApplicationContext(), "录音已成功保存");
-                    Looper.loop();
+                    showToast(SingResultActivity.this, "录音已成功保存");
                     isFileSaved = true;
                 }).start();
             }
@@ -257,10 +255,8 @@ public class SingResultActivity extends AppCompatActivity {
                     if (!isFileSaved) {
                         LoadingDialog loadingDialog = showLoadingDialog(SingResultActivity.this, "正在生成作品...");
                         new Thread(() -> {
-                            Looper.prepare();
                             playerGroup.mergeWav(getRecordFullPath(id, songName));
                             loadingDialog.dismiss();
-                            Looper.loop();
                             isFileSaved = true;
 
                             File recordFile = new File(getRecordFullPath(id, songName));

@@ -116,13 +116,11 @@ public class FileUtil {
         }
 
         if (numOfFilesDownloaded.get() == numOfFilesToDownload) {
-            System.out.println("All files downloaded successfully");
             return true;
         } else {
             for (String destFullPath: destFullPaths) {
                 deleteOneFile(destFullPath);
             }
-            System.out.println("Need to download " + numOfFilesToDownload + " but got " + numOfFilesDownloaded.get());
             return false;
         }
     }
@@ -276,7 +274,6 @@ public class FileUtil {
             }
 
             System.out.println("========== Finished file to " + destPath + " ==========");
-            System.out.println("========== Incremented progress: " + incrementedPrgress);
             return true;
         } catch (IOException e) {
             System.err.println("Failed to download file to " + destPath);

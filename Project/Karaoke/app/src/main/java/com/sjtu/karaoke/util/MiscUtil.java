@@ -113,17 +113,18 @@ public class MiscUtil {
         }
     }
 
-    public static void showToast(Context context, String message) {
-
-        if (toast != null) {
-            toast.cancel();
-        }
-        toast = Toast.makeText(context, message, Toast.LENGTH_LONG);
-        ViewGroup group = (ViewGroup) toast.getView();
-        TextView tvMessage = (TextView) group.getChildAt(0);
-        tvMessage.setText(message);
-        tvMessage.setGravity(Gravity.CENTER);
-        toast.show();
+    public static void showToast(Activity activity, String message) {
+        activity.runOnUiThread(() -> {
+            if (toast != null) {
+                toast.cancel();
+            }
+            toast = Toast.makeText(activity, message, Toast.LENGTH_LONG);
+            ViewGroup group = (ViewGroup) toast.getView();
+            TextView tvMessage = (TextView) group.getChildAt(0);
+            tvMessage.setText(message);
+            tvMessage.setGravity(Gravity.CENTER);
+            toast.show();
+        });
     }
 
     public static LoadingDialog showLoadingDialog(Activity activity, String text) {
