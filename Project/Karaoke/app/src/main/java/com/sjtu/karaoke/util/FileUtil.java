@@ -116,11 +116,13 @@ public class FileUtil {
         }
 
         if (numOfFilesDownloaded.get() == numOfFilesToDownload) {
+            System.out.println("All files downloaded successfully");
             return true;
         } else {
             for (String destFullPath: destFullPaths) {
                 deleteOneFile(destFullPath);
             }
+            System.out.println("Need to download " + numOfFilesToDownload + " but got " + numOfFilesDownloaded.get());
             return false;
         }
     }
@@ -173,7 +175,6 @@ public class FileUtil {
             @Override
             public void onResponse(Call call, Response response) throws IOException {
                 // receive and save the file
-                // todo: increment progress in save file from download
                 if (saveFileFromResponse(response, destFullPath, loadingDialog, increment)) {
                     // countDownLatch and numOfFilesDownloaded are absent or present at the same time
                     if (countDownLatch != null) {
@@ -236,9 +237,12 @@ public class FileUtil {
 
             File destFile = new File(destPath);
             String contentLength = response.header("Content-Length", null);
+            int incrementedPrgress = 0;
 
-            // debug
-            int percent = 0;
+            if (destFile.exists()) {
+                destFile.delete();
+            }
+
             if (contentLength == null) {
                 BufferedSink sink;
                 sink = Okio.buffer(Okio.sink(destFile));
@@ -253,11 +257,8 @@ public class FileUtil {
                 int n;
                 final int totalBytes = Integer.parseInt(contentLength);
                 final int bytesPerOnePercent = totalBytes / increment;
-                int bytesToCount = 0;
 
-                if (destFile.exists()) {
-                    destFile.delete();
-                }
+                int bytesToCount = 0;
 
                 while ((n = is.read(buffer)) != -1) {
                     fos.write(buffer, 0, n);
@@ -267,7 +268,6 @@ public class FileUtil {
                     while (bytesToCount >= bytesPerOnePercent) {
                         bytesToCount -= bytesPerOnePercent;
                         loadingDialog.incrementProgress(1);
-                        ++percent;
                     }
                 }
 
@@ -276,6 +276,7 @@ public class FileUtil {
             }
 
             System.out.println("========== Finished file to " + destPath + " ==========");
+            System.out.println("========== Incremented progress: " + incrementedPrgress);
             return true;
         } catch (IOException e) {
             System.err.println("Failed to download file to " + destPath);

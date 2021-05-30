@@ -92,6 +92,7 @@ public class LoadingDialog {
     public int getProgress() {
         return (int) progressBar.getProgress();
     }
+
     private String formatProgress(int progress) {
         return progress + "%";
     }
