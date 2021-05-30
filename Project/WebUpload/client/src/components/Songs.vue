@@ -43,7 +43,7 @@
             <el-button
               size="mini"
               type="primary"
-              :loading="syncing"
+              :loading="syncSongs.indexOf(scope.row.song_name + '-' + scope.row.singer) !== -1"
               @click="handleSync(scope.row)">同步文件</el-button>
             <el-button
               size="mini"
@@ -76,7 +76,6 @@ export default {
       songData: [],
       editSong: {},
       editerVisible: false,
-      syncing: false,
     };
   },
 
@@ -88,7 +87,7 @@ export default {
 
   mounted() {
     this.socket.on('sync-success', (songInfo) => {
-      this.syncing = false;
+      this.$store.commit('finishSyncSong', songInfo);
       console.log('Successfully synchronized all the files.');
       this.$message({
         message: '成功同步' + songInfo + '的所有文件。',
@@ -96,13 +95,19 @@ export default {
       });
     });
     this.socket.on('sync-fail', (songInfo) => {
-      this.syncing = false;
+      this.$store.commit('finishSyncSong', songInfo);
       console.log('Fail to synchronize the files.');
       this.$message({
         message: '同步' + songInfo + '文件失败。',
         type: 'error',
       });
     });
+  },
+
+  computed: {
+    syncSongs: function () {
+      return this.$store.state.syncSongs;
+    }
   },
 
   methods: {
@@ -125,6 +130,7 @@ export default {
     handleSync(row) {
       let song = JSON.parse(JSON.stringify(row));
       let song_info = song.song_name + '-' + song.singer;
+      this.$store.commit('startSyncSong', song_info);
       this.syncSong(song.id, song_info);
     },
 
@@ -166,7 +172,7 @@ export default {
         })
         .catch((error) => {
           console.log(error);
-          alert("Error!");
+          this.$message.error("获取歌曲信息失败!");
         });
     },
 
@@ -180,7 +186,7 @@ export default {
         })
         .catch((error) => {
           console.log(error);
-          alert("Error!");
+          this.$message.error("删除歌曲失败!");
         });
     },
 
@@ -236,7 +242,6 @@ export default {
 
     syncSong(song_id, song_info) {
       this.socket.emit('sync', song_id, song_info);
-      this.syncing = true;
     },
   },
 
