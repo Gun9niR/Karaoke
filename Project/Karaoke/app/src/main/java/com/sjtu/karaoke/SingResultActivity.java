@@ -100,7 +100,6 @@ public class SingResultActivity extends AppCompatActivity {
         id = intent.getIntExtra("id", 0);
         songName = intent.getStringExtra("songName");
 
-        System.out.println("className: " + getCallingActivity().getShortClassName());
         callingActivity = getCallingActivity().getShortClassName().equals(".AccompanySingActivity") ? From.ACCOMPANY : From.INSTRUMENT;
 
         initPlayerGroup();

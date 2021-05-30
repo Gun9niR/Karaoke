@@ -171,7 +171,7 @@ public class FileUtil {
             }
 
             @Override
-            public void onResponse(Call call, Response response) throws IOException {
+            public void onResponse(Call call, Response response) {
                 // receive and save the file
                 if (saveFileFromResponse(response, destFullPath, loadingDialog, increment)) {
                     // countDownLatch and numOfFilesDownloaded are absent or present at the same time
@@ -274,6 +274,7 @@ public class FileUtil {
             }
 
             System.out.println("========== Finished file to " + destPath + " ==========");
+            System.out.println("========== Incremented progress: " + incrementedPrgress);
             return true;
         } catch (IOException e) {
             System.err.println("Failed to download file to " + destPath);
