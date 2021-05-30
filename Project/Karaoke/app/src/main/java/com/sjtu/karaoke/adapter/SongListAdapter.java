@@ -5,7 +5,6 @@ import android.app.Dialog;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
-import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -142,9 +141,7 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.ViewHo
                         intent.putExtra("songName", selectedSong.getSongName());
                         activity.startActivity(intent);
                     } else {
-                        Looper.prepare();
                         showToast(activity, "未能成功下载文件，请重试");
-                        Looper.loop();
                     }
                 }).start();
             });
@@ -163,9 +160,7 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.ViewHo
                         intent.putExtra("songName", selectedSong.getSongName());
                         activity.startActivity(intent);
                     } else {
-                        Looper.prepare();
                         showToast(activity, "未能成功下载文件，请重试");
-                        Looper.loop();
                     }
                 }).start();
             });

@@ -116,13 +116,11 @@ public class FileUtil {
         }
 
         if (numOfFilesDownloaded.get() == numOfFilesToDownload) {
-            System.out.println("All files downloaded successfully");
             return true;
         } else {
             for (String destFullPath: destFullPaths) {
                 deleteOneFile(destFullPath);
             }
-            System.out.println("Need to download " + numOfFilesToDownload + " but got " + numOfFilesDownloaded.get());
             return false;
         }
     }
@@ -173,7 +171,7 @@ public class FileUtil {
             }
 
             @Override
-            public void onResponse(Call call, Response response) throws IOException {
+            public void onResponse(Call call, Response response) {
                 // receive and save the file
                 if (saveFileFromResponse(response, destFullPath, loadingDialog, increment)) {
                     // countDownLatch and numOfFilesDownloaded are absent or present at the same time

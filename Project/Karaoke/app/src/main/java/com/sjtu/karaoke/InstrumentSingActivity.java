@@ -688,9 +688,7 @@ public class InstrumentSingActivity extends AppCompatActivity {
             Integer[] scores = parseScore(scoreStr);
             score.update(scores);
 
-            Looper.prepare();
             showToast(InstrumentSingActivity.this, Integer.toString(scores[0]));
-            Looper.loop();
         }).start();
     }
 

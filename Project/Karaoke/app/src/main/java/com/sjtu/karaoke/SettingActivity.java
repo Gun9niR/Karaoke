@@ -1,8 +1,6 @@
 package com.sjtu.karaoke;
 
 import android.os.Bundle;
-import android.view.View;
-import android.widget.AdapterView;
 import android.widget.ListView;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -39,17 +37,14 @@ public class SettingActivity extends AppCompatActivity {
         SettingAdapter listAdapter = new SettingAdapter(getApplicationContext(), settingItems);
         listView.setAdapter(listAdapter);
         listView.setFooterDividersEnabled(true);
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                switch(i) {
-                    case 0:
-                        showToast(getApplicationContext(), "clear");
-                        break;
-                    case 1:
-                        showToast(getApplicationContext(), "about");
-                        break;
-                }
+        listView.setOnItemClickListener((adapterView, view, i, l) -> {
+            switch(i) {
+                case 0:
+                    showToast(SettingActivity.this, "clear");
+                    break;
+                case 1:
+                    showToast(SettingActivity.this, "about");
+                    break;
             }
         });
     }

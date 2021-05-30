@@ -89,6 +89,7 @@ public class RecordListAdapter extends RecyclerView.Adapter<RecordListAdapter.Vi
         holder.recordTime.setText(record.getRecordTime());
         // download album cover
         downloadAndSetAlbumCover(record.getId(), songName, activity, holder.recordCover);
+
         holder.btnShare.setOnClickListener(view -> {
             File recordFile = new File(record.getFullPath());
             Uri uri = FileProvider.getUriForFile(activity, AUTHORITY, recordFile);

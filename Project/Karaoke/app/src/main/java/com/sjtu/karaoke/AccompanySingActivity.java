@@ -6,7 +6,6 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Looper;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -544,9 +543,7 @@ public class AccompanySingActivity extends AppCompatActivity {
 
             AccompanySingActivity.this.runOnUiThread(() -> scoreBar.setProgress(score.getTotalScore(), true));
 
-            Looper.prepare();
             showToast(AccompanySingActivity.this, Integer.toString(scores[0]));
-            Looper.loop();
         }).start();
     }
 
