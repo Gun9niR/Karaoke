@@ -16,6 +16,7 @@ const store = new Vuex.Store({
   state: {
     loginStatus: false,
     uploadRequests: [],
+    syncSongs: [],
   },
   mutations: {
     login(state) {
@@ -66,7 +67,18 @@ const store = new Vuex.Store({
           state.uploadRequests[i].rateFinished = true;
           break;
         }
-    }
+    },
+    startSyncSong(state, songInfo) {
+      state.syncSongs.push(songInfo);
+    },
+    finishSyncSong(state, songInfo) {
+      let n = state.syncSongs.length;
+      for (let i = 0; i < n; i++)
+        if (state.syncSongs[i] == songInfo) {
+          state.syncSongs.splice(i, 1);
+          break;
+        }
+    },
   },
   getters: {
     isLogin() {
