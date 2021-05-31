@@ -3,7 +3,6 @@ package com.sjtu.karaoke;
 import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.graphics.Typeface;
-import android.graphics.drawable.Drawable;
 import android.media.SoundPool;
 import android.os.Build;
 import android.os.Bundle;
@@ -282,9 +281,9 @@ public class InstrumentSingActivity extends AppCompatActivity {
             @Override
             public void run() {
                 if (currentPosition > nextHintTime && !standardSequence.isEmpty()) {
+                    displayHint(nextHintTime, nextHintChord);
                     nextHintChord = standardSequence.remove(0);
                     nextHintTime = getHintTime(nextHintChord.getTime());
-                    displayHint(nextHintTime, nextHintChord);
                 }
                 handler.postDelayed(this, 50);
             }
@@ -552,12 +551,16 @@ public class InstrumentSingActivity extends AppCompatActivity {
     }
 
     private void displayHint(int startTime, PlayChordRecord hintChord) {
+        System.out.println("hint start: " + startTime + ", current position: " + currentPosition);
         new Thread(() -> {
             ProgressBar progressBar = chordToBtn.get(hintChord.getChord());
 
             int hintFinishTime = hintChord.getTime();
             while (currentPosition < hintFinishTime) {
                 int percentage = (currentPosition - startTime) / (HINT_DURATION / 100);
+//                if (hintChord.getChord().getName().equals("Cmaj7")) {
+//                    System.out.println("hint percentage: " + percentage);
+//                }
                 progressBar.setProgress(percentage);
             }
             progressBar.setProgress(0);

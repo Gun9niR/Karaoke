@@ -79,7 +79,6 @@ public class LoadingDialog {
      */
     public void incrementProgress(int incr) {
         semaphore.acquireUninterruptibly();
-        System.out.println("increment from " + progressBar.getProgress() + " to " + (progressBar.getProgress() + incr));
         setProgress((int) progressBar.getProgress() + incr);
         semaphore.release();
     }
