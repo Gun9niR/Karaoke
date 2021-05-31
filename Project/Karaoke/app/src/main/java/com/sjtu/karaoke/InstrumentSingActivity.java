@@ -8,7 +8,6 @@ import android.media.SoundPool;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Looper;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
@@ -442,15 +441,14 @@ public class InstrumentSingActivity extends AppCompatActivity {
 
                 // add progress bar
                 ProgressBar instrumentBtn = new ProgressBar(InstrumentSingActivity.this, null, android.R.attr.progressBarStyleHorizontal);
-                Drawable progressDrawable = ContextCompat.getDrawable(InstrumentSingActivity.this, R.drawable.custom_instrument_button);
                 RelativeLayout.LayoutParams params2 = new RelativeLayout.LayoutParams(
                         ViewGroup.LayoutParams.MATCH_PARENT,
                         ViewGroup.LayoutParams.MATCH_PARENT
                 );
                 params2.addRule(RelativeLayout.CENTER_IN_PARENT, RelativeLayout.TRUE);
                 instrumentBtn.setProgressBackgroundTintList(ColorStateList.valueOf(getColor(R.color.gainsboro)));
-                instrumentBtn.setIndeterminateDrawable(progressDrawable);
-                instrumentBtn.setProgressDrawable(progressDrawable);
+                instrumentBtn.setIndeterminateDrawable(ContextCompat.getDrawable(InstrumentSingActivity.this, R.drawable.custom_instrument_button));
+                instrumentBtn.setProgressDrawable(ContextCompat.getDrawable(InstrumentSingActivity.this, R.drawable.custom_instrument_button));
                 instrumentBtn.setLayoutParams(params2);
                 instrumentBtn.setMax(100);
                 instrumentBtn.setProgress(0);
@@ -568,6 +566,7 @@ public class InstrumentSingActivity extends AppCompatActivity {
 
     private void startAllPlayers() {
         accompanyPlayer.play();
+        chordPlayer.autoResume();
     }
 
     private void start() {
@@ -584,6 +583,7 @@ public class InstrumentSingActivity extends AppCompatActivity {
 
     private void pauseAllPlayers() {
         accompanyPlayer.pause();
+        chordPlayer.autoPause();
     }
 
     private void pause() {
