@@ -1,7 +1,9 @@
 package com.sjtu.karaoke.adapter;
 
 import android.content.Intent;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
+import android.text.SpannableString;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -12,8 +14,10 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.core.content.FileProvider;
+import androidx.core.content.res.ResourcesCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.sjtu.karaoke.Karaoke;
 import com.sjtu.karaoke.LocalRecordActivity;
 import com.sjtu.karaoke.R;
 import com.sjtu.karaoke.data.Record;
@@ -25,6 +29,7 @@ import java.io.IOException;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import static com.sjtu.karaoke.util.Constants.AUTHORITY;
 import static com.sjtu.karaoke.util.Constants.RECORD_DIRECTORY;
@@ -50,7 +55,7 @@ public class RecordListAdapter extends RecyclerView.Adapter<RecordListAdapter.Vi
     LocalRecordActivity activity;
 
     public class ViewHolder extends RecyclerView.ViewHolder {
-        TextView recordName, recordTime;
+        TextView recordName, recordTime, recordRank;
         ImageView recordCover;
         ImageButton btnPlay;
         ImageButton btnShare;
@@ -60,6 +65,7 @@ public class RecordListAdapter extends RecyclerView.Adapter<RecordListAdapter.Vi
             super(itemView);
             recordName = itemView.findViewById(R.id.recordName);
             recordTime = itemView.findViewById(R.id.recordTime);
+            recordRank = itemView.findViewById(R.id.recordRank);
             recordCover = itemView.findViewById(R.id.recordCover);
             btnPlay = itemView.findViewById(R.id.btnPlay);
             btnShare = itemView.findViewById(R.id.btnShare);
@@ -98,8 +104,16 @@ public class RecordListAdapter extends RecyclerView.Adapter<RecordListAdapter.Vi
         String songName = record.getSongName();
         // set song name
         holder.recordName.setText(songName);
+        holder.recordName.append(new SpannableString("  "));
+
+        holder.recordRank.setText(record.getRank().getRankingText());
+        Drawable recordRankBackground = ResourcesCompat.getDrawable(Karaoke.getRes(), R.drawable.bg_rank, null);
+        Objects.requireNonNull(recordRankBackground).setTint(record.getRank().getRankingColor());
+        holder.recordRank.setBackground(recordRankBackground);
+
         // set record time
         holder.recordTime.setText(record.getRecordTime());
+
         // set album cover
         activity.runOnUiThread(() -> setImageFromFile(
                 record.getAlbumCoverFullPath(),

@@ -332,7 +332,7 @@ public class AccompanySingActivity extends AppCompatActivity {
         }
         scoreBar.setMax(numOfLinesToRate * 100);
         scoreBar.setProgress(0);
-        Drawable draw = getDrawable(R.drawable.custom_scorebar);
+        Drawable draw = ContextCompat.getDrawable(this, R.drawable.custom_scorebar);
         scoreBar.setProgressDrawable(draw);
     }
 
