@@ -28,8 +28,8 @@
 
     <ImageView
         android:id="@+id/albumCover"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="250dp"
+        android:layout_height="250dp"
         android:layout_marginTop="30dp"
         android:background="@drawable/voice_notes"
         app:layout_constraintEnd_toEndOf="parent"
