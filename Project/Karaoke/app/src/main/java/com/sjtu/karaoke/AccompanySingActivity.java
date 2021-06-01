@@ -187,11 +187,13 @@ public class AccompanySingActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         if (item.getItemId() == R.id.retry) {
             if (state != State.UNSTARTED) {
+                item.setEnabled(false);
                 stopActivity(false);
                 onStart();
             }
         }
         else {
+            item.setEnabled(false);
             if (this.state != State.UNSTARTED) {
                 stopActivity(false);
             }
@@ -408,47 +410,45 @@ public class AccompanySingActivity extends AppCompatActivity {
 
     private void initBottomNavbar() {
         bottomNavigationView = findViewById(R.id.bottomNavigationView);
-        this.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                bottomNavigationView.setBackground(null);
-                // 禁用中间的占位item
-                bottomNavigationView.getMenu().getItem(0).setTitle("伴唱");
-                bottomNavigationView.getMenu().getItem(1).setEnabled(false);
-                // 禁用完成，因为录音还没有开始
-                disableFinishButton();
+        this.runOnUiThread(() -> {
+            bottomNavigationView.setBackground(null);
+            // 禁用中间的占位item
+            bottomNavigationView.getMenu().getItem(0).setTitle("伴唱");
+            bottomNavigationView.getMenu().getItem(1).setEnabled(false);
+            // 禁用完成，因为录音还没有开始
+            disableFinishButton();
 
-                bottomNavigationView.setOnNavigationItemSelectedListener(
-                        item -> {
-                            switch (item.getItemId()) {
-                                case R.id.singingMode:
-                                    if (singMode == SingMode.WITH_ORIGINAL) {
-                                        item.setTitle("伴唱");
-                                        withOriginalMode();
-                                    } else {
-                                        item.setTitle("原唱");
-                                        withoutOriginalMode();
-                                    }
-                                    break;
-                                case R.id.singingFinish:
-                                    // it has to be placed here, to wait for the merging to complete
-                                    LoadingDialog loadingDialog = showLoadingDialog(AccompanySingActivity.this, "正在处理录音");
+            bottomNavigationView.setOnNavigationItemSelectedListener(
+                    item -> {
+                        switch (item.getItemId()) {
+                            case R.id.singingMode:
+                                if (singMode == SingMode.WITH_ORIGINAL) {
+                                    item.setTitle("伴唱");
+                                    withOriginalMode();
+                                } else {
+                                    item.setTitle("原唱");
+                                    withoutOriginalMode();
+                                }
+                                break;
+                            case R.id.singingFinish:
+                                // it has to be placed here, to wait for the merging to complete
+                                disableFinishButton();
+                                LoadingDialog loadingDialog = showLoadingDialog(AccompanySingActivity.this, "正在处理录音");
 
-                                    new Thread(() -> {
-                                        stopActivity(true);
-                                        Intent intent = new Intent(getApplicationContext(), SingResultActivity.class);
-                                        intent.putExtra("id", id);
-                                        intent.putExtra("songName", songName);
-                                        startActivityForResult(intent, 0);
-                                        loadingDialog.dismiss();
-                                    }).start();
+                                new Thread(() -> {
+                                    stopActivity(true);
+                                    Intent intent = new Intent(getApplicationContext(), SingResultActivity.class);
+                                    intent.putExtra("id", id);
+                                    intent.putExtra("songName", songName);
+                                    startActivityForResult(intent, 0);
+                                    loadingDialog.dismiss();
+                                }).start();
 
-                                    break;
-                            }
-                            return false;
+                                break;
                         }
-                );
-            }
+                        return false;
+                    }
+            );
         });
 
     }

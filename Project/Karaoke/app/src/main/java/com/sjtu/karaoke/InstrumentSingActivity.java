@@ -202,13 +202,17 @@ public class InstrumentSingActivity extends AppCompatActivity {
                 initScore();
                 loadingDialog.setProgress(90);
 
-                nextHintChord = standardSequence.get(0);
+                nextHintChord = standardSequence.remove(0);
                 nextHintTime = getHintTime(nextHintChord.getTime());
 
                 loadingDialog.dismiss();
 
-                InstrumentSingActivity.this.runOnUiThread(() -> start());
+                InstrumentSingActivity.this.runOnUiThread(this::start);
 
+                this.runOnUiThread(() -> {
+                    retryButton.setEnabled(true);
+                    finishButton.setEnabled(true);
+                });
             }).start();
         } else if (state == State.PAUSE) {
             start();
@@ -296,6 +300,7 @@ public class InstrumentSingActivity extends AppCompatActivity {
         retryButton = findViewById(R.id.instrumentRetryBtn);
 
         finishButton.setOnClickListener(v -> {
+            finishButton.setEnabled(false);
             LoadingDialog loadingDialog = showLoadingDialog(this, "正在处理录音");
             int len = userSequence.size();
 
@@ -328,6 +333,7 @@ public class InstrumentSingActivity extends AppCompatActivity {
         });
 
         backButton.setOnClickListener(v -> {
+            backButton.setEnabled(false);
             if (this.state != State.UNSTARTED) {
                 stopActivity(false);
             }
@@ -335,8 +341,13 @@ public class InstrumentSingActivity extends AppCompatActivity {
         });
 
         retryButton.setOnClickListener(v -> {
+            retryButton.setEnabled(false);
             retry();
+            // enable retry button in onStart(), after recording starts
         });
+
+        finishButton.setEnabled(false);
+        retryButton.setEnabled(false);
     }
 
     private void parseChordFile() {
@@ -551,19 +562,17 @@ public class InstrumentSingActivity extends AppCompatActivity {
     }
 
     private void displayHint(int startTime, PlayChordRecord hintChord) {
-        System.out.println("hint start: " + startTime + ", current position: " + currentPosition);
+
         new Thread(() -> {
             ProgressBar progressBar = chordToBtn.get(hintChord.getChord());
 
             int hintFinishTime = hintChord.getTime();
-            while (currentPosition < hintFinishTime) {
+            while (currentPosition < hintFinishTime && !(state == State.UNSTARTED)) {
                 int percentage = (currentPosition - startTime) / (HINT_DURATION / 100);
-//                if (hintChord.getChord().getName().equals("Cmaj7")) {
-//                    System.out.println("hint percentage: " + percentage);
-//                }
                 progressBar.setProgress(percentage);
             }
             progressBar.setProgress(0);
+
         }).start();
     }
 
