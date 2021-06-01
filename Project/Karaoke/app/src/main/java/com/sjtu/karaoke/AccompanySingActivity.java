@@ -28,7 +28,7 @@ import com.google.android.exoplayer2.ui.PlayerView;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.sjtu.karaoke.component.LoadingDialog;
-import com.sjtu.karaoke.entity.Score;
+import com.sjtu.karaoke.data.Score;
 
 import org.sang.lrcview.LrcView;
 import org.sang.lrcview.bean.LrcBean;
@@ -435,8 +435,8 @@ public class AccompanySingActivity extends AppCompatActivity {
                                     stopActivity(true);
                                     Intent intent = new Intent(getApplicationContext(), SingResultActivity.class);
                                     intent.putExtra("id", id);
-                                    intent.putExtra("songName", songName);
                                     intent.putExtra("score", score);
+                                    intent.putExtra("songName", songName);
                                     startActivityForResult(intent, 0);
                                     loadingDialog.dismiss();
                                 }).start();

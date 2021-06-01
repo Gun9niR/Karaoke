@@ -1,3 +1,4 @@
+include ':RadarView'
 include ':PianoRater'
 include ':SingRater'
 include ':WavEditor'

@@ -1,20 +1,23 @@
-from os import environ, path
+import os
+import sys
 from dotenv import load_dotenv
 
-basedir = path.abspath(path.dirname(__file__))
-load_dotenv(path.join(basedir, '.env'))
+basedir = os.path.abspath(os.path.dirname(__file__))
+load_dotenv(os.path.join(basedir, '.env'))
 
 class Config:
 
-    SECRET_KEY = environ.get('SECRET_KEY')
-    FLASK_APP = environ.get('FLASK_APP')
-    FLASK_ENV = environ.get('FLASK_ENV')
+    SECRET_KEY = os.environ.get('SECRET_KEY')
+    FLASK_APP = os.environ.get('FLASK_APP')
+    FLASK_ENV = os.environ.get('FLASK_ENV')
 
-    SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://root:@localhost/karaoke'
+    SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://root:haveagoodday@localhost/karaoke?charset=utf8mb4'
     SQLALCHEMY_ECHO = False
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
-    FILE_UPLOAD_DIR = 'C:\Academic\UnderGraduate\Sophomore-2\Principle_and_Practice_of_Software_Engineering\project\data'
+    REQUIRE_SHELL = sys.platform == 'win32'
+
+    FILE_UPLOAD_DIR = '/Users/cyx/College/2021Spring/SE/test/'
     WORKING_DIR = './utils/'
     CHORD_TRANS_WORKING_DIR = './utils/chordTranslator/'
 

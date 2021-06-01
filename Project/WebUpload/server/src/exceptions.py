@@ -18,3 +18,6 @@ class InvalidSongSegmentException(Exception):
 
 class UnmatchedSongInfoException(Exception):
     pass
+
+class ChordParseException(Exception):
+    pass

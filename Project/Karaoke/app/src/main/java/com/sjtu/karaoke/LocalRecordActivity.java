@@ -16,7 +16,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.sjtu.karaoke.adapter.RecordListAdapter;
-import com.sjtu.karaoke.entity.Record;
+import com.sjtu.karaoke.data.Record;
 
 import java.util.Objects;
 

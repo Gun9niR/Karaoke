@@ -7,7 +7,6 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Looper;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.style.ForegroundColorSpan;
@@ -23,7 +22,6 @@ import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.constraintlayout.widget.ConstraintLayout;
-import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 
 import com.google.android.exoplayer2.Player;
@@ -31,7 +29,8 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.sjtu.karaoke.component.LoadingDialog;
-import com.sjtu.karaoke.entity.Score;
+import com.sjtu.karaoke.component.RateResultDialog;
+import com.sjtu.karaoke.data.Score;
 import com.sjtu.karaoke.util.AccompanyPlayerGroup;
 import com.sjtu.karaoke.util.ExoPlayerGroup;
 import com.sjtu.karaoke.util.InstrumentPlayerGroup;
@@ -45,6 +44,7 @@ import static com.sjtu.karaoke.util.FileUtil.deleteOneFile;
 import static com.sjtu.karaoke.util.MiscUtil.getChooserIntent;
 import static com.sjtu.karaoke.util.MiscUtil.setImageFromFile;
 import static com.sjtu.karaoke.util.MiscUtil.showLoadingDialog;
+import static com.sjtu.karaoke.util.MiscUtil.showRateResultDialog;
 import static com.sjtu.karaoke.util.MiscUtil.showToast;
 import static com.sjtu.karaoke.util.PathUtil.getAlbumCoverFullPath;
 import static com.sjtu.karaoke.util.PathUtil.getRecordFullPath;
@@ -79,13 +79,18 @@ public class SingResultActivity extends AppCompatActivity {
     ImageView btnPlay;
     ImageView btnPause;
     ImageView albumCover;
+    RateResultDialog rateResultDialog;
+
     Handler handler = new Handler();
     Runnable progressUpdater;
 
+    // 录音文件是否已经生成并保存
     boolean isFileSaved = false;
+    // 当前播放状态
     State state;
-
+    // 歌曲id
     Integer id;
+    // 歌曲名称
     String songName;
 
     @RequiresApi(api = Build.VERSION_CODES.O)
@@ -100,7 +105,8 @@ public class SingResultActivity extends AppCompatActivity {
         id = intent.getIntExtra("id", 0);
         songName = intent.getStringExtra("songName");
 
-        callingActivity = getCallingActivity().getShortClassName().equals(".AccompanySingActivity") ? From.ACCOMPANY : From.INSTRUMENT;
+        callingActivity = getCallingActivity().getShortClassName().equals(".AccompanySingActivity")
+                ? From.ACCOMPANY : From.INSTRUMENT;
 
         initPlayerGroup();
 
@@ -126,11 +132,14 @@ public class SingResultActivity extends AppCompatActivity {
         Score score;
         String pianoScore;
 
-        score = getIntent().getParcelableExtra("score");
-        pianoScore = getIntent().getStringExtra("pianoScore");
+        Intent intent = getIntent();
+        score = intent.getParcelableExtra("score");
+        pianoScore = intent.getStringExtra("pianoScore");
         if (pianoScore == null) {
             pianoScore = "";
         }
+
+        rateResultDialog = showRateResultDialog(this, score, pianoScore);
     }
 
     private void initPlayerGroup() {
@@ -230,13 +239,17 @@ public class SingResultActivity extends AppCompatActivity {
         titleText = findViewById(R.id.toolbarResultTitle);
 
         Spannable songName = new SpannableString(this.songName);
-        songName.setSpan(new ForegroundColorSpan(Color.WHITE), 0, songName.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        songName.setSpan(new ForegroundColorSpan(Color.WHITE), 0, songName.length(),
+                Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
         titleText.setText(songName);
 
-        // todo: change rank
-        Spannable rank = new SpannableString("  SS");
-        rank.setSpan(new ForegroundColorSpan(Color.YELLOW), 0, rank.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        Spannable rank = new SpannableString("  " + rateResultDialog.getRankingText());
+        rank.setSpan(new ForegroundColorSpan(rateResultDialog.getRankingColor()), 0,
+                rank.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
         titleText.append(rank);
+        titleText.setOnClickListener(v -> {
+            rateResultDialog.show();
+        });
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
@@ -332,7 +345,6 @@ public class SingResultActivity extends AppCompatActivity {
         handler.removeCallbacks(progressUpdater);
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.P)
     private void initTuneSeekbar() {
         // voice tuner shared by both modes
         SeekBar seekbarTuneVoice = findViewById(R.id.seekbarTuneVoice);
@@ -386,8 +398,7 @@ public class SingResultActivity extends AppCompatActivity {
             tuneWrapper.removeView(findViewById(R.id.wrapperTuneAccompany));
 
             BottomSheetBehavior<View> bottomSheetBehavior = BottomSheetBehavior.from(findViewById(R.id.trackBottomSheet));
-            final LinearLayout trackSeekBarWrapper = findViewById(R.id.trackSeekBarWrapper);
-            trackSeekBarWrapper.setOutlineAmbientShadowColor(ContextCompat.getColor(this, R.color.black));
+            LinearLayout trackSeekBarWrapper = findViewById(R.id.trackSeekBarWrapper);
             trackSeekBarWrapper.setVisibility(View.GONE);
             bottomSheetBehavior.setHideable(false);
             bottomSheetBehavior.addBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {

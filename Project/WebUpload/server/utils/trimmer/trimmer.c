@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
 #define MAXLINE 1000
 #define FORMAT_TIME_LEN 10
@@ -54,6 +55,12 @@ void trim_lrc(char* start_time_s, char* end_time_s, char* org_lrc_path, char* ne
     if (new_lrc == NULL) {
         fprintf(stderr, "Cannot open the new lrc file.\n");
         exit(-1);
+    }
+
+    /* Skip lrc header */
+    while (fgets(buf, MAXLINE, org_lrc)) {
+        if (strlen(buf) > 1 && isdigit(buf[1]))
+            break;
     }
 
     /* Before start time */

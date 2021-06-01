@@ -72,6 +72,8 @@ def update_song_info():
 def upload_song():
     try:
         services.upload_song(request.form, request.files)
+    except ChordParseException:
+        return 'Cannot parse the chord', 400
     except:
         return 'Fail to upload the song', 400
 
@@ -80,7 +82,6 @@ def upload_song():
 
 @app.route("/uploadOneFile/<song_id>", methods=['POST'])
 def upload_one_file(song_id):
-    print('enter upload one file')
     try:
         services.upload_one_file(song_id, request.files)
     except:

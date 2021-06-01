@@ -16,7 +16,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.sjtu.karaoke.LocalRecordActivity;
 import com.sjtu.karaoke.R;
-import com.sjtu.karaoke.entity.Record;
+import com.sjtu.karaoke.data.Record;
 
 import java.io.File;
 import java.text.ParseException;

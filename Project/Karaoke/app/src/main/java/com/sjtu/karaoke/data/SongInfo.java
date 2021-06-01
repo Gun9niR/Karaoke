@@ -1,4 +1,4 @@
-package com.sjtu.karaoke.entity;
+package com.sjtu.karaoke.data;
 
 import android.os.Parcel;
 import android.os.Parcelable;
