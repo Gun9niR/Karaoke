@@ -120,8 +120,6 @@ public class SingResultActivity extends AppCompatActivity {
         initTuneSeekbar();
         initAlignSeekbar();
         initFab();
-        btnPlay.callOnClick();
-
     }
 
     private void showScore() {
@@ -316,8 +314,10 @@ public class SingResultActivity extends AppCompatActivity {
         btnPause = findViewById(R.id.resultPause);
 
         btnPlay.setOnClickListener(v -> start());
-
         btnPause.setOnClickListener((v -> pause()));
+
+        btnPlay.setVisibility(View.VISIBLE);
+        btnPause.setVisibility(View.GONE);
     }
 
     private void pause() {
