@@ -285,7 +285,7 @@ public class InstrumentSingActivity extends AppCompatActivity {
                     nextHintChord = standardSequence.remove(0);
                     nextHintTime = getHintTime(nextHintChord.getTime());
                 }
-                handler.postDelayed(this, 50);
+                handler.postDelayed(this, 10);
             }
         };
     }

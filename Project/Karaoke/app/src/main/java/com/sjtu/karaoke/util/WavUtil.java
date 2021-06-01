@@ -1,5 +1,6 @@
 package com.sjtu.karaoke.util;
 
+import com.arthenica.mobileffmpeg.FFmpeg;
 import com.sjtu.karaoke.waveditor.WavHeader;
 import com.sjtu.karaoke.waveditor.WavReader;
 import com.sjtu.karaoke.waveditor.WavWriter;
@@ -25,7 +26,28 @@ public class WavUtil {
                                  List<String> accompanyPaths,
                                  List<Float> accompanyVolumes,
                                  int voiceOffset) {
-        // todo: cyx will implement this
+
+        int wavN = accompanyPaths.size() + 1;
+
+        String delayStr = ", adelay=" + voiceOffset + "|" + voiceOffset;
+        StringBuilder inputArgs = new StringBuilder(" -i " + voiceFullPath);
+        StringBuilder optionArgs = new StringBuilder("[0]volume=" + voiceVolume * wavN + "[a];");
+        StringBuilder amixPrefix = new StringBuilder("[a]");
+
+        for (int i = 1; i <= wavN - 1; ++i) {
+            inputArgs.append(" -i ").append(accompanyPaths.get(i - 1));
+            char codename = (char)((int)'a' + i);   // codename starts from 'b'
+            optionArgs.append("[").append(i).append("]volume=").append(accompanyVolumes.get(i - 1) * wavN)
+                    .append(delayStr).append("[").append(codename).append("];");
+            amixPrefix.append("[").append(codename).append("]");
+        }
+
+        StringBuilder cmd = new StringBuilder();
+        cmd.append("-y").append(inputArgs).append(" -filter_complex").append(" \"").append(optionArgs).append(amixPrefix)
+                .append("amix=inputs=").append(wavN).append(":duration=longest:dropout_transition=1\" ").append(destPath);
+        System.out.println(cmd);
+
+        FFmpeg.execute(cmd.toString());
     }
 
     /**

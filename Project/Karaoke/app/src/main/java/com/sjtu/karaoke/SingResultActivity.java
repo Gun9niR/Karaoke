@@ -333,7 +333,6 @@ public class SingResultActivity extends AppCompatActivity {
         handler.removeCallbacks(progressUpdater);
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.P)
     private void initTuneSeekbar() {
         // voice tuner shared by both modes
         SeekBar seekbarTuneVoice = findViewById(R.id.seekbarTuneVoice);
@@ -388,7 +387,6 @@ public class SingResultActivity extends AppCompatActivity {
 
             BottomSheetBehavior<View> bottomSheetBehavior = BottomSheetBehavior.from(findViewById(R.id.trackBottomSheet));
             LinearLayout trackSeekBarWrapper = findViewById(R.id.trackSeekBarWrapper);
-            trackSeekBarWrapper.setOutlineAmbientShadowColor(ContextCompat.getColor(this, R.color.black));
             trackSeekBarWrapper.setVisibility(View.GONE);
             bottomSheetBehavior.setHideable(false);
             bottomSheetBehavior.addBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
