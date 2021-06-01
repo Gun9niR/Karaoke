@@ -125,9 +125,12 @@ public class SingResultActivity extends AppCompatActivity {
     private void showScore() {
         Score score;
         String pianoScore;
-        // todo: show dialog
+
+        score = getIntent().getParcelableExtra("score");
         pianoScore = getIntent().getStringExtra("pianoScore");
-        showToast(this, pianoScore);
+        if (pianoScore == null) {
+            pianoScore = "";
+        }
     }
 
     private void initPlayerGroup() {

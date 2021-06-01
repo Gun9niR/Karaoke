@@ -319,6 +319,7 @@ public class InstrumentSingActivity extends AppCompatActivity {
                 Intent intent = new Intent(InstrumentSingActivity.this, SingResultActivity.class);
                 intent.putExtra("id", id);
                 intent.putExtra("songName", songName);
+                intent.putExtra("score", score);
                 intent.putExtra("pianoScore",
                         PianoRater.getScore(
                                 getChordTransFullPath(songName),

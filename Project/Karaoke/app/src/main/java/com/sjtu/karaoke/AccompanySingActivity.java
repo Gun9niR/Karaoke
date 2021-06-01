@@ -266,22 +266,18 @@ public class AccompanySingActivity extends AppCompatActivity {
 
     private void initMVPlayer() {
         // set up mv player and the view it should attach to
-        this.runOnUiThread(new Runnable() {
+        this.runOnUiThread(() -> {
+            mvPlayer = new SimpleExoPlayer.Builder(AccompanySingActivity.this).build();
+            File mvFile = new File(getMVFullPath(songName));
+            MediaItem mv = MediaItem.fromUri(Uri.fromFile(mvFile));
+            mvPlayer.setMediaItem(mv);
+            mvPlayer.prepare();
+            mvPlayer.setVolume(0);
 
-            @Override
-            public void run() {
-                mvPlayer = new SimpleExoPlayer.Builder(AccompanySingActivity.this).build();
-                File mvFile = new File(getMVFullPath(songName));
-                MediaItem mv = MediaItem.fromUri(Uri.fromFile(mvFile));
-                mvPlayer.setMediaItem(mv);
-                mvPlayer.prepare();
-                mvPlayer.setVolume(0);
-
-                PlayerView mvPlayerView = findViewById(R.id.mvView);
-                mvPlayerView.setResizeMode(AspectRatioFrameLayout.RESIZE_MODE_FILL);
-                mvPlayerView.setPlayer(mvPlayer);
-                mvPlayerView.setUseController(false);
-            }
+            PlayerView mvPlayerView = findViewById(R.id.mvView);
+            mvPlayerView.setResizeMode(AspectRatioFrameLayout.RESIZE_MODE_FILL);
+            mvPlayerView.setPlayer(mvPlayer);
+            mvPlayerView.setUseController(false);
         });
 
     }
@@ -440,6 +436,7 @@ public class AccompanySingActivity extends AppCompatActivity {
                                     Intent intent = new Intent(getApplicationContext(), SingResultActivity.class);
                                     intent.putExtra("id", id);
                                     intent.putExtra("songName", songName);
+                                    intent.putExtra("score", score);
                                     startActivityForResult(intent, 0);
                                     loadingDialog.dismiss();
                                 }).start();
