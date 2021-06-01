@@ -30,6 +30,21 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
+        android:id="@+id/recordRank"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Rank"
+        android:textSize="12sp"
+        android:textColor="@color/white"
+        android:background="@drawable/bg_rank"
+        android:paddingStart="4dp"
+        android:paddingEnd="4dp"
+        android:gravity="center"
+        app:layout_constraintBottom_toBottomOf="@+id/recordName"
+        app:layout_constraintStart_toEndOf="@+id/recordName"
+        app:layout_constraintTop_toTopOf="@+id/recordName" />
+
+    <TextView
         android:id="@+id/recordTime"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -43,8 +58,8 @@
         android:id="@+id/btnPlay"
         android:layout_width="40dp"
         android:layout_height="40dp"
-        android:src="@drawable/ic_play"
         android:background="@android:color/transparent"
+        android:src="@drawable/ic_play"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/btnShare"
         app:layout_constraintTop_toTopOf="parent" />
@@ -64,8 +79,8 @@
         android:layout_width="40dp"
         android:layout_height="40dp"
         android:layout_marginEnd="24dp"
-        android:src="@drawable/ic_delete"
         android:background="@android:color/transparent"
+        android:src="@drawable/ic_delete"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />

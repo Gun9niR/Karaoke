@@ -24,7 +24,7 @@ import com.sjtu.karaoke.R;
 import com.sjtu.karaoke.SearchActivity;
 import com.sjtu.karaoke.adapter.CarouselAdapter;
 import com.sjtu.karaoke.adapter.SongListAdapter;
-import com.sjtu.karaoke.entity.SongInfo;
+import com.sjtu.karaoke.data.SongInfo;
 
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONArray;

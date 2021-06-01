@@ -7,10 +7,10 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Looper;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.style.ForegroundColorSpan;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.ImageView;
@@ -23,7 +23,6 @@ import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.constraintlayout.widget.ConstraintLayout;
-import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 
 import com.google.android.exoplayer2.Player;
@@ -32,16 +31,26 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.sjtu.karaoke.component.LoadingDialog;
 import com.sjtu.karaoke.component.RateResultDialog;
-import com.sjtu.karaoke.entity.Score;
+import com.sjtu.karaoke.data.Score;
 import com.sjtu.karaoke.util.AccompanyPlayerGroup;
 import com.sjtu.karaoke.util.ExoPlayerGroup;
 import com.sjtu.karaoke.util.InstrumentPlayerGroup;
 
+import org.apache.commons.io.FileUtils;
+
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import static com.sjtu.karaoke.util.Constants.AUTHORITY;
 import static com.sjtu.karaoke.util.Constants.PROGRESS_UPDATE_INTERVAL;
+import static com.sjtu.karaoke.util.Constants.RECORD_DIRECTORY;
 import static com.sjtu.karaoke.util.FileUtil.deleteOneFile;
 import static com.sjtu.karaoke.util.MiscUtil.getChooserIntent;
 import static com.sjtu.karaoke.util.MiscUtil.setImageFromFile;
@@ -49,7 +58,9 @@ import static com.sjtu.karaoke.util.MiscUtil.showLoadingDialog;
 import static com.sjtu.karaoke.util.MiscUtil.showRateResultDialog;
 import static com.sjtu.karaoke.util.MiscUtil.showToast;
 import static com.sjtu.karaoke.util.PathUtil.getAlbumCoverFullPath;
-import static com.sjtu.karaoke.util.PathUtil.getRecordFullPath;
+import static com.sjtu.karaoke.util.PathUtil.getRecordCoverFullPath;
+import static com.sjtu.karaoke.util.PathUtil.getRecordMetadataFullPath;
+import static com.sjtu.karaoke.util.PathUtil.getRecordFileFullPath;
 import static com.sjtu.karaoke.util.PathUtil.getTrimmedAccompanyFullPath;
 import static com.sjtu.karaoke.util.PathUtil.getVoiceFullPath;
 
@@ -81,16 +92,21 @@ public class SingResultActivity extends AppCompatActivity {
     ImageView btnPlay;
     ImageView btnPause;
     ImageView albumCover;
+    RateResultDialog rateResultDialog;
+
     Handler handler = new Handler();
     Runnable progressUpdater;
 
+    // 录音文件是否已经生成并保存
     boolean isFileSaved = false;
+    // 当前播放状态
     State state;
-
+    // 歌曲id
     Integer id;
+    // 歌曲名称
     String songName;
 
-    @RequiresApi(api = Build.VERSION_CODES.P)
+    @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -123,17 +139,20 @@ public class SingResultActivity extends AppCompatActivity {
         initTuneSeekbar();
         initAlignSeekbar();
         initFab();
-        btnPlay.callOnClick();
-
     }
 
     private void showScore() {
-        Score score = new Score(100, 57, 75, 47);
-        String pianoScore = "6";
-        // todo: show dialog
-        showRateResultDialog(this, score, pianoScore);
-        pianoScore = getIntent().getStringExtra("pianoScore");
-        showToast(this, pianoScore);
+        Score score;
+        String pianoScore;
+
+        Intent intent = getIntent();
+        score = intent.getParcelableExtra("score");
+        pianoScore = intent.getStringExtra("pianoScore");
+        if (pianoScore == null) {
+            pianoScore = "";
+        }
+
+        rateResultDialog = showRateResultDialog(this, score, pianoScore);
     }
 
     private void initPlayerGroup() {
@@ -201,13 +220,64 @@ public class SingResultActivity extends AppCompatActivity {
             } else {
                 LoadingDialog loadingDialog = showLoadingDialog(SingResultActivity.this, "正在生成作品...");
                 new Thread(() -> {
-                    playerGroup.mergeWav(getRecordFullPath(id, songName));
+                    saveRecord(songName, playerGroup, rateResultDialog.getRankingText());
                     loadingDialog.dismiss();
                     showToast(SingResultActivity.this, "录音已成功保存");
                     isFileSaved = true;
                 }).start();
             }
         });
+    }
+
+    /**
+     * Save record
+     * @param songName Name of the song
+     * @param playerGroup Player group that handles merging of multiple wav files
+     * @param rankingText T
+     * @return Path to merged record .wav file
+     */
+    private String saveRecord(String songName, ExoPlayerGroup playerGroup, String rankingText) {
+        String dirFullPath = RECORD_DIRECTORY + UUID.randomUUID().toString().replaceAll("-", "") + "/";
+        String wavFullPath = dirFullPath + songName + ".wav";
+
+        File dir = new File(dirFullPath);
+        dir.mkdirs();
+
+        // copy and rename cover
+        try {
+            FileUtils.copyFile(new File(getAlbumCoverFullPath(songName)),
+                    new File(getRecordCoverFullPath(dirFullPath)));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        // write metadata
+        try {
+             BufferedWriter writer = new BufferedWriter(
+                     new FileWriter(getRecordMetadataFullPath(dirFullPath)));
+            // write song name
+            writer.write(songName);
+            writer.newLine();
+
+            // write record time
+            Date date = new Date(System.currentTimeMillis());
+            SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd-HH-mm",
+                    Locale.CHINA);
+            String dateString = formatter.format(date);
+            writer.write(dateString);
+            writer.newLine();
+
+            // write rank
+            writer.write(rankingText);
+            writer.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        // merge wav
+        playerGroup.mergeWav(getRecordFileFullPath(dirFullPath, songName));
+
+        return wavFullPath;
     }
 
     private void initProgressUpdater() {
@@ -233,13 +303,17 @@ public class SingResultActivity extends AppCompatActivity {
         titleText = findViewById(R.id.toolbarResultTitle);
 
         Spannable songName = new SpannableString(this.songName);
-        songName.setSpan(new ForegroundColorSpan(Color.WHITE), 0, songName.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        songName.setSpan(new ForegroundColorSpan(Color.WHITE), 0, songName.length(),
+                Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
         titleText.setText(songName);
 
-        // todo: change rank
-        Spannable rank = new SpannableString("  SS");
-        rank.setSpan(new ForegroundColorSpan(Color.YELLOW), 0, rank.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        Spannable rank = new SpannableString("  " + rateResultDialog.getRankingText());
+        rank.setSpan(new ForegroundColorSpan(rateResultDialog.getRankingColor()), 0,
+                rank.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
         titleText.append(rank);
+        titleText.setOnClickListener(v -> {
+            rateResultDialog.show();
+        });
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
@@ -248,36 +322,56 @@ public class SingResultActivity extends AppCompatActivity {
         bottomNavbarResult.setBackground(null);
         bottomNavbarResult.getMenu().getItem(1).setEnabled(false);
 
-        bottomNavbarResult.setOnNavigationItemSelectedListener(item -> {
-            int id = item.getItemId();
-            switch(id) {
-                case R.id.resultRetry:
-                    onBackPressed();
-                    break;
-                case R.id.resultShare:
-                    if (!isFileSaved) {
-                        LoadingDialog loadingDialog = showLoadingDialog(SingResultActivity.this, "正在生成作品...");
-                        new Thread(() -> {
-                            playerGroup.mergeWav(getRecordFullPath(id, songName));
-                            loadingDialog.dismiss();
-                            isFileSaved = true;
+        bottomNavbarResult.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
+            String recordFullPath;
 
-                            File recordFile = new File(getRecordFullPath(id, songName));
-                            Uri uri = FileProvider.getUriForFile(this, AUTHORITY, recordFile);
+            @Override
+            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                int id = item.getItemId();
+                switch (id) {
+                    case R.id.resultRetry:
+                        onBackPressed();
+                        break;
+                    case R.id.resultShare:
+                        if (!isFileSaved) {
+                            LoadingDialog loadingDialog = showLoadingDialog(
+                                    SingResultActivity.this,
+                                    "正在生成作品...");
+                            new Thread(() -> {
+                                recordFullPath = saveRecord(
+                                        songName,
+                                        playerGroup,
+                                        rateResultDialog.getRankingText());
+                                loadingDialog.dismiss();
+                                isFileSaved = true;
 
-                            Intent chooserIntent = getChooserIntent(uri, this);
+                                File recordFile = new File(recordFullPath);
+                                Uri uri = FileProvider.getUriForFile(
+                                        SingResultActivity.this,
+                                        AUTHORITY,
+                                        recordFile);
+
+                                Intent chooserIntent = getChooserIntent(
+                                        uri,
+                                        SingResultActivity.this);
+                                startActivity(chooserIntent);
+                            }).start();
+                        } else {
+                            File recordFile = new File(recordFullPath);
+                            Uri uri = FileProvider.getUriForFile(
+                                    SingResultActivity.this,
+                                    AUTHORITY,
+                                    recordFile);
+
+                            Intent chooserIntent = getChooserIntent(
+                                    uri,
+                                    SingResultActivity.this);
                             startActivity(chooserIntent);
-                        }).start();
-                    } else {
-                        File recordFile = new File(getRecordFullPath(id, songName));
-                        Uri uri = FileProvider.getUriForFile(this, AUTHORITY, recordFile);
-
-                        Intent chooserIntent = getChooserIntent(uri, this);
-                        startActivity(chooserIntent);
-                    }
-                    break;
+                        }
+                        break;
+                }
+                return false;
             }
-            return false;
         });
     }
 
@@ -320,8 +414,10 @@ public class SingResultActivity extends AppCompatActivity {
         btnPause = findViewById(R.id.resultPause);
 
         btnPlay.setOnClickListener(v -> start());
-
         btnPause.setOnClickListener((v -> pause()));
+
+        btnPlay.setVisibility(View.VISIBLE);
+        btnPause.setVisibility(View.GONE);
     }
 
     private void pause() {

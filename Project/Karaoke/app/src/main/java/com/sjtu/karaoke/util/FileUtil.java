@@ -116,6 +116,8 @@ public class FileUtil {
         }
 
         if (numOfFilesDownloaded.get() == numOfFilesToDownload) {
+            // eliminate inaccuracy due to integer division
+            loadingDialog.setProgress(LoadingDialog.MAX_PROGRESS);
             return true;
         } else {
             for (String destFullPath: destFullPaths) {
@@ -257,7 +259,6 @@ public class FileUtil {
                 final int bytesPerOnePercent = totalBytes / increment;
 
                 int bytesToCount = 0;
-
                 while ((n = is.read(buffer)) != -1) {
                     fos.write(buffer, 0, n);
 
@@ -266,6 +267,7 @@ public class FileUtil {
                     while (bytesToCount >= bytesPerOnePercent) {
                         bytesToCount -= bytesPerOnePercent;
                         loadingDialog.incrementProgress(1);
+                        ++incrementedPrgress;
                     }
                 }
 

@@ -1,9 +1,6 @@
 package com.sjtu.karaoke.util;
 
 import android.content.Context;
-import android.os.Build;
-
-import androidx.annotation.RequiresApi;
 
 import com.dreamfish.record.FileUtil;
 
@@ -36,7 +33,6 @@ import static com.sjtu.karaoke.util.Constants.TRIMMED_VOICE_WAV_DIRECTORY;
 import static com.sjtu.karaoke.util.Constants.USER_PLAY_DIRECTORY;
 import static com.sjtu.karaoke.util.Constants.VOICE_DIRECTORY;
 import static com.sjtu.karaoke.util.FileUtil.isFilePresent;
-import static com.sjtu.karaoke.util.MiscUtil.getRecordName;
 
 public class PathUtil {
 
@@ -142,10 +138,16 @@ public class PathUtil {
         return CHORD_TRANS_DIRECTORY + songName + ".chordtrans";
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.O)
-    public static String getRecordFullPath(int id, String songName) {
-        return RECORD_DIRECTORY + getRecordName(id, songName);
+    public static String getRecordCoverFullPath(String dirFullPath) {
+        return dirFullPath + "/cover.png";
+    }
 
+    public static String getRecordMetadataFullPath(String dirFullPath) {
+        return dirFullPath + "/metadata.txt";
+    }
+
+    public static String getRecordFileFullPath(String dirFullPath, String songName) {
+        return dirFullPath + "/" + songName + ".wav";
     }
     /*
      * Given asset fileName(with extension), extract it into a temporary folder

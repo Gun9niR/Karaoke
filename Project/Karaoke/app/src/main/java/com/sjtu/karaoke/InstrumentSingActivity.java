@@ -26,9 +26,9 @@ import com.arthenica.mobileffmpeg.FFmpeg;
 import com.dreamfish.record.AudioRecorder;
 import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.sjtu.karaoke.component.LoadingDialog;
-import com.sjtu.karaoke.entity.Chord;
-import com.sjtu.karaoke.entity.PlayChordRecord;
-import com.sjtu.karaoke.entity.Score;
+import com.sjtu.karaoke.data.Chord;
+import com.sjtu.karaoke.data.PlayChordRecord;
+import com.sjtu.karaoke.data.Score;
 import com.sjtu.pianorater.PianoRater;
 
 import org.apache.commons.io.FileUtils;
@@ -139,6 +139,8 @@ public class InstrumentSingActivity extends AppCompatActivity {
     List<PlayChordRecord> standardSequence;
     // 用户弹的每个和弦的时间
     List<PlayChordRecord> userSequence;
+    // 打分线程
+    List<Thread> ratingThread;
     // 将和弦名映射到和弦对象
     HashMap<String, Chord> nameToChord;
     // 将和弦映射到按钮
@@ -202,13 +204,17 @@ public class InstrumentSingActivity extends AppCompatActivity {
                 initScore();
                 loadingDialog.setProgress(90);
 
-                nextHintChord = standardSequence.get(0);
+                nextHintChord = standardSequence.remove(0);
                 nextHintTime = getHintTime(nextHintChord.getTime());
 
                 loadingDialog.dismiss();
 
-                InstrumentSingActivity.this.runOnUiThread(() -> start());
+                InstrumentSingActivity.this.runOnUiThread(this::start);
 
+                this.runOnUiThread(() -> {
+                    retryButton.setEnabled(true);
+                    finishButton.setEnabled(true);
+                });
             }).start();
         } else if (state == State.PAUSE) {
             start();
@@ -296,6 +302,7 @@ public class InstrumentSingActivity extends AppCompatActivity {
         retryButton = findViewById(R.id.instrumentRetryBtn);
 
         finishButton.setOnClickListener(v -> {
+            finishButton.setEnabled(false);
             LoadingDialog loadingDialog = showLoadingDialog(this, "正在处理录音");
             int len = userSequence.size();
 
@@ -310,10 +317,19 @@ public class InstrumentSingActivity extends AppCompatActivity {
                     userChordNameSequence[i] = r.getChord().getName();
                 }
 
-                // todo: pass sing score and piano play score
+                for (Thread thread: ratingThread) {
+                    try {
+                        thread.join();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                score.computeFinalScore();
                 Intent intent = new Intent(InstrumentSingActivity.this, SingResultActivity.class);
                 intent.putExtra("id", id);
                 intent.putExtra("songName", songName);
+                intent.putExtra("score", score);
                 intent.putExtra("pianoScore",
                         PianoRater.getScore(
                                 getChordTransFullPath(songName),
@@ -328,6 +344,7 @@ public class InstrumentSingActivity extends AppCompatActivity {
         });
 
         backButton.setOnClickListener(v -> {
+            backButton.setEnabled(false);
             if (this.state != State.UNSTARTED) {
                 stopActivity(false);
             }
@@ -335,8 +352,13 @@ public class InstrumentSingActivity extends AppCompatActivity {
         });
 
         retryButton.setOnClickListener(v -> {
+            retryButton.setEnabled(false);
             retry();
+            // enable retry button in onStart(), after recording starts
         });
+
+        finishButton.setEnabled(false);
+        retryButton.setEnabled(false);
     }
 
     private void parseChordFile() {
@@ -504,6 +526,7 @@ public class InstrumentSingActivity extends AppCompatActivity {
     }
 
     private void initRatingSystem() {
+        ratingThread = new ArrayList<>();
         init(getRateFullPath(songName), PCM_SPLIT_INTERVAL, RECORD_DELAY_LB, RECORD_DELAY_UB);
     }
 
@@ -551,19 +574,17 @@ public class InstrumentSingActivity extends AppCompatActivity {
     }
 
     private void displayHint(int startTime, PlayChordRecord hintChord) {
-        System.out.println("hint start: " + startTime + ", current position: " + currentPosition);
+
         new Thread(() -> {
             ProgressBar progressBar = chordToBtn.get(hintChord.getChord());
 
             int hintFinishTime = hintChord.getTime();
-            while (currentPosition < hintFinishTime) {
+            while (currentPosition < hintFinishTime && !(state == State.UNSTARTED)) {
                 int percentage = (currentPosition - startTime) / (HINT_DURATION / 100);
-//                if (hintChord.getChord().getName().equals("Cmaj7")) {
-//                    System.out.println("hint percentage: " + percentage);
-//                }
                 progressBar.setProgress(percentage);
             }
             progressBar.setProgress(0);
+
         }).start();
     }
 
@@ -679,7 +700,7 @@ public class InstrumentSingActivity extends AppCompatActivity {
      * @param endTime End time of the line (ms)
      */
     private void rate(int startTime, int endTime) {
-        new Thread(() -> {
+        Thread thread = new Thread(() -> {
             while (!voiceRecorder.isf0AnalysisComplete(startTime, endTime)) {
                 try {
                     Thread.sleep(200);
@@ -692,7 +713,10 @@ public class InstrumentSingActivity extends AppCompatActivity {
             score.update(scores);
 
             showToast(InstrumentSingActivity.this, Integer.toString(scores[0]));
-        }).start();
+        });
+
+        ratingThread.add(thread);
+        thread.start();
     }
 
     private enum State {

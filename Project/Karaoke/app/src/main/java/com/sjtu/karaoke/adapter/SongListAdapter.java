@@ -20,7 +20,7 @@ import com.sjtu.karaoke.AccompanySingActivity;
 import com.sjtu.karaoke.InstrumentSingActivity;
 import com.sjtu.karaoke.R;
 import com.sjtu.karaoke.component.LoadingDialog;
-import com.sjtu.karaoke.entity.SongInfo;
+import com.sjtu.karaoke.data.SongInfo;
 
 import java.util.List;
 

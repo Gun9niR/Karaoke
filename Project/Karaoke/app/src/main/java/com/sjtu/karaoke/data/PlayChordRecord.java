@@ -1,4 +1,4 @@
-package com.sjtu.karaoke.entity;
+package com.sjtu.karaoke.data;
 
 public class PlayChordRecord {
     Chord chord;

@@ -6,10 +6,9 @@ import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.widget.TextView;
 
-import androidx.core.content.ContextCompat;
-
 import com.sjtu.karaoke.R;
-import com.sjtu.karaoke.entity.Score;
+import com.sjtu.karaoke.data.Rank;
+import com.sjtu.karaoke.data.Score;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -27,6 +26,8 @@ public class RateResultDialog {
     TextView finalScoreTextView;
     RadarView radarView;
 
+    Rank rank;
+
     public RateResultDialog(Activity activity, Score score, String instrumentScoreStr) {
 
         this.activity = activity;
@@ -39,7 +40,7 @@ public class RateResultDialog {
         finalScoreTextView = dialog.findViewById(R.id.rateFinalScore);
         radarView = dialog.findViewById(R.id.rateResultRadar);
 
-        setRankingText(activity, score);
+        setRankingText(score);
         setFinalScoreText(score);
         setRadarChart(score, instrumentScoreStr);
 
@@ -49,43 +50,28 @@ public class RateResultDialog {
 
     public void dismiss() { dialog.dismiss(); }
 
-    private void setRankingText(Activity activity, Score score) {
+    private void setRankingText(Score score) {
 
         Integer finalScore = score.getTotalScore();
-        String text;
-        int color;
-
-        int SColor = ContextCompat.getColor(activity.getApplicationContext(), R.color.golden);
-        int AColor = ContextCompat.getColor(activity.getApplicationContext(), R.color.coral);
-        int BColor = ContextCompat.getColor(activity.getApplicationContext(), R.color.blue);
-        int CColor = ContextCompat.getColor(activity.getApplicationContext(), R.color.green);
-        int DColor = ContextCompat.getColor(activity.getApplicationContext(), R.color.gray);
 
         if (finalScore >= 95) {
-            text = "SSS";
-            color = SColor;
+            rank = Rank.SSS;
         } else if (finalScore >= 90) {
-            text = "SS";
-            color = SColor;
+            rank = Rank.SS;
         } else if (finalScore >= 85) {
-            text = "S";
-            color = SColor;
+            rank = Rank.S;
         } else if (finalScore >= 80) {
-            text = "A";
-            color = AColor;
+            rank = Rank.A;
         } else if (finalScore >= 70) {
-            text = "B";
-            color = BColor;
+            rank = Rank.B;
         } else if (finalScore >= 60) {
-            text = "C";
-            color = CColor;
+            rank = Rank.C;
         } else {
-            text = "D";
-            color = DColor;
+            rank = Rank.D;
         }
 
-        rankingTextView.setText(text);
-        rankingTextView.setTextColor(color);
+        rankingTextView.setText(rank.getRankingText());
+        rankingTextView.setTextColor(rank.getRankingColor());
     }
 
     private void setFinalScoreText(Score score) {
@@ -112,7 +98,7 @@ public class RateResultDialog {
                 "音准\n" + Math.round(accuracyScore));
 
         if (!instrumentScoreStr.isEmpty()) {
-            Float instrumentScore = Float.parseFloat(instrumentScoreStr) * 10f;
+            float instrumentScore = Float.parseFloat(instrumentScoreStr) * 10f;
             vertexText.add(0, "弹奏\n" + Math.round(instrumentScore));
             scores.add(0, instrumentScore);
         }
@@ -129,4 +115,11 @@ public class RateResultDialog {
 
     }
 
+    public String getRankingText() {
+        return rank.getRankingText();
+    }
+
+    public int getRankingColor() {
+        return rank.getRankingColor();
+    }
 }
