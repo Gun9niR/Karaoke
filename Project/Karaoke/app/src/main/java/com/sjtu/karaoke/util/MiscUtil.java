@@ -24,6 +24,8 @@ import androidx.core.app.ActivityCompat;
 
 import com.arthenica.mobileffmpeg.FFmpeg;
 import com.sjtu.karaoke.component.LoadingDialog;
+import com.sjtu.karaoke.component.RateResultDialog;
+import com.sjtu.karaoke.entity.Score;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -142,6 +144,17 @@ public class MiscUtil {
 
         loadingDialog.show();
         return loadingDialog;
+    }
+
+    /**
+     * Display rate result dialog.
+     * @param activity
+     * @return
+     */
+    public static RateResultDialog showRateResultDialog(Activity activity, Score score, String instrumentScoreStr) {
+        RateResultDialog rateResultDialog = new RateResultDialog(activity, score, instrumentScoreStr);
+        rateResultDialog.show();
+        return rateResultDialog;
     }
 
     public static void getSongInfo(Callback callback) {

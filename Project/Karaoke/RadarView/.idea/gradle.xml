@@ -7,18 +7,7 @@
         <option name="testRunner" value="PLATFORM" />
         <option name="distributionType" value="DEFAULT_WRAPPED" />
         <option name="externalProjectPath" value="$PROJECT_DIR$" />
-        <option name="modules">
-          <set>
-            <option value="$PROJECT_DIR$" />
-            <option value="$PROJECT_DIR$/LrcView" />
-            <option value="$PROJECT_DIR$/PianoRater" />
-            <option value="$PROJECT_DIR$/RadarView" />
-            <option value="$PROJECT_DIR$/Recorder" />
-            <option value="$PROJECT_DIR$/SingRater" />
-            <option value="$PROJECT_DIR$/app" />
-            <option value="$PROJECT_DIR$/waveditor" />
-          </set>
-        </option>
+        <option name="gradleJvm" value="1.8" />
         <option name="resolveModulePerSourceSet" value="false" />
         <option name="useQualifiedModuleNames" value="true" />
       </GradleProjectSettings>

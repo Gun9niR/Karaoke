@@ -31,6 +31,7 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.sjtu.karaoke.component.LoadingDialog;
+import com.sjtu.karaoke.component.RateResultDialog;
 import com.sjtu.karaoke.entity.Score;
 import com.sjtu.karaoke.util.AccompanyPlayerGroup;
 import com.sjtu.karaoke.util.ExoPlayerGroup;
@@ -45,6 +46,7 @@ import static com.sjtu.karaoke.util.FileUtil.deleteOneFile;
 import static com.sjtu.karaoke.util.MiscUtil.getChooserIntent;
 import static com.sjtu.karaoke.util.MiscUtil.setImageFromFile;
 import static com.sjtu.karaoke.util.MiscUtil.showLoadingDialog;
+import static com.sjtu.karaoke.util.MiscUtil.showRateResultDialog;
 import static com.sjtu.karaoke.util.MiscUtil.showToast;
 import static com.sjtu.karaoke.util.PathUtil.getAlbumCoverFullPath;
 import static com.sjtu.karaoke.util.PathUtil.getRecordFullPath;
@@ -88,7 +90,7 @@ public class SingResultActivity extends AppCompatActivity {
     Integer id;
     String songName;
 
-    @RequiresApi(api = Build.VERSION_CODES.O)
+    @RequiresApi(api = Build.VERSION_CODES.P)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -100,7 +102,8 @@ public class SingResultActivity extends AppCompatActivity {
         id = intent.getIntExtra("id", 0);
         songName = intent.getStringExtra("songName");
 
-        callingActivity = getCallingActivity().getShortClassName().equals(".AccompanySingActivity") ? From.ACCOMPANY : From.INSTRUMENT;
+        callingActivity = getCallingActivity().getShortClassName().equals(".AccompanySingActivity")
+                ? From.ACCOMPANY : From.INSTRUMENT;
 
         initPlayerGroup();
 
@@ -125,9 +128,10 @@ public class SingResultActivity extends AppCompatActivity {
     }
 
     private void showScore() {
-        Score score;
-        String pianoScore;
+        Score score = new Score(100, 57, 75, 47);
+        String pianoScore = "6";
         // todo: show dialog
+        showRateResultDialog(this, score, pianoScore);
         pianoScore = getIntent().getStringExtra("pianoScore");
         showToast(this, pianoScore);
     }
@@ -383,7 +387,7 @@ public class SingResultActivity extends AppCompatActivity {
             tuneWrapper.removeView(findViewById(R.id.wrapperTuneAccompany));
 
             BottomSheetBehavior<View> bottomSheetBehavior = BottomSheetBehavior.from(findViewById(R.id.trackBottomSheet));
-            final LinearLayout trackSeekBarWrapper = findViewById(R.id.trackSeekBarWrapper);
+            LinearLayout trackSeekBarWrapper = findViewById(R.id.trackSeekBarWrapper);
             trackSeekBarWrapper.setOutlineAmbientShadowColor(ContextCompat.getColor(this, R.color.black));
             trackSeekBarWrapper.setVisibility(View.GONE);
             bottomSheetBehavior.setHideable(false);
