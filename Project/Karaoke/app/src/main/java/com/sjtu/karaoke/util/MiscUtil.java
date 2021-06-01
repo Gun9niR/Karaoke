@@ -11,7 +11,6 @@ import android.content.pm.ResolveInfo;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
-import android.os.Build;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.ViewGroup;
@@ -19,7 +18,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.annotation.RequiresApi;
 import androidx.core.app.ActivityCompat;
 
 import com.arthenica.mobileffmpeg.FFmpeg;
@@ -28,9 +26,7 @@ import com.sjtu.karaoke.component.RateResultDialog;
 import com.sjtu.karaoke.data.Score;
 
 import java.io.IOException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import okhttp3.Call;
@@ -184,22 +180,6 @@ public class MiscUtil {
 
     public static String getRequestParamFromId(Integer id) {
         return "?id=" + id;
-    }
-
-    /**
-     * Get name of the record file from song name
-     * Naming strategy is: <songName>-<year>-<month>-<date>-<hour>-<minute>
-     * Time is generated after merging pcm files to wav file
-     * @param id
-     * @param songName
-     * @return Resulting record file name
-     */
-    @RequiresApi(api = Build.VERSION_CODES.O)
-    public static String getRecordName(Integer id, String songName) {
-        Date date = new Date(System.currentTimeMillis());
-        SimpleDateFormat formatter = new SimpleDateFormat("-yyyy-MM-dd-HH-mm");
-        String dateString = formatter.format(date);
-        return id + "-" + songName + dateString + ".wav";
     }
 
     /**

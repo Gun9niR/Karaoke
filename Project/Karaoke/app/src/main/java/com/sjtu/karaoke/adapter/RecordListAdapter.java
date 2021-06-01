@@ -18,17 +18,19 @@ import com.sjtu.karaoke.LocalRecordActivity;
 import com.sjtu.karaoke.R;
 import com.sjtu.karaoke.data.Record;
 
+import org.apache.commons.io.FileUtils;
+
 import java.io.File;
+import java.io.IOException;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 
 import static com.sjtu.karaoke.util.Constants.AUTHORITY;
 import static com.sjtu.karaoke.util.Constants.RECORD_DIRECTORY;
-import static com.sjtu.karaoke.util.FileUtil.deleteOneFile;
 import static com.sjtu.karaoke.util.FileUtil.getFullPathsInDirectory;
-import static com.sjtu.karaoke.util.MiscUtil.downloadAndSetAlbumCover;
 import static com.sjtu.karaoke.util.MiscUtil.getChooserIntent;
+import static com.sjtu.karaoke.util.MiscUtil.setImageFromFile;
 
 /*
  * @ClassName: RecordListAdapter
@@ -36,6 +38,12 @@ import static com.sjtu.karaoke.util.MiscUtil.getChooserIntent;
  * @Date: 2021/3/28
  * @Version: v1.2
  * @Description: 本地录音界面的录音列表生成类。根据构造时传入的录音列表参数设置本地录音列表中每行的内容和点击事件。
+ * 每个录音都保存在一个目录中，目录名为一个独特的字符串。
+ * 目录中的内容包括：
+ *  |
+ *  |---- cover.png         (专辑封面)
+ *  |---- <song name>.wav   (录音文件)
+ *  |---- metadata.txt      (录音时间、等级)
  */
 public class RecordListAdapter extends RecyclerView.Adapter<RecordListAdapter.ViewHolder> {
     List<Record> records;
@@ -50,27 +58,30 @@ public class RecordListAdapter extends RecyclerView.Adapter<RecordListAdapter.Vi
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
-            recordName = (TextView) itemView.findViewById(R.id.recordName);
-            recordTime = (TextView) itemView.findViewById(R.id.recordTime);
-            recordCover = (ImageView) itemView.findViewById(R.id.recordCover);
-            btnPlay = (ImageButton) itemView.findViewById(R.id.btnPlay);
-            btnShare = (ImageButton) itemView.findViewById(R.id.btnShare);
-            btnDelete = (ImageButton) itemView.findViewById(R.id.btnDelete);
+            recordName = itemView.findViewById(R.id.recordName);
+            recordTime = itemView.findViewById(R.id.recordTime);
+            recordCover = itemView.findViewById(R.id.recordCover);
+            btnPlay = itemView.findViewById(R.id.btnPlay);
+            btnShare = itemView.findViewById(R.id.btnShare);
+            btnDelete = itemView.findViewById(R.id.btnDelete);
         }
     }
 
     public RecordListAdapter(LocalRecordActivity activity) {
         this.activity = activity;
-        List<String> recordFullPaths = getFullPathsInDirectory(RECORD_DIRECTORY);
+        List<String> recordDirFullPaths = getFullPathsInDirectory(RECORD_DIRECTORY);
+
         records = new ArrayList<>();
-        for (String recordFullPath: recordFullPaths) {
+        for (String recordDirFullPath: recordDirFullPaths) {
             try {
-                records.add(new Record(recordFullPath));
-            } catch (ParseException e) {
-                Log.e("Initialize records", "Incorrect record file name format!");
+                records.add(new Record(recordDirFullPath));
+            } catch (ParseException | IOException e) {
+                Log.e("Initialize records", "Incorrect metadata format!");
                 e.printStackTrace();
             }
         }
+
+        System.out.println(records.size());
     }
 
     @NonNull
@@ -85,13 +96,19 @@ public class RecordListAdapter extends RecyclerView.Adapter<RecordListAdapter.Vi
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Record record = records.get(position);
         String songName = record.getSongName();
+        // set song name
         holder.recordName.setText(songName);
+        // set record time
         holder.recordTime.setText(record.getRecordTime());
-        // download album cover
-        downloadAndSetAlbumCover(record.getId(), songName, activity, holder.recordCover);
+        // set album cover
+        activity.runOnUiThread(() -> setImageFromFile(
+                record.getAlbumCoverFullPath(),
+                holder.recordCover
+                )
+        );
 
         holder.btnShare.setOnClickListener(view -> {
-            File recordFile = new File(record.getFullPath());
+            File recordFile = new File(record.getRecordFullPath());
             Uri uri = FileProvider.getUriForFile(activity, AUTHORITY, recordFile);
 
             Intent chooserIntent = getChooserIntent(uri, activity);
@@ -101,12 +118,15 @@ public class RecordListAdapter extends RecyclerView.Adapter<RecordListAdapter.Vi
         holder.btnPlay.setOnClickListener(view -> activity.playRecord(record));
 
         holder.btnDelete.setOnClickListener(v -> {
-            String recordFullPath = record.getFullPath();
-            deleteOneFile(recordFullPath);
+            String recordFullPath = record.getRecordFullPath();
+            activity.checkCurrentDeletion(recordFullPath);
+            try {
+                FileUtils.deleteDirectory(new File(record.getDirFullPath()));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
             records.remove(position);
             notifyDataSetChanged();
-
-            activity.checkCurrentDeletion(recordFullPath);
         });
     }
 

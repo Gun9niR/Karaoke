@@ -146,7 +146,7 @@ public class LocalRecordActivity extends AppCompatActivity {
     }
 
     public void playRecord(Record record) {
-        initRecordPlayer(record.getFullPath());
+        initRecordPlayer(record.getRecordFullPath());
 
         initSeekbar();
 
@@ -155,7 +155,7 @@ public class LocalRecordActivity extends AppCompatActivity {
         initRecordTitleAndCover(record);
 
         this.state = State.PLAYING;
-        currentRecordFullPath = record.getFullPath();
+        currentRecordFullPath = record.getRecordFullPath();
 
         recordPlayer.setOnCompletionListener(mediaPlayer -> {
             this.state = State.UNSTARTED;
