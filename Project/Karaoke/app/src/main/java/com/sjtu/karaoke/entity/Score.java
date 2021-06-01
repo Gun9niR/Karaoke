@@ -13,6 +13,13 @@ public class Score {
         breathScore = 0;
     }
 
+    public Score(Integer totalScore, Integer accuracyScore, Integer emotionScore, Integer breathScore) {
+        this.totalScore = totalScore;
+        this.accuracyScore = accuracyScore;
+        this.emotionScore = emotionScore;
+        this.breathScore = breathScore;
+    }
+
     public Integer getTotalScore() {
         return totalScore;
     }

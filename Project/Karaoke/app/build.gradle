@@ -83,4 +83,5 @@ dependencies {
     implementation project(path: ':Recorder')
     implementation project(path: ':WavEditor')
     implementation project(path: ':SingRater')
+    implementation project(path: ':RadarView')
 }
