@@ -187,7 +187,7 @@ public class AccompanySingActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         if (item.getItemId() == R.id.retry) {
             if (state != State.UNSTARTED) {
-                item.setEnabled(false);
+//                item.setEnabled(false);
                 stopActivity(false);
                 onStart();
             }
