@@ -85,7 +85,7 @@ import static com.sjtu.karaoke.util.PathUtil.getUserPlayFullPath;
 
 public class InstrumentSingActivity extends AppCompatActivity {
 
-    private static final Integer HINT_DURATION = 3000;
+    private static Integer HINT_DURATION = 3000;
 
     SimpleExoPlayer accompanyPlayer;
     LrcView lrcView;
@@ -106,6 +106,9 @@ public class InstrumentSingActivity extends AppCompatActivity {
     // 监听按钮提示
     Runnable hintMonitor;
 
+    // 当前常量的进度条
+
+    ProgressBar currentHint;
     // 状态量
     // 当前歌的id
     int id;
@@ -415,14 +418,26 @@ public class InstrumentSingActivity extends AppCompatActivity {
             FileUtils.cleanDirectory(new File(ASSET_DIRECTORY));
 
             // generate sequence in which buttons display animation
-            int time = startTime;
+            Integer time = startTime;
+            HashMap<Chord, Integer> lastChordTime = new HashMap<>();
 
             while (scanner.hasNext()) {
                 line = scanner.nextLine();
-                System.out.println(line);
                 String[] params = line.split(" ");
+
+                Chord chord  = nameToChord.get(params[0]);
                 int duration = Integer.parseInt(params[1]);
-                standardSequence.add(new PlayChordRecord(nameToChord.get(params[0]), time, duration));
+
+                if (!lastChordTime.containsKey(chord)) {
+                    lastChordTime.put(chord, time);
+                } else {
+                    if (time - lastChordTime.get(chord) < HINT_DURATION) {
+                        HINT_DURATION = time - lastChordTime.get(chord);
+                    }
+                    lastChordTime.put(chord, time);
+                }
+
+                standardSequence.add(new PlayChordRecord(chord, time, duration));
                 time += duration;
             }
         } catch (IOException e) {
@@ -583,7 +598,14 @@ public class InstrumentSingActivity extends AppCompatActivity {
                 int percentage = (currentPosition - startTime) / (HINT_DURATION / 100);
                 progressBar.setProgress(percentage);
             }
-            progressBar.setProgress(0);
+
+            if (currentHint != null) {
+                currentHint.setProgress(0);
+            }
+
+            progressBar.setProgress(100);
+
+            currentHint = progressBar;
 
         }).start();
     }
