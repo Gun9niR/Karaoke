@@ -23,6 +23,10 @@ Java_com_sjtu_pianorater_PianoRater_getScore(JNIEnv *env, jclass clazz, jstring 
         const char* s = env->GetStringUTFChars(str,NULL);
         chordName[i] = s;
         originChord[i] = env->GetDoubleArrayElements(_chord, NULL)[i];
+        __android_log_print(ANDROID_LOG_INFO, "Rater",
+                            "Java_com_sjtu_pianorater_PianoRater_getScore: "
+                            "chordName = %s originChord = %.2lf\n",
+                            chordName[i].c_str(), originChord[i]);
     }
     return env->NewStringUTF(runRater().c_str());
 }
@@ -35,7 +39,8 @@ string runRater() {
             if (i <= RATE_PRECISION * 0.5)
                 chord[j] = originChord[j] + MIK_DELAY * (i / (RATE_PRECISION * 0.5));
             else
-                chord[j] = originChord[j] - MIK_DELAY * ((i - RATE_PRECISION * 0.5) / (RATE_PRECISION * 0.5));
+                chord[j] = originChord[j] - MIK_DELAY * ((i - RATE_PRECISION * 0.5) /
+                        (RATE_PRECISION * 0.5));
         }
         classifyBeat();
         string tmp = getScore();
@@ -56,11 +61,11 @@ void readFile() {
     beat = new Beat[beatCount + 5];
     //读入和弦字典
     while (getline(file, str)) {
-        if (str == "")  break;
+        if (str == "" || str == "\r")  break;
     }
     //读入和弦
     while (getline(file, str)) {
-        if (str == "")  break;
+        if (str == "" || str == "\r")  break;
         stringstream ss(str);
         string arg1;
         int arg2, lastBeat;
@@ -69,6 +74,9 @@ void readFile() {
         for (int i = 0; i < lastBeat; i++) {
             beat[curBeat].chordName = arg1;
             beat[curBeat].id = i;
+            __android_log_print(ANDROID_LOG_INFO, "Rater",
+                                "readFile: beat[%d].chordName=%s\n",
+                                curBeat, beat[curBeat].chordName.c_str());
             curBeat++;
         }
 
@@ -104,6 +112,9 @@ void classifyBeat() {
     errorCount = 0;
     for (int i = 0; i < chordCount; i++) {
         int id = chord[i] / timePerBeat;
+        __android_log_print(ANDROID_LOG_INFO, "Rater",
+                            "classifyBeat: chordName = %s beat[id].chordName = %s\n",
+                            chordName[i].c_str(), beat[id].chordName.c_str());
         if (validID(id) && chordName[i] == beat[id].chordName)
             beat[id].insert(chord[i] - id * timePerBeat);
         else
