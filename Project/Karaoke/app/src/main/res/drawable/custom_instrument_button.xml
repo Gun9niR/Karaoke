@@ -7,6 +7,7 @@
 
     <item android:id="@android:id/background">
         <shape>
+            <stroke android:width="2dp" android:color="@color/instrument_btn_border"/>
             <corners android:radius="5dip" />
             <gradient
                 android:startColor="#ff9d9e9d"
@@ -35,13 +36,7 @@
         <clip android:clipOrientation="vertical" android:gravity="bottom">
             <shape>
                 <corners android:radius="5dip" />
-                <gradient
-                    android:startColor="#ffffd300"
-                    android:centerColor="#ffffb600"
-                    android:centerY="0.75"
-                    android:endColor="#ffffcb00"
-                    android:angle="180"
-                    />
+                <solid android:color="@color/instrument_btn_foreground"/>
             </shape>
         </clip>
     </item>
