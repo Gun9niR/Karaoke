@@ -20,4 +20,10 @@
     <color name="black_opacity_10">#E6000000</color>
     <color name="color_navbar_text">#3700B3</color>
     <color name="color_navbar_button">#3700B3</color>
+
+    <color name="instrument_btn_foreground">#B04861CF</color>
+    <color name="instrument_btn_background">#B0677ACf</color>
+    <color name="instrument_btn_border">#7B6A7DD1</color>
+    <color name="instrument_lyric">#FF4861CF</color>
+
 </resources>

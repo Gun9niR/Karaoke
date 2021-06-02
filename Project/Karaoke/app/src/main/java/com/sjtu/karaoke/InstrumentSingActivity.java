@@ -158,6 +158,7 @@ public class InstrumentSingActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_instrument_sing);
+        initFullScreen();
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
         initSongName();
@@ -166,13 +167,11 @@ public class InstrumentSingActivity extends AppCompatActivity {
         initRecordMonitor();
         initHintMonitor();
         initTopRightButtons();
-        initFullScreen();
     }
 
     private void initFullScreen() {
-        getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+        getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_FULLSCREEN
                 | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                | View.SYSTEM_UI_FLAG_FULLSCREEN
                 | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
     }
 
@@ -329,7 +328,8 @@ public class InstrumentSingActivity extends AppCompatActivity {
                 }
 
                 score.computeFinalScore();
-                Intent intent = new Intent(InstrumentSingActivity.this, SingResultActivity.class);
+                Intent intent = new Intent(InstrumentSingActivity.this,
+                        SingResultActivity.class);
                 intent.putExtra("id", id);
                 intent.putExtra("songName", songName);
                 intent.putExtra("score", score);
@@ -456,8 +456,8 @@ public class InstrumentSingActivity extends AppCompatActivity {
     }
 
     private void initInstrumentButtons() {
-        this.runOnUiThread((Runnable) () -> {
-            LinearLayout btnContainer = (LinearLayout) findViewById(R.id.instrumentButtonsContainer);
+        this.runOnUiThread(() -> {
+            LinearLayout btnContainer = findViewById(R.id.instrumentButtonsContainer);
 
             btnContainer.removeAllViews();
 
@@ -482,7 +482,7 @@ public class InstrumentSingActivity extends AppCompatActivity {
                         ViewGroup.LayoutParams.MATCH_PARENT
                 );
                 params2.addRule(RelativeLayout.CENTER_IN_PARENT, RelativeLayout.TRUE);
-                instrumentBtn.setProgressBackgroundTintList(ColorStateList.valueOf(getColor(R.color.gainsboro)));
+                instrumentBtn.setProgressBackgroundTintList(ColorStateList.valueOf(getColor(R.color.instrument_btn_background)));
                 instrumentBtn.setIndeterminateDrawable(ContextCompat.getDrawable(InstrumentSingActivity.this, R.drawable.custom_instrument_button));
                 instrumentBtn.setProgressDrawable(ContextCompat.getDrawable(InstrumentSingActivity.this, R.drawable.custom_instrument_button));
                 instrumentBtn.setLayoutParams(params2);
@@ -561,7 +561,7 @@ public class InstrumentSingActivity extends AppCompatActivity {
     @RequiresApi(api = Build.VERSION_CODES.N)
     private void initLrcView() {
         lrcView = findViewById(R.id.lrcRoller);
-        lrcView.setHighLineColor(ContextCompat.getColor(getApplicationContext(), R.color.purple_500));
+        lrcView.setHighLineColor(ContextCompat.getColor(getApplicationContext(), R.color.instrument_lyric));
         try {
             InputStream is = new FileInputStream(getLyricInstrumentFullPath(songName));
 

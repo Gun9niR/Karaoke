@@ -3,7 +3,6 @@ package com.sjtu.karaoke;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
-import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.ImageButton;
@@ -24,8 +23,8 @@ import de.hdodenhof.circleimageview.CircleImageView;
 
 import static com.sjtu.karaoke.util.MediaPlayerUtil.loadFileAndPrepareMediaPlayer;
 import static com.sjtu.karaoke.util.MediaPlayerUtil.terminateMediaPlayer;
-import static com.sjtu.karaoke.util.PathUtil.getAlbumCoverFullPath;
 import static com.sjtu.karaoke.util.MiscUtil.setImageFromFile;
+import static com.sjtu.karaoke.util.PathUtil.getAlbumCoverFullPath;
 
 /*
  * @ClassName: LocalRecordActivity
@@ -215,20 +214,17 @@ public class LocalRecordActivity extends AppCompatActivity {
         }
         btnPlayRecord.setEnabled(true);
 
-        btnPlayRecord.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                switch (state) {
-                    case UNSTARTED:
-                    case PAUSE:
-                        startRecordPlayer();
-                        break;
-                    case PLAYING:
-                        pauseRecordPlayer();
-                        break;
-                    default:
-                        break;
-                }
+        btnPlayRecord.setOnClickListener(view -> {
+            switch (state) {
+                case UNSTARTED:
+                case PAUSE:
+                    startRecordPlayer();
+                    break;
+                case PLAYING:
+                    pauseRecordPlayer();
+                    break;
+                default:
+                    break;
             }
         });
     }
