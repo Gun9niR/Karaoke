@@ -68,7 +68,7 @@ import static com.sjtu.karaoke.util.WavUtil.getWAVDuration;
  * @Description: 伴奏演唱界面。本类中包含了如下功能：
  *                  1. 各个组件的初始化、设置点击事件
  *                  2. 根据传入的歌曲信息，初始化MV播放器、伴奏播放器、原唱播放器、歌词滚动器
- *                  3. 在播放时监控进度、更新进度条、得分条
+ *                  3. 在播放时监控进度、更4新进度条、得分条
  *                  4. 录音
  */
 

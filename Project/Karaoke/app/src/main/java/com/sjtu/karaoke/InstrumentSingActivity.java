@@ -7,6 +7,7 @@ import android.media.SoundPool;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
@@ -84,7 +85,7 @@ import static com.sjtu.karaoke.util.PathUtil.getUserPlayFullPath;
  */
 
 public class InstrumentSingActivity extends AppCompatActivity {
-
+    private static double chordVolume = 1.0;
     private static Integer HINT_DURATION = 3000;
 
     SimpleExoPlayer accompanyPlayer;
@@ -148,6 +149,7 @@ public class InstrumentSingActivity extends AppCompatActivity {
     HashMap<String, Chord> nameToChord;
     // 将和弦映射到按钮
     HashMap<Chord, ProgressBar> chordToBtn;
+//    HashMap<Chord, ParticleSystemView> chordToPSV;
     // 下一次提示时间和对应和弦
     int nextHintTime;
     PlayChordRecord nextHintChord;
@@ -159,7 +161,7 @@ public class InstrumentSingActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_instrument_sing);
         initFullScreen();
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+
 
         initSongName();
         initState();
@@ -173,11 +175,15 @@ public class InstrumentSingActivity extends AppCompatActivity {
         getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_FULLSCREEN
                 | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
                 | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     protected void onStart() {
         super.onStart();
+
+        initFullScreen();
 
         if (state == State.UNSTARTED) {
             LoadingDialog loadingDialog = showLoadingDialog(this, "正在初始化", true);
@@ -455,6 +461,7 @@ public class InstrumentSingActivity extends AppCompatActivity {
         }
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
     private void initInstrumentButtons() {
         this.runOnUiThread(() -> {
             LinearLayout btnContainer = findViewById(R.id.instrumentButtonsContainer);
@@ -463,6 +470,7 @@ public class InstrumentSingActivity extends AppCompatActivity {
 
             ListIterator<Chord> chordIt = chords.listIterator();
             chordToBtn = new HashMap<>();
+//            chordToPSV = new HashMap<>();
 
             while (chordIt.hasNext()) {
                 Chord chord = chordIt.next();
@@ -490,12 +498,18 @@ public class InstrumentSingActivity extends AppCompatActivity {
                 instrumentBtn.setProgress(0);
                 // fixme: probably set in progress monitor?
                 instrumentBtn.setOnClickListener(v -> {
-                            chordPlayer.play(chord.getSoundId(), 1, 1, 1, 0, 1);
+                            chordPlayer.play(chord.getSoundId(), chordVolume, chordVolume, 1, 0, 1);
                             userSequence.add(new PlayChordRecord(chord, currentPosition));
                         }
                 );
                 chordToBtn.put(chord, instrumentBtn);
                 relativeLayout.addView(instrumentBtn);
+
+                // add particle system view
+//                ParticleSystemView particleSystemView = new ParticleSystemView();
+//                particleSystemView.setLayoutParams(params2);
+//                chordToPSV.put(chord, particleSystemView);
+//                relativeLayout.addView(particleSystemView);
 
                 // add text view
                 TextView chordLabel = new TextView(InstrumentSingActivity.this);
@@ -505,9 +519,14 @@ public class InstrumentSingActivity extends AppCompatActivity {
                 );
                 params3.addRule(RelativeLayout.CENTER_IN_PARENT, RelativeLayout.TRUE);
                 chordLabel.setText(chord.getName());
-                chordLabel.setTextColor(getColor(R.color.purple_700));
+                chordLabel.setTextColor(getColor(R.color.instrument_chord_label));
                 chordLabel.setTypeface(Typeface.DEFAULT_BOLD);
-                chordLabel.setTextSize(15);
+                chordLabel.setAutoSizeTextTypeUniformWithConfiguration(
+                        12,
+                        15,
+                        1,
+                         TypedValue.COMPLEX_UNIT_SP
+                );
                 chordLabel.setLayoutParams(params3);
                 relativeLayout.addView(chordLabel);
 
@@ -592,16 +611,26 @@ public class InstrumentSingActivity extends AppCompatActivity {
 
         new Thread(() -> {
             ProgressBar progressBar = chordToBtn.get(hintChord.getChord());
+//            ParticleSystemView particleSystemView = chordToPSV.get(hintChord.getChord());
+//            ParticleSystem particleSystem = particleSystemView.createParticleSystem();
+
+            final int height = progressBar.getMeasuredHeight();
+            final int width = progressBar.getMeasuredWidth();
+
+//            initParticleSystem(particleSystem, width / 2, 0);
 
             int hintFinishTime = hintChord.getTime();
             while (currentPosition < hintFinishTime && !(state == State.UNSTARTED)) {
                 int percentage = (currentPosition - startTime) / (HINT_DURATION / 100);
-                progressBar.setProgress(percentage);
-            }
 
-            if (currentHint != null) {
-                currentHint.setProgress(0);
+                progressBar.setProgress(percentage);
+//                particleSystem.setPtcPosition(width / 2, height * percentage / 100);
             }
+//
+//            if (currentHint != null) {
+//                currentHint.setProgress(0);
+//                currentPtc.
+//            }
 
             progressBar.setProgress(100);
 
