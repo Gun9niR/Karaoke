@@ -106,6 +106,9 @@ public class InstrumentSingActivity extends AppCompatActivity {
     // 监听按钮提示
     Runnable hintMonitor;
 
+    // 当前常量的进度条
+
+    ProgressBar currentHint;
     // 状态量
     // 当前歌的id
     int id;
@@ -583,7 +586,14 @@ public class InstrumentSingActivity extends AppCompatActivity {
                 int percentage = (currentPosition - startTime) / (HINT_DURATION / 100);
                 progressBar.setProgress(percentage);
             }
-            progressBar.setProgress(0);
+
+            if (currentHint != null) {
+                currentHint.setProgress(0);
+            }
+
+            progressBar.setProgress(100);
+
+            currentHint = progressBar;
 
         }).start();
     }
