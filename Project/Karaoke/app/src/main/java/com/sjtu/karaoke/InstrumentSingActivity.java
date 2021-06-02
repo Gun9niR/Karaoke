@@ -15,7 +15,6 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.Space;
-import android.widget.TextView;
 
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
@@ -48,6 +47,8 @@ import java.util.ListIterator;
 import java.util.Locale;
 import java.util.Scanner;
 import java.util.stream.Collectors;
+
+import me.grantland.widget.AutofitTextView;
 
 import static com.dreamfish.record.AudioRecorder.PCM_SPLIT_INTERVAL;
 import static com.sjtu.karaoke.singrater.RatingUtil.getScore;
@@ -516,7 +517,7 @@ public class InstrumentSingActivity extends AppCompatActivity {
 //                relativeLayout.addView(particleSystemView);
 
                 // add text view
-                TextView chordLabel = new TextView(InstrumentSingActivity.this);
+                AutofitTextView chordLabel = new AutofitTextView(InstrumentSingActivity.this);
                 RelativeLayout.LayoutParams params3 = new RelativeLayout.LayoutParams(
                         ViewGroup.LayoutParams.MATCH_PARENT,
                         ViewGroup.LayoutParams.WRAP_CONTENT
@@ -526,13 +527,10 @@ public class InstrumentSingActivity extends AppCompatActivity {
                 chordLabel.setTextColor(getColor(R.color.instrument_chord_label));
                 chordLabel.setTypeface(Typeface.DEFAULT_BOLD);
                 chordLabel.setGravity(Gravity.CENTER);
-                // fixme
-                chordLabel.setAutoSizeTextTypeUniformWithConfiguration(
-                        14,
-                        15,
-                        1,
-                         TypedValue.COMPLEX_UNIT_SP
-                );
+                chordLabel.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
+                chordLabel.setMaxLines(1);
+                chordLabel.setSizeToFit();
+
                 chordLabel.setLayoutParams(params3);
                 relativeLayout.addView(chordLabel);
 
