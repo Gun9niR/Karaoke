@@ -9,7 +9,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.util.TypedValue;
 import android.view.Gravity;
-import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.LinearLayout;
@@ -155,7 +154,7 @@ public class InstrumentSingActivity extends AppCompatActivity {
     PlayChordRecord nextHintChord;
 
 
-    @RequiresApi(api = Build.VERSION_CODES.N)
+    @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -172,10 +171,8 @@ public class InstrumentSingActivity extends AppCompatActivity {
     }
 
     private void initFullScreen() {
-        getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_FULLSCREEN
-                | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+                WindowManager.LayoutParams.FLAG_FULLSCREEN);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
@@ -294,16 +291,23 @@ public class InstrumentSingActivity extends AppCompatActivity {
         hintMonitor = new Runnable() {
             @Override
             public void run() {
-                if (currentPosition > nextHintTime && !standardSequence.isEmpty()) {
+                if (currentPosition > nextHintTime) {
                     displayHint(nextHintTime, nextHintChord);
-                    nextHintChord = standardSequence.remove(0);
-                    nextHintTime = getHintTime(nextHintChord.getTime());
+
+                    if (!standardSequence.isEmpty()) {
+                        nextHintChord = standardSequence.remove(0);
+                        nextHintTime = getHintTime(nextHintChord.getTime());
+                    } else {
+                        handler.removeCallbacks(this);
+                        return;
+                    }
                 }
                 handler.postDelayed(this, 10);
             }
         };
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
     private void initTopRightButtons() {
         finishButton = findViewById(R.id.instrumentFinishBtn);
         backButton = findViewById(R.id.instrumentBackBtn);
@@ -514,16 +518,17 @@ public class InstrumentSingActivity extends AppCompatActivity {
                 // add text view
                 TextView chordLabel = new TextView(InstrumentSingActivity.this);
                 RelativeLayout.LayoutParams params3 = new RelativeLayout.LayoutParams(
-                        ViewGroup.LayoutParams.WRAP_CONTENT,
+                        ViewGroup.LayoutParams.MATCH_PARENT,
                         ViewGroup.LayoutParams.WRAP_CONTENT
                 );
                 params3.addRule(RelativeLayout.CENTER_IN_PARENT, RelativeLayout.TRUE);
                 chordLabel.setText(chord.getName());
                 chordLabel.setTextColor(getColor(R.color.instrument_chord_label));
                 chordLabel.setTypeface(Typeface.DEFAULT_BOLD);
+                chordLabel.setGravity(Gravity.CENTER);
                 // fixme
                 chordLabel.setAutoSizeTextTypeUniformWithConfiguration(
-                        12,
+                        14,
                         15,
                         1,
                          TypedValue.COMPLEX_UNIT_SP

@@ -1,5 +1,3 @@
-include ':droidparticle'
-include ':DroidParticle'
 include ':RadarView'
 include ':PianoRater'
 include ':SingRater'
