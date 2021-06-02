@@ -25,6 +25,6 @@
     <color name="instrument_btn_background">#58677ACf</color>
     <color name="instrument_btn_border">#7B6A7DD1</color>
     <color name="instrument_lyric">#FF677ACf</color>
-    <color name="instrument_chord_label"></color>
+    <color name="instrument_chord_label">#FFFFFFFF</color>
 
 </resources>

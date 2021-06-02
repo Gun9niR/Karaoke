@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/../DroidParticle.iml" filepath="$PROJECT_DIR$/../DroidParticle.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/1247413093/DroidParticle.demo1.iml" filepath="$PROJECT_DIR$/.idea/modules/1247413093/DroidParticle.demo1.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/1247413094/DroidParticle.demo2.iml" filepath="$PROJECT_DIR$/.idea/modules/1247413094/DroidParticle.demo2.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/DroidParticle.droidparticle.iml" filepath="$PROJECT_DIR$/.idea/modules/DroidParticle.droidparticle.iml" />
+      <module fileurl="file://$PROJECT_DIR$/droidparticle.iml" filepath="$PROJECT_DIR$/droidparticle.iml" />
+    </modules>
+  </component>
+</project>

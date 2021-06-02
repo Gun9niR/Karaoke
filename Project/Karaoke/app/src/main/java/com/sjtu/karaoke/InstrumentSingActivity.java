@@ -85,7 +85,7 @@ import static com.sjtu.karaoke.util.PathUtil.getUserPlayFullPath;
  */
 
 public class InstrumentSingActivity extends AppCompatActivity {
-    private static double chordVolume = 1.0;
+    private static final float chordVolume = (float) 1.0;
     private static Integer HINT_DURATION = 3000;
 
     SimpleExoPlayer accompanyPlayer;
@@ -183,10 +183,10 @@ public class InstrumentSingActivity extends AppCompatActivity {
     protected void onStart() {
         super.onStart();
 
-        initFullScreen();
-
         if (state == State.UNSTARTED) {
             LoadingDialog loadingDialog = showLoadingDialog(this, "正在初始化", true);
+
+            initFullScreen();
 
             new Thread(() -> {
                 parseChordFile();
@@ -521,6 +521,7 @@ public class InstrumentSingActivity extends AppCompatActivity {
                 chordLabel.setText(chord.getName());
                 chordLabel.setTextColor(getColor(R.color.instrument_chord_label));
                 chordLabel.setTypeface(Typeface.DEFAULT_BOLD);
+                // fixme
                 chordLabel.setAutoSizeTextTypeUniformWithConfiguration(
                         12,
                         15,
@@ -627,10 +628,10 @@ public class InstrumentSingActivity extends AppCompatActivity {
 //                particleSystem.setPtcPosition(width / 2, height * percentage / 100);
             }
 //
-//            if (currentHint != null) {
-//                currentHint.setProgress(0);
+            if (currentHint != null) {
+                currentHint.setProgress(0);
 //                currentPtc.
-//            }
+            }
 
             progressBar.setProgress(100);
 
@@ -673,6 +674,7 @@ public class InstrumentSingActivity extends AppCompatActivity {
         pauseAllPlayers();
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
     private void retry() {
         stopActivity(false);
         onStart();
