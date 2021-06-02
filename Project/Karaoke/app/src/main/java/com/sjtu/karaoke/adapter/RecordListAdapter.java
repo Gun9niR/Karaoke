@@ -1,5 +1,6 @@
 package com.sjtu.karaoke.adapter;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
@@ -13,6 +14,9 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.view.menu.MenuBuilder;
+import androidx.appcompat.view.menu.MenuPopupHelper;
+import androidx.appcompat.widget.PopupMenu;
 import androidx.core.content.FileProvider;
 import androidx.core.content.res.ResourcesCompat;
 import androidx.recyclerview.widget.RecyclerView;
@@ -57,9 +61,7 @@ public class RecordListAdapter extends RecyclerView.Adapter<RecordListAdapter.Vi
     public class ViewHolder extends RecyclerView.ViewHolder {
         TextView recordName, recordTime, recordRank;
         ImageView recordCover;
-        ImageButton btnPlay;
-        ImageButton btnShare;
-        ImageButton btnDelete;
+        ImageButton btnRecordOperation;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -67,9 +69,7 @@ public class RecordListAdapter extends RecyclerView.Adapter<RecordListAdapter.Vi
             recordTime = itemView.findViewById(R.id.recordTime);
             recordRank = itemView.findViewById(R.id.recordRank);
             recordCover = itemView.findViewById(R.id.recordCover);
-            btnPlay = itemView.findViewById(R.id.btnPlay);
-            btnShare = itemView.findViewById(R.id.btnShare);
-            btnDelete = itemView.findViewById(R.id.btnDelete);
+            btnRecordOperation = itemView.findViewById(R.id.btnRecordOperation);
         }
     }
 
@@ -98,6 +98,7 @@ public class RecordListAdapter extends RecyclerView.Adapter<RecordListAdapter.Vi
         return new ViewHolder(view);
     }
 
+    @SuppressLint("RestrictedApi")
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Record record = records.get(position);
@@ -121,26 +122,38 @@ public class RecordListAdapter extends RecyclerView.Adapter<RecordListAdapter.Vi
                 )
         );
 
-        holder.btnShare.setOnClickListener(view -> {
-            File recordFile = new File(record.getRecordFullPath());
-            Uri uri = FileProvider.getUriForFile(activity, AUTHORITY, recordFile);
+        holder.btnRecordOperation.setOnClickListener(v -> {
+            PopupMenu popup = new PopupMenu(activity, v);
+            popup.inflate(R.menu.record_operation_menu);
+            popup.setOnMenuItemClickListener(item -> {
+                int itemId = item.getItemId();
+                if (itemId == R.id.menuItemPlayRecord) {
+                    activity.playRecord(record);
+                } else if (itemId == R.id.menuItemShareRecord) {
+                    File recordFile = new File(record.getRecordFullPath());
+                    Uri uri = FileProvider.getUriForFile(activity, AUTHORITY, recordFile);
 
-            Intent chooserIntent = getChooserIntent(uri, activity);
-            activity.startActivity(chooserIntent);
-        });
+                    Intent chooserIntent = getChooserIntent(uri, activity);
+                    activity.startActivity(chooserIntent);
+                } else {
+                    String recordFullPath = record.getRecordFullPath();
+                    activity.checkCurrentDeletion(recordFullPath);
+                    try {
+                        FileUtils.deleteDirectory(new File(record.getDirFullPath()));
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    records.remove(position);
+                    notifyDataSetChanged();
+                }
 
-        holder.btnPlay.setOnClickListener(view -> activity.playRecord(record));
+                popup.dismiss();
+                return true;
+            });
 
-        holder.btnDelete.setOnClickListener(v -> {
-            String recordFullPath = record.getRecordFullPath();
-            activity.checkCurrentDeletion(recordFullPath);
-            try {
-                FileUtils.deleteDirectory(new File(record.getDirFullPath()));
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            records.remove(position);
-            notifyDataSetChanged();
+            @SuppressLint("RestrictedApi") MenuPopupHelper menuPopupHelper = new MenuPopupHelper(activity, (MenuBuilder) popup.getMenu(), v);
+            menuPopupHelper.setForceShowIcon(true);
+            menuPopupHelper.show();
         });
     }
 

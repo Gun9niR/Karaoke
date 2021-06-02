@@ -329,7 +329,8 @@ public class InstrumentSingActivity extends AppCompatActivity {
                 }
 
                 score.computeFinalScore();
-                Intent intent = new Intent(InstrumentSingActivity.this, SingResultActivity.class);
+                Intent intent = new Intent(InstrumentSingActivity.this,
+                        SingResultActivity.class);
                 intent.putExtra("id", id);
                 intent.putExtra("songName", songName);
                 intent.putExtra("score", score);
