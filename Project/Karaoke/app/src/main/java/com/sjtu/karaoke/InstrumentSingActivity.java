@@ -2,7 +2,9 @@ package com.sjtu.karaoke;
 
 import android.content.Intent;
 import android.content.res.ColorStateList;
+import android.graphics.Bitmap;
 import android.graphics.Typeface;
+import android.graphics.drawable.BitmapDrawable;
 import android.media.SoundPool;
 import android.os.Build;
 import android.os.Bundle;
@@ -31,6 +33,7 @@ import com.sjtu.karaoke.data.Score;
 import com.sjtu.pianorater.PianoRater;
 import com.sunty.droidparticle.ParticleSystem;
 import com.sunty.droidparticle.ParticleSystemView;
+import com.sunty.droidparticle.ParticleSystemConfig;
 
 import org.apache.commons.io.FileUtils;
 import org.sang.lrcview.LrcView;
@@ -646,8 +649,35 @@ public class InstrumentSingActivity extends AppCompatActivity {
         }).start();
     }
 
-    private void initParticleSystem(ParticleSystem particleSystem, int x, int y) {
+    private void initParticleSystem(ParticleSystem ptcSys, int x, int y) {
+        BitmapDrawable drawable = (BitmapDrawable) getResources().getDrawable(R.drawable.ptc16);
+        Bitmap img = drawable.getBitmap();
 
+        ptcSys.setPtcBlend(1);
+        ptcSys.setFps(40);
+        ptcSys.setPps(30);
+        ptcSys.setPtcImage(img);
+        ptcSys.setPtcPosition(x, y);
+        ParticleSystemConfig config = new ParticleSystemConfig();
+        config.duration.set(1000, 0);
+        config.theta.set(270, 15);
+        config.startVelocity.set(400, 0);
+        config.endVelocity.set(400, 0);
+        config.startAngularRate.set(0, 0);
+        config.endAngularRate.set(0, 0);
+        config.startSpinRate.set(360, 0);
+        config.endSpinRate.set(360, 0);
+        config.startScale.set(1, 0);
+        config.endScale.set(1.5f, 0);
+        config.startAlpha.set(1, 0);
+        config.endAlpha.set(0.75f, 0);
+        config.startRed.set(1, 0);
+        config.endRed.set(1, 0);
+        config.startGreen.set(0, 0);
+        config.endGreen.set(1, 0);
+        config.startBlue.set(0, 0);
+        config.endBlue.set(0, 0);
+        ptcSys.setConfig(config);
     }
 
     private void startAllPlayers() {
