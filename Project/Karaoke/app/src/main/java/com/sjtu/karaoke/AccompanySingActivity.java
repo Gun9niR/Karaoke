@@ -598,6 +598,7 @@ public class AccompanySingActivity extends AppCompatActivity {
                     ExplosionField explosionField = new ExplosionField(AccompanySingActivity.this, new FlyawayFactory());
                     RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams) textView.getLayoutParams();
                     layoutParams.bottomMargin = MOVE_UP_LENGTH;
+                    textView.clearAnimation();
                     textView.setLayoutParams(layoutParams);
 
                     // explodes after 1.5s
