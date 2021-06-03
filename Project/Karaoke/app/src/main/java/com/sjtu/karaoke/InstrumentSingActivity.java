@@ -623,8 +623,9 @@ public class InstrumentSingActivity extends AppCompatActivity {
 
             int[] location = new int[2];
             final int height = progressBar.getMeasuredHeight();
+            final int width = progressBar.getMeasuredWidth();
             progressBar.getLocationOnScreen(location);
-            final int x = location[0];
+            final int x = location[0] + width / 2;
             final int y = location[1] + height;
 
             initParticleSystem(particleSystem, x, y);
@@ -739,6 +740,7 @@ public class InstrumentSingActivity extends AppCompatActivity {
         handler.removeCallbacks(hintMonitor);
 
         terminateExoPlayer(this, accompanyPlayer);
+
 
         voiceRecorder.stopRecord(shouldMergePcm);
         if (shouldMergePcm) {
