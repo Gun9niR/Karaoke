@@ -78,7 +78,8 @@ public class SearchActivity extends AppCompatActivity {
             public boolean onQueryTextChange(String newText) {
                 List<SongInfo> searchedSongs = new ArrayList<>();
                 for (SongInfo song: songList) {
-                    if (song.getSongName().toLowerCase().contains(newText.toLowerCase())) {
+                    if (song.getSongName().toLowerCase().contains(newText.toLowerCase()) ||
+                        song.getSinger().toLowerCase().contains(newText.toLowerCase())) {
                         searchedSongs.add(song);
                     }
                 }
