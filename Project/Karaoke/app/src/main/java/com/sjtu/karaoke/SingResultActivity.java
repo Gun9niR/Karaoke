@@ -56,7 +56,7 @@ import static com.sjtu.karaoke.util.MiscUtil.getChooserIntent;
 import static com.sjtu.karaoke.util.MiscUtil.setImageFromFile;
 import static com.sjtu.karaoke.util.MiscUtil.showLoadingDialog;
 import static com.sjtu.karaoke.util.MiscUtil.showRateResultDialog;
-import static com.sjtu.karaoke.util.MiscUtil.showToast;
+import static com.sjtu.karaoke.util.MiscUtil.showSuccessToast;
 import static com.sjtu.karaoke.util.PathUtil.getAlbumCoverFullPath;
 import static com.sjtu.karaoke.util.PathUtil.getRecordCoverFullPath;
 import static com.sjtu.karaoke.util.PathUtil.getRecordMetadataFullPath;
@@ -216,13 +216,13 @@ public class SingResultActivity extends AppCompatActivity {
         FloatingActionButton fabSave = findViewById(R.id.fabSave);
         fabSave.setOnClickListener(view -> {
             if (isFileSaved) {
-                showToast(SingResultActivity.this, "文件已经保存");
+                showSuccessToast(SingResultActivity.this, "文件已经保存", 350);
             } else {
                 LoadingDialog loadingDialog = showLoadingDialog(SingResultActivity.this, "正在生成作品...");
                 new Thread(() -> {
                     saveRecord(songName, playerGroup, rateResultDialog.getRankingText());
                     loadingDialog.dismiss();
-                    showToast(SingResultActivity.this, "录音已成功保存");
+                    showSuccessToast(SingResultActivity.this, "录音已成功保存", 350);
                     isFileSaved = true;
                 }).start();
             }
