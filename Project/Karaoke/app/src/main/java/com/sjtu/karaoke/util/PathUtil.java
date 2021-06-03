@@ -22,7 +22,7 @@ import static com.sjtu.karaoke.util.Constants.DRUM_DIRECTORY;
 import static com.sjtu.karaoke.util.Constants.LYRIC_DIRECTORY;
 import static com.sjtu.karaoke.util.Constants.LYRIC_INSTRUMENT_DIRECTORY;
 import static com.sjtu.karaoke.util.Constants.MV_DIRECTORY;
-import static com.sjtu.karaoke.util.Constants.ORCHESTRA_DIRECORY;
+import static com.sjtu.karaoke.util.Constants.ORCHESTRA_DIRECTORY;
 import static com.sjtu.karaoke.util.Constants.ORIGINAL_DIRECTORY;
 import static com.sjtu.karaoke.util.Constants.PCM_DIRECTORY;
 import static com.sjtu.karaoke.util.Constants.RATE_DIRECTORY;
@@ -79,7 +79,7 @@ public class PathUtil {
         // bass
         dirs.add(new File(BASS_DIRECTORY));
         // orchestra
-        dirs.add(new File(ORCHESTRA_DIRECORY));
+        dirs.add(new File(ORCHESTRA_DIRECTORY));
 
         for (File dir : dirs) {
             if (!dir.exists()) {
@@ -107,7 +107,7 @@ public class PathUtil {
     }
 
     public static String getOrchestraFullPath(String songName) {
-        return ORCHESTRA_DIRECORY + songName + ".wav";
+        return ORCHESTRA_DIRECTORY + songName + ".wav";
     }
 
     public static String getOriginalFullPath(String songName) {
