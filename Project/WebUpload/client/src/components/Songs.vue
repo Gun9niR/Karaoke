@@ -10,17 +10,18 @@
 
     <el-main>
       <el-table
-        :data="songData"
+        :data="songData.filter(
+          song => !searchValue 
+            || song.song_name.toLowerCase().includes(searchValue.toLowerCase())
+            || song.singer.toLowerCase().includes(searchValue.toLowerCase()))"
         height="calc(100vh - 120px)"
-        border
-        style="width: 100%"
-        :header-cell-style="{textAlign: 'center'}"
-        :cell-style="{textAlign: 'center'}"
-      >
+        :border="false"
+        style="width: 100%" >
         <el-table-column
           fixed
           prop="song_name"
           label="歌曲"
+          align="center"
         >
         </el-table-column>
 
@@ -28,10 +29,17 @@
           fixed
           prop="singer"
           label="歌手"
+          align="center"
         >
         </el-table-column>
 
-        <el-table-column label="操作">
+        <el-table-column align="center">
+          <template slot="header" >
+            <el-input
+              v-model="searchValue"
+              size="mini"
+              placeholder="搜索歌曲名称或歌手"/>
+          </template>
           <template slot-scope="scope">
             <el-button
               size="mini"
@@ -76,6 +84,7 @@ export default {
       songData: [],
       editSong: {},
       editerVisible: false,
+      searchValue: '',
     };
   },
 
@@ -168,6 +177,7 @@ export default {
       const url = process.env.VUE_APP_AJAX_URL + '/getSongs';
       axios.get(url)
         .then((response) => {
+          console.log(response.data);
           this.songData = response.data;
         })
         .catch((error) => {
