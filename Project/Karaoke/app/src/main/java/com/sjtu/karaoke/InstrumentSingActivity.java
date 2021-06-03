@@ -22,6 +22,7 @@ import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.AppCompatImageButton;
 import androidx.core.content.ContextCompat;
+import androidx.core.content.res.ResourcesCompat;
 
 import com.arthenica.mobileffmpeg.FFmpeg;
 import com.dreamfish.record.AudioRecorder;
@@ -111,7 +112,8 @@ public class InstrumentSingActivity extends AppCompatActivity {
     Runnable recordMonitor;
     // 监听按钮提示
     Runnable hintMonitor;
-
+    // 粒子特效容器
+    ParticleSystemView particleSystemView;
     // 当前亮的进度条
     ProgressBar currentHint;
     // 当前保持在顶部的粒子特效
@@ -156,7 +158,7 @@ public class InstrumentSingActivity extends AppCompatActivity {
     HashMap<String, Chord> nameToChord;
     // 将和弦映射到按钮
     HashMap<Chord, ProgressBar> chordToBtn;
-    HashMap<Chord, ParticleSystemView> chordToPSV;
+
     // 下一次提示时间和对应和弦
     int nextHintTime;
     PlayChordRecord nextHintChord;
@@ -176,6 +178,7 @@ public class InstrumentSingActivity extends AppCompatActivity {
         initRecordMonitor();
         initHintMonitor();
         initTopRightButtons();
+        initParticleSystemView();
     }
 
     private void initFullScreen() {
@@ -382,6 +385,10 @@ public class InstrumentSingActivity extends AppCompatActivity {
         retryButton.setEnabled(false);
     }
 
+    private void initParticleSystemView() {
+        particleSystemView = findViewById(R.id.particleSystemView);
+    }
+
     private void parseChordFile() {
         chords = new ArrayList<>();
         standardSequence = new ArrayList<>();
@@ -480,7 +487,6 @@ public class InstrumentSingActivity extends AppCompatActivity {
 
             ListIterator<Chord> chordIt = chords.listIterator();
             chordToBtn = new HashMap<>();
-            chordToPSV = new HashMap<>();
 
             while (chordIt.hasNext()) {
                 Chord chord = chordIt.next();
@@ -514,12 +520,6 @@ public class InstrumentSingActivity extends AppCompatActivity {
                 );
                 chordToBtn.put(chord, instrumentBtn);
                 relativeLayout.addView(instrumentBtn);
-
-                // add particle system view
-                ParticleSystemView particleSystemView = new ParticleSystemView(this);
-                particleSystemView.setLayoutParams(params2);
-                chordToPSV.put(chord, particleSystemView);
-                relativeLayout.addView(particleSystemView);
 
                 // add text view
                 AutofitTextView chordLabel = new AutofitTextView(InstrumentSingActivity.this);
@@ -620,26 +620,30 @@ public class InstrumentSingActivity extends AppCompatActivity {
 
         new Thread(() -> {
             ProgressBar progressBar = chordToBtn.get(hintChord.getChord());
-            ParticleSystemView particleSystemView = chordToPSV.get(hintChord.getChord());
             ParticleSystem particleSystem = particleSystemView.createParticleSystem();
 
+            int[] location = new int[2];
             final int height = progressBar.getMeasuredHeight();
-            final int width = progressBar.getMeasuredWidth();
+            progressBar.getLocationOnScreen(location);
+            final int x = location[0];
+            final int y = location[1] + height;
 
-            initParticleSystem(particleSystem, width / 2, 0);
+            initParticleSystem(particleSystem, x, y);
 
             int hintFinishTime = hintChord.getTime();
             particleSystem.start();
             while (currentPosition < hintFinishTime && !(state == State.UNSTARTED)) {
                 int percentage = (currentPosition - startTime) / (HINT_DURATION / 100);
 
+                System.out.println(y + height * percentage / 100);
                 progressBar.setProgress(percentage);
-                particleSystem.setPtcPosition(width / 2, height * percentage / 100);
+                particleSystem.setPtcPosition(x, y - height * percentage / 100);
             }
 
             if (currentHint != null) {
                 currentHint.setProgress(0);
                 currentPtc.stop();
+                particleSystemView.releaseParticleSystem(currentPtc);
             }
 
             progressBar.setProgress(100);
@@ -650,7 +654,8 @@ public class InstrumentSingActivity extends AppCompatActivity {
     }
 
     private void initParticleSystem(ParticleSystem ptcSys, int x, int y) {
-        BitmapDrawable drawable = (BitmapDrawable) getResources().getDrawable(R.drawable.ptc16);
+        BitmapDrawable drawable = (BitmapDrawable) ResourcesCompat.getDrawable(Karaoke.getRes(),
+                R.drawable.ptc16, null);
         Bitmap img = drawable.getBitmap();
 
         ptcSys.setPtcBlend(1);
