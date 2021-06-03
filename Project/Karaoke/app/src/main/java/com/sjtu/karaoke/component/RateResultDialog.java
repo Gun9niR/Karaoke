@@ -98,7 +98,7 @@ public class RateResultDialog {
                 "音准\n" + Math.round(accuracyScore));
 
         if (!instrumentScoreStr.isEmpty()) {
-            float instrumentScore = Float.parseFloat(instrumentScoreStr) * 10f;
+            float instrumentScore = Float.parseFloat(instrumentScoreStr);
             vertexText.add(0, "弹奏\n" + Math.round(instrumentScore));
             scores.add(0, instrumentScore);
         }

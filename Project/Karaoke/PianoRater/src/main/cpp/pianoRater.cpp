@@ -12,6 +12,7 @@ extern "C"
 JNIEXPORT jstring JNICALL
 Java_com_sjtu_pianorater_PianoRater_getScore(JNIEnv *env, jclass clazz, jstring _chordTransPath,
                                              jint _chordCount, jdoubleArray _chord, jobjectArray _chordName) {
+    srand(time(NULL));
     chordCount = _chordCount;
     errorCount = 0;
     chordTransPath = env->GetStringUTFChars(_chordTransPath,NULL);
@@ -23,10 +24,10 @@ Java_com_sjtu_pianorater_PianoRater_getScore(JNIEnv *env, jclass clazz, jstring 
         const char* s = env->GetStringUTFChars(str,NULL);
         chordName[i] = s;
         originChord[i] = env->GetDoubleArrayElements(_chord, NULL)[i];
-        __android_log_print(ANDROID_LOG_INFO, "Rater",
+        /*__android_log_print(ANDROID_LOG_INFO, "Rater",
                             "Java_com_sjtu_pianorater_PianoRater_getScore: "
                             "chordName = %s originChord = %.2lf\n",
-                            chordName[i].c_str(), originChord[i]);
+                            chordName[i].c_str(), originChord[i]);*/
     }
     return env->NewStringUTF(runRater().c_str());
 }
@@ -74,9 +75,9 @@ void readFile() {
         for (int i = 0; i < lastBeat; i++) {
             beat[curBeat].chordName = arg1;
             beat[curBeat].id = i;
-            __android_log_print(ANDROID_LOG_INFO, "Rater",
+            /*__android_log_print(ANDROID_LOG_INFO, "Rater",
                                 "readFile: beat[%d].chordName=%s\n",
-                                curBeat, beat[curBeat].chordName.c_str());
+                                curBeat, beat[curBeat].chordName.c_str());*/
             curBeat++;
         }
 
@@ -100,7 +101,8 @@ void Beat::insert(double time) {
             id = i;
         }
     }
-    if (delay[id] != -1)    errorCount++;
+    //if (delay[id] != -1)    errorCount++;
+    if (delay[id] != -1)    ;
     else    delay[id] = minval;
 }
 
@@ -115,6 +117,9 @@ void classifyBeat() {
         __android_log_print(ANDROID_LOG_INFO, "Rater",
                             "classifyBeat: chordName = %s beat[id].chordName = %s\n",
                             chordName[i].c_str(), beat[id].chordName.c_str());
+        /*__android_log_print(ANDROID_LOG_INFO, "Rater",
+                            "classifyBeat: info! chord[i] = %.2lf id = %d timePerBeat = %.2lf\n",
+                            chord[i], id, timePerBeat);*/
         if (validID(id) && chordName[i] == beat[id].chordName)
             beat[id].insert(chord[i] - id * timePerBeat);
         else
@@ -123,12 +128,18 @@ void classifyBeat() {
         else
             if (validID(id - 1) && chord[i] < (id + 0.5) * timePerBeat && chordName[i] == beat[id - 1].chordName)
                 beat[id - 1].insert(chord[i] - (id - 1) * timePerBeat);
-        else    errorCount++;
+            else
+            {
+                __android_log_print(ANDROID_LOG_INFO, "Rater",
+                                    "classifyBeat: ErrorPlay! chord[i] = %.2lf id = %d timePerBeat = %.2lf\n",
+                                    chord[i], id, timePerBeat);
+                errorCount++;
+            }
     }
 }
 
 double Beat::calcScoreWithMath(double delay) {
-    double y = -40 * delay * delay + 10;
+    double y = -40 * pow(delay, 1.5) + 10;
     return y >= 0 ? y : 0;
 }
 
@@ -141,7 +152,7 @@ double Beat::getScore() {
             cnt++;
         }
     }
-    return cnt == 0 ? 0 : sum / cnt;
+    return cnt == 0 ? 6 : sum / cnt;
 }
 
 string getScore() {
@@ -150,11 +161,23 @@ string getScore() {
         score += beat[i].getScore();
     }
     score /= beatCount;
+    __android_log_print(ANDROID_LOG_INFO, "Rater",
+                        "getScore: score before punish = %lf\n", score);
     score -= errorCount * PER_ERR_PUNISH;
-    if (chordCount <= beatCount - 3)    score = min(score, 3.0);
-    if (chordCount <= beatCount * 1.5 - 3)    score = min(score, 6.0);
-    score = max(score, 1.0);
-    return to_string(int(score + 0.5));
+    __android_log_print(ANDROID_LOG_INFO, "Rater",
+                        "getScore: score after punish = %lf\n", score);
+    score *= 10;
+    if (chordCount <= 5)    score = min(score, 20.0);
+    if (chordCount <= beatCount * 0.25 - 6)    score = min(score, 33.0);
+    if (chordCount <= beatCount * 0.5 - 6)    score = min(score, 73.0);
+    if (chordCount <= beatCount - 6)    score = min(score, 85.0);
+    if (chordCount <= beatCount * 1.5 - 6)    score = min(score, 93.0);
+    score += rand() % 9 - 4;
+    score = max(score, 0.0);
+    score = min(score, 100.0);
+    __android_log_print(ANDROID_LOG_INFO, "Rater",
+                        "getScore: score after restrict = %lf\n", score);
+    return to_string(int(score));
 }
 
 

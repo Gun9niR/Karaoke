@@ -27,6 +27,6 @@ const char DATA_DIR[] = "/data/data/com.sjtu.karaoke/raterdata/";
 const double MIK_DELAY = 0.8;
 const int RATE_PRECISION = 100;
 const int SPLIT_NUMBER = 4;
-const double PER_ERR_PUNISH = 0.75;
+const double PER_ERR_PUNISH = 0.5;
 
 #endif //HELLO_LIBS_SETTING_H
