@@ -7,15 +7,14 @@ import android.media.SoundPool;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.TypedValue;
 import android.view.Gravity;
-import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.Space;
-import android.widget.TextView;
 
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
@@ -48,6 +47,8 @@ import java.util.ListIterator;
 import java.util.Locale;
 import java.util.Scanner;
 import java.util.stream.Collectors;
+
+import me.grantland.widget.AutofitTextView;
 
 import static com.dreamfish.record.AudioRecorder.PCM_SPLIT_INTERVAL;
 import static com.sjtu.karaoke.singrater.RatingUtil.getScore;
@@ -84,7 +85,7 @@ import static com.sjtu.karaoke.util.PathUtil.getUserPlayFullPath;
  */
 
 public class InstrumentSingActivity extends AppCompatActivity {
-
+    private static final float chordVolume = (float) 1.0;
     private static Integer HINT_DURATION = 3000;
 
     SimpleExoPlayer accompanyPlayer;
@@ -148,18 +149,19 @@ public class InstrumentSingActivity extends AppCompatActivity {
     HashMap<String, Chord> nameToChord;
     // 将和弦映射到按钮
     HashMap<Chord, ProgressBar> chordToBtn;
+//    HashMap<Chord, ParticleSystemView> chordToPSV;
     // 下一次提示时间和对应和弦
     int nextHintTime;
     PlayChordRecord nextHintChord;
 
 
-    @RequiresApi(api = Build.VERSION_CODES.N)
+    @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_instrument_sing);
         initFullScreen();
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+
 
         initSongName();
         initState();
@@ -170,17 +172,19 @@ public class InstrumentSingActivity extends AppCompatActivity {
     }
 
     private void initFullScreen() {
-        getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_FULLSCREEN
-                | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+                WindowManager.LayoutParams.FLAG_FULLSCREEN);
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     protected void onStart() {
         super.onStart();
 
         if (state == State.UNSTARTED) {
             LoadingDialog loadingDialog = showLoadingDialog(this, "正在初始化", true);
+
+            initFullScreen();
 
             new Thread(() -> {
                 parseChordFile();
@@ -288,16 +292,23 @@ public class InstrumentSingActivity extends AppCompatActivity {
         hintMonitor = new Runnable() {
             @Override
             public void run() {
-                if (currentPosition > nextHintTime && !standardSequence.isEmpty()) {
+                if (currentPosition > nextHintTime) {
                     displayHint(nextHintTime, nextHintChord);
-                    nextHintChord = standardSequence.remove(0);
-                    nextHintTime = getHintTime(nextHintChord.getTime());
+
+                    if (!standardSequence.isEmpty()) {
+                        nextHintChord = standardSequence.remove(0);
+                        nextHintTime = getHintTime(nextHintChord.getTime());
+                    } else {
+                        handler.removeCallbacks(this);
+                        return;
+                    }
                 }
                 handler.postDelayed(this, 10);
             }
         };
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
     private void initTopRightButtons() {
         finishButton = findViewById(R.id.instrumentFinishBtn);
         backButton = findViewById(R.id.instrumentBackBtn);
@@ -455,6 +466,7 @@ public class InstrumentSingActivity extends AppCompatActivity {
         }
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
     private void initInstrumentButtons() {
         this.runOnUiThread(() -> {
             LinearLayout btnContainer = findViewById(R.id.instrumentButtonsContainer);
@@ -463,6 +475,7 @@ public class InstrumentSingActivity extends AppCompatActivity {
 
             ListIterator<Chord> chordIt = chords.listIterator();
             chordToBtn = new HashMap<>();
+//            chordToPSV = new HashMap<>();
 
             while (chordIt.hasNext()) {
                 Chord chord = chordIt.next();
@@ -490,24 +503,34 @@ public class InstrumentSingActivity extends AppCompatActivity {
                 instrumentBtn.setProgress(0);
                 // fixme: probably set in progress monitor?
                 instrumentBtn.setOnClickListener(v -> {
-                            chordPlayer.play(chord.getSoundId(), 1, 1, 1, 0, 1);
+                            chordPlayer.play(chord.getSoundId(), chordVolume, chordVolume, 1, 0, 1);
                             userSequence.add(new PlayChordRecord(chord, currentPosition));
                         }
                 );
                 chordToBtn.put(chord, instrumentBtn);
                 relativeLayout.addView(instrumentBtn);
 
+                // add particle system view
+//                ParticleSystemView particleSystemView = new ParticleSystemView();
+//                particleSystemView.setLayoutParams(params2);
+//                chordToPSV.put(chord, particleSystemView);
+//                relativeLayout.addView(particleSystemView);
+
                 // add text view
-                TextView chordLabel = new TextView(InstrumentSingActivity.this);
+                AutofitTextView chordLabel = new AutofitTextView(InstrumentSingActivity.this);
                 RelativeLayout.LayoutParams params3 = new RelativeLayout.LayoutParams(
-                        ViewGroup.LayoutParams.WRAP_CONTENT,
+                        ViewGroup.LayoutParams.MATCH_PARENT,
                         ViewGroup.LayoutParams.WRAP_CONTENT
                 );
                 params3.addRule(RelativeLayout.CENTER_IN_PARENT, RelativeLayout.TRUE);
                 chordLabel.setText(chord.getName());
-                chordLabel.setTextColor(getColor(R.color.purple_700));
+                chordLabel.setTextColor(getColor(R.color.instrument_chord_label));
                 chordLabel.setTypeface(Typeface.DEFAULT_BOLD);
-                chordLabel.setTextSize(15);
+                chordLabel.setGravity(Gravity.CENTER);
+                chordLabel.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
+                chordLabel.setMaxLines(1);
+                chordLabel.setSizeToFit();
+
                 chordLabel.setLayoutParams(params3);
                 relativeLayout.addView(chordLabel);
 
@@ -592,15 +615,25 @@ public class InstrumentSingActivity extends AppCompatActivity {
 
         new Thread(() -> {
             ProgressBar progressBar = chordToBtn.get(hintChord.getChord());
+//            ParticleSystemView particleSystemView = chordToPSV.get(hintChord.getChord());
+//            ParticleSystem particleSystem = particleSystemView.createParticleSystem();
+
+            final int height = progressBar.getMeasuredHeight();
+            final int width = progressBar.getMeasuredWidth();
+
+//            initParticleSystem(particleSystem, width / 2, 0);
 
             int hintFinishTime = hintChord.getTime();
             while (currentPosition < hintFinishTime && !(state == State.UNSTARTED)) {
                 int percentage = (currentPosition - startTime) / (HINT_DURATION / 100);
-                progressBar.setProgress(percentage);
-            }
 
+                progressBar.setProgress(percentage);
+//                particleSystem.setPtcPosition(width / 2, height * percentage / 100);
+            }
+//
             if (currentHint != null) {
                 currentHint.setProgress(0);
+//                currentPtc.
             }
 
             progressBar.setProgress(100);
@@ -644,6 +677,7 @@ public class InstrumentSingActivity extends AppCompatActivity {
         pauseAllPlayers();
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
     private void retry() {
         stopActivity(false);
         onStart();

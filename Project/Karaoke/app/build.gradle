@@ -80,6 +80,9 @@ dependencies {
     // circular progress bar
     implementation 'com.mikhaellopez:circularprogressbar:3.0.3'
 
+    // auto scale text view
+    implementation 'me.grantland:autofittextview:0.2.+'
+
     implementation project(path: ':Recorder')
     implementation project(path: ':WavEditor')
     implementation project(path: ':SingRater')
