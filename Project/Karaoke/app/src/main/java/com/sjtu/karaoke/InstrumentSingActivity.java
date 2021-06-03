@@ -33,8 +33,8 @@ import com.sjtu.karaoke.data.PlayChordRecord;
 import com.sjtu.karaoke.data.Score;
 import com.sjtu.pianorater.PianoRater;
 import com.sunty.droidparticle.ParticleSystem;
-import com.sunty.droidparticle.ParticleSystemView;
 import com.sunty.droidparticle.ParticleSystemConfig;
+import com.sunty.droidparticle.ParticleSystemView;
 
 import org.apache.commons.io.FileUtils;
 import org.sang.lrcview.LrcView;
@@ -69,7 +69,6 @@ import static com.sjtu.karaoke.util.MediaPlayerUtil.terminateExoPlayer;
 import static com.sjtu.karaoke.util.MiscUtil.mergeNotesToChord;
 import static com.sjtu.karaoke.util.MiscUtil.parseScore;
 import static com.sjtu.karaoke.util.MiscUtil.showLoadingDialog;
-import static com.sjtu.karaoke.util.MiscUtil.showSuccessToast;
 import static com.sjtu.karaoke.util.PathUtil.getAccompanyFullPath;
 import static com.sjtu.karaoke.util.PathUtil.getAssetFullPath;
 import static com.sjtu.karaoke.util.PathUtil.getChordTransFullPath;
@@ -815,9 +814,6 @@ public class InstrumentSingActivity extends AppCompatActivity {
             String scoreStr = getScore(startTime, endTime);
             Integer[] scores = parseScore(scoreStr);
             score.update(scores);
-
-            // fixme: change
-            showSuccessToast(InstrumentSingActivity.this, Integer.toString(scores[0]));
         });
 
         ratingThread.add(thread);

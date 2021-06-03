@@ -15,11 +15,9 @@ import org.sang.lrcview.util.LrcUtil;
 
 import java.util.List;
 
-/**
- * Created by 王松 on 2016/10/21.
- */
-
 public class LrcView extends View {
+    private static final int FONT_SIZE = 45;
+    private static final int LINE_HEIGHT = 90;
 
     private List<LrcBean> list;
     private Paint gPaint;
@@ -85,12 +83,12 @@ public class LrcView extends View {
         gPaint = new Paint();
         gPaint.setAntiAlias(true);
         gPaint.setColor(lrcColor);
-        gPaint.setTextSize(36);
+        gPaint.setTextSize(FONT_SIZE);
         gPaint.setTextAlign(Paint.Align.CENTER);
         hPaint = new Paint();
         hPaint.setAntiAlias(true);
         hPaint.setColor(highLineColor);
-        hPaint.setTextSize(36);
+        hPaint.setTextSize(FONT_SIZE);
         hPaint.setTextAlign(Paint.Align.CENTER);
     }
 
@@ -111,9 +109,9 @@ public class LrcView extends View {
             int currentMillis = (int) player.getCurrentPosition();
             drawLrc2(canvas, currentMillis);
             long start = list.get(currentPosition).getStart();
-            float v = (currentMillis - start) > 500 ? currentPosition * 80 : lastPosition * 80 + (currentPosition - lastPosition) * 80 * ((currentMillis - start) / 500f);
+            float v = (currentMillis - start) > 500 ? currentPosition * LINE_HEIGHT : lastPosition * LINE_HEIGHT + (currentPosition - lastPosition) * LINE_HEIGHT * ((currentMillis - start) / 500f);
             setScrollY((int) v);
-            if (getScrollY() == currentPosition * 80) {
+            if (getScrollY() == currentPosition * LINE_HEIGHT) {
                 lastPosition = currentPosition;
             }
             postInvalidateDelayed(500);
@@ -124,14 +122,14 @@ public class LrcView extends View {
         if (mode == 0) {
             for (int i = 0; i < list.size(); i++) {
                 if (i == currentPosition) {
-                    canvas.drawText(list.get(i).getLrc(), width / 2, height / 2 + 80 * i, hPaint);
+                    canvas.drawText(list.get(i).getLrc(), width / 2, height / 2 + LINE_HEIGHT * i, hPaint);
                 } else {
-                    canvas.drawText(list.get(i).getLrc(), width / 2, height / 2 + 80 * i, gPaint);
+                    canvas.drawText(list.get(i).getLrc(), width / 2, height / 2 + LINE_HEIGHT * i, gPaint);
                 }
             }
         }else{
             for (int i = 0; i < list.size(); i++) {
-                canvas.drawText(list.get(i).getLrc(), width / 2, height / 2 + 80 * i, gPaint);
+                canvas.drawText(list.get(i).getLrc(), width / 2, height / 2 + LINE_HEIGHT * i, gPaint);
             }
             String highLineLrc = list.get(currentPosition).getLrc();
             int highLineWidth = (int) gPaint.measureText(highLineLrc);
@@ -141,10 +139,10 @@ public class LrcView extends View {
             long end = lrcBean.getEnd();
             int i = (int) ((currentMillis - start) * 1.0f / (end - start) * highLineWidth);
             if (i > 0) {
-                Bitmap textBitmap = Bitmap.createBitmap(i, 90, Bitmap.Config.ARGB_8888);
+                Bitmap textBitmap = Bitmap.createBitmap(i, LINE_HEIGHT + 10, Bitmap.Config.ARGB_8888);
                 Canvas textCanvas = new Canvas(textBitmap);
-                textCanvas.drawText(highLineLrc, highLineWidth / 2, 80, hPaint);
-                canvas.drawBitmap(textBitmap, leftOffset, height / 2 + 80 * (currentPosition - 1), null);
+                textCanvas.drawText(highLineLrc, highLineWidth / 2, LINE_HEIGHT, hPaint);
+                canvas.drawBitmap(textBitmap, leftOffset, height / 2 + LINE_HEIGHT * (currentPosition - 1), null);
             }
         }
     }
