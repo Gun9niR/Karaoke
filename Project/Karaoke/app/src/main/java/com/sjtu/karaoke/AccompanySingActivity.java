@@ -6,11 +6,18 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.WindowManager;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
+import android.view.animation.AnimationSet;
+import android.view.animation.TranslateAnimation;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -18,8 +25,11 @@ import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
+import androidx.core.content.res.ResourcesCompat;
 
 import com.dreamfish.record.AudioRecorder;
+import com.example.administrator.myapplication.ExplosionField;
+import com.example.administrator.myapplication.factory.FlyawayFactory;
 import com.google.android.exoplayer2.MediaItem;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.SimpleExoPlayer;
@@ -53,7 +63,6 @@ import static com.sjtu.karaoke.util.MediaPlayerUtil.loadAudioFileAndPrepareExoPl
 import static com.sjtu.karaoke.util.MediaPlayerUtil.terminateExoPlayer;
 import static com.sjtu.karaoke.util.MiscUtil.parseScore;
 import static com.sjtu.karaoke.util.MiscUtil.showLoadingDialog;
-import static com.sjtu.karaoke.util.MiscUtil.showSuccessToast;
 import static com.sjtu.karaoke.util.PathUtil.getAccompanyFullPath;
 import static com.sjtu.karaoke.util.PathUtil.getAccompanyLyricFullPath;
 import static com.sjtu.karaoke.util.PathUtil.getMVFullPath;
@@ -73,6 +82,11 @@ import static com.sjtu.karaoke.util.WavUtil.getWAVDuration;
  */
 
 public class AccompanySingActivity extends AppCompatActivity {
+    private static final int ANIMATION_DURATION = 1000;
+    private static final int MOVE_UP_LENGTH = 100;
+    private static final AlphaAnimation fadeInAnimation;
+    private static final TranslateAnimation moveUpAnimation;
+
     SimpleExoPlayer mvPlayer;
     LrcView lrcView;
     SimpleExoPlayer accompanyPlayer;
@@ -108,6 +122,14 @@ public class AccompanySingActivity extends AppCompatActivity {
     Score score;
     // 当前播放进度
     int currentPosition;
+
+    static {
+        fadeInAnimation = new AlphaAnimation(0, 1);
+        fadeInAnimation.setDuration(ANIMATION_DURATION);
+
+        moveUpAnimation = new TranslateAnimation(0, 0, 0, -MOVE_UP_LENGTH);
+        moveUpAnimation.setDuration(ANIMATION_DURATION);
+    }
 
     @RequiresApi(api = Build.VERSION_CODES.N)
     @Override
@@ -431,6 +453,7 @@ public class AccompanySingActivity extends AppCompatActivity {
                                 disableFinishButton();
                                 LoadingDialog loadingDialog = showLoadingDialog(AccompanySingActivity.this, "正在处理录音");
 
+                                score.computeFinalScore();
                                 new Thread(() -> {
                                     stopActivity(true);
                                     Intent intent = new Intent(getApplicationContext(), SingResultActivity.class);
@@ -540,9 +563,61 @@ public class AccompanySingActivity extends AppCompatActivity {
 
             AccompanySingActivity.this.runOnUiThread(() -> scoreBar.setProgress(score.getTotalScore(), true));
 
-            // fixme: change
-            showSuccessToast(AccompanySingActivity.this, Integer.toString(scores[0]));
+            displayScore(scores[0]);
         }).start();
+    }
+
+    private void displayScore(Integer score) {
+        this.runOnUiThread(() -> {
+            RelativeLayout track = findViewById(R.id.scoreTrack);
+
+            TextView textView = new TextView(this);
+            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT);
+
+            textView.setText("+" + score);
+            textView.setTextColor(ResourcesCompat.getColor(Karaoke.getRes(), R.color.score_text, null));
+            textView.setGravity(Gravity.CENTER);
+            textView.setLayoutParams(params);
+
+            // display textview
+            track.addView(textView);
+
+            AnimationSet animationSet = new AnimationSet(true);
+            animationSet.setDuration(ANIMATION_DURATION);
+            animationSet.addAnimation(fadeInAnimation);
+            animationSet.addAnimation(moveUpAnimation);
+
+            animationSet.setAnimationListener(new Animation.AnimationListener() {
+                @Override
+                public void onAnimationStart(Animation animation) { }
+
+                @Override
+                public void onAnimationEnd(Animation animation) {
+                    ExplosionField explosionField = new ExplosionField(AccompanySingActivity.this, new FlyawayFactory());
+                    RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams) textView.getLayoutParams();
+                    layoutParams.bottomMargin = MOVE_UP_LENGTH;
+                    textView.clearAnimation();
+                    textView.setLayoutParams(layoutParams);
+
+                    // explodes after 1.5s
+                    handler.postDelayed(() -> {
+                        explosionField.explode(textView);
+                    }, 1500);
+
+                    // removes textview after 2s
+                    handler.postDelayed(() -> {
+                        track.removeView(textView);
+                    }, 2000);
+                }
+
+                @Override
+                public void onAnimationRepeat(Animation animation) { }
+            });
+
+            textView.startAnimation(animationSet);
+        });
     }
 
     private enum State {

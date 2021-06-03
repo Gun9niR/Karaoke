@@ -52,6 +52,8 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Locale;
 import java.util.Scanner;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Semaphore;
 import java.util.stream.Collectors;
 
 import me.grantland.widget.AutofitTextView;
@@ -101,6 +103,7 @@ public class InstrumentSingActivity extends AppCompatActivity {
     AppCompatImageButton retryButton;
     AppCompatImageButton backButton;
 
+    Semaphore mutex = new Semaphore(1);
     Handler handler = new Handler();
 
     // 监听进度
@@ -116,7 +119,7 @@ public class InstrumentSingActivity extends AppCompatActivity {
     // 当前亮的进度条
     ProgressBar currentHint;
     // 当前保持在顶部的粒子特效
-    ParticleSystem currentPtc;
+    ParticleSystem currentPs;
 
     // 状态量
     // 当前歌的id
@@ -153,6 +156,8 @@ public class InstrumentSingActivity extends AppCompatActivity {
     List<PlayChordRecord> userSequence;
     // 打分线程
     List<Thread> ratingThread;
+    // 当前还没有被release的粒子系统
+    ConcurrentHashMap<ParticleSystem, Boolean> unreleasedParticleSystems;
     // 将和弦名映射到和弦对象
     HashMap<String, Chord> nameToChord;
     // 将和弦映射到按钮
@@ -177,7 +182,7 @@ public class InstrumentSingActivity extends AppCompatActivity {
         initRecordMonitor();
         initHintMonitor();
         initTopRightButtons();
-        initParticleSystemView();
+        initParticleSystem();
     }
 
     private void initFullScreen() {
@@ -384,8 +389,9 @@ public class InstrumentSingActivity extends AppCompatActivity {
         retryButton.setEnabled(false);
     }
 
-    private void initParticleSystemView() {
+    private void initParticleSystem() {
         particleSystemView = findViewById(R.id.particleSystemView);
+        unreleasedParticleSystems = new ConcurrentHashMap<>();
     }
 
     private void parseChordFile() {
@@ -621,34 +627,55 @@ public class InstrumentSingActivity extends AppCompatActivity {
             ProgressBar progressBar = chordToBtn.get(hintChord.getChord());
             ParticleSystem particleSystem = particleSystemView.createParticleSystem();
 
-            int[] location = new int[2];
+            int[] btnLocation = new int[2];
+            int[] containerLocation = new int[2];
             final int height = progressBar.getMeasuredHeight();
-            progressBar.getLocationOnScreen(location);
-            final int x = location[0];
-            final int y = location[1] + height;
+            final int width = progressBar.getMeasuredWidth();
+            progressBar.getLocationOnScreen(btnLocation);
+            particleSystemView.getLocationOnScreen(containerLocation);
+            final int x = btnLocation[0] - containerLocation[0] + width / 2;
+            final int y = btnLocation[1] - containerLocation[1] + height;
 
             initParticleSystem(particleSystem, x, y);
 
             int hintFinishTime = hintChord.getTime();
             particleSystem.start();
+            unreleasedParticleSystems.put(particleSystem, true);
+
             while (currentPosition < hintFinishTime && !(state == State.UNSTARTED)) {
                 int percentage = (currentPosition - startTime) / (HINT_DURATION / 100);
 
-                System.out.println(y + height * percentage / 100);
+                try {
+                    Thread.sleep(5);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
                 progressBar.setProgress(percentage);
                 particleSystem.setPtcPosition(x, y - height * percentage / 100);
             }
 
             if (currentHint != null) {
                 currentHint.setProgress(0);
-                currentPtc.stop();
-                particleSystemView.releaseParticleSystem(currentPtc);
+                currentPs.stop();
+
+                ParticleSystem psSnapshot = currentPs;
+                handler.postDelayed(() -> {
+                    mutex.acquireUninterruptibly();
+                    if (unreleasedParticleSystems.contains(psSnapshot)) {
+                        unreleasedParticleSystems.remove(psSnapshot);
+                        particleSystemView.releaseParticleSystem(psSnapshot);
+                    }
+                    mutex.release();
+                }, 1500);
             }
 
-            progressBar.setProgress(100);
+            if (state != State.UNSTARTED) {
+                progressBar.setProgress(100);
 
-            currentHint = progressBar;
-            currentPtc = particleSystem;
+                currentHint = progressBar;
+                currentPs = particleSystem;
+            }
+
         }).start();
     }
 
@@ -740,6 +767,14 @@ public class InstrumentSingActivity extends AppCompatActivity {
 
         terminateExoPlayer(this, accompanyPlayer);
 
+        // release all particle systems
+        mutex.acquireUninterruptibly();
+        for (ParticleSystem particleSystem : unreleasedParticleSystems.keySet()) {
+            unreleasedParticleSystems.remove(particleSystem);
+            particleSystemView.releaseParticleSystem(particleSystem);
+        }
+        mutex.release();
+
         voiceRecorder.stopRecord(shouldMergePcm);
         if (shouldMergePcm) {
             mergeUserChords(userSequence);
@@ -770,10 +805,8 @@ public class InstrumentSingActivity extends AppCompatActivity {
 
         command.append("-i ").append(silencePath).append(" ");
 
-        System.out.println("===== user chord =====");
         for (PlayChordRecord userRecord: userSequence) {
             userRecord.decrementTime(playbackStartTime);
-            System.out.println(userRecord.getTime());
             command.append("-i ").append(userRecord.getChord().getFilePath()).append(" ");
         }
 

@@ -77,6 +77,16 @@
         app:layout_constraintStart_toEndOf="@+id/scoreBar"
         tools:ignore="MissingConstraints" />
 
+    <RelativeLayout
+        android:id="@+id/scoreTrack"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:gravity="bottom"
+        app:layout_constraintBottom_toTopOf="@+id/singingScore"
+        app:layout_constraintEnd_toEndOf="@+id/singingScore"
+        app:layout_constraintStart_toStartOf="@+id/singingScore"
+        app:layout_constraintTop_toTopOf="parent" />
+
     <org.sang.lrcview.LrcView
         android:id="@+id/lrcRoller"
         android:layout_width="match_parent"
@@ -93,5 +103,7 @@
         android:layout_height="wrap_content"
         app:layout_constraintBottom_toBottomOf="parent"
         tools:layout_editor_absoluteX="2dp" />
+
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

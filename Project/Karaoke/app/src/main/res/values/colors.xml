@@ -21,10 +21,13 @@
     <color name="color_navbar_text">#3700B3</color>
     <color name="color_navbar_button">#3700B3</color>
 
+<!--    自弹自唱-->
     <color name="instrument_btn_foreground">#80F55442</color>
     <color name="instrument_btn_background">#58677ACf</color>
     <color name="instrument_btn_border">#7B6A7DD1</color>
     <color name="instrument_lyric">#FF677ACf</color>
     <color name="instrument_chord_label">#FFFFFFFF</color>
 
+<!--    伴奏演唱-->
+    <color name="score_text">#FF6200EE</color>
 </resources>
