@@ -27,6 +27,8 @@ public class ParticleSystemConfig {
     public Range endGreen = new Range(1, 0);
     public Range startBlue = new Range(1, 0);
     public Range endBlue = new Range(1, 0);
+    public Range gravx = new Range(0, 0);
+    public Range gravy = new Range(0, 0);
 
     public void set(ParticleSystemConfig other) {
         duration.set(other.duration);
@@ -48,6 +50,8 @@ public class ParticleSystemConfig {
         endGreen.set(other.endGreen);
         startBlue.set(other.startBlue);
         endBlue.set(other.endBlue);
+        gravx.set(other.gravx);
+        gravy.set(other.gravy);
     }
 
     public void setParticle(Random random, Particle ptc) {
@@ -65,6 +69,9 @@ public class ParticleSystemConfig {
         ptc.durInMillis = Math.round(duration.get(random));
         ptc.theta = theta.get(random);
         ptc.rot = rotation.get(random);
+        ptc.totT = 0;
+        ptc.gravx = gravx.get(random);
+        ptc.gravy = gravy.get(random);
 
         ptc.scale = ptc.scale__.vt;
         ptc.alpha = ptc.alpha__.vt;
