@@ -656,7 +656,7 @@ public class InstrumentSingActivity extends AppCompatActivity {
     private void initParticleSystem(ParticleSystem ptcSys, int x, int y) {
 
         BitmapDrawable drawable = (BitmapDrawable) ResourcesCompat.getDrawable(Karaoke.getRes(),
-                R.drawable.ptc16, null);
+                R.drawable.note, null);
 
         Bitmap img = drawable.getBitmap();
 
