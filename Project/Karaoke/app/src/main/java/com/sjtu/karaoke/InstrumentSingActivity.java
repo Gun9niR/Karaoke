@@ -29,6 +29,8 @@ import com.sjtu.karaoke.data.Chord;
 import com.sjtu.karaoke.data.PlayChordRecord;
 import com.sjtu.karaoke.data.Score;
 import com.sjtu.pianorater.PianoRater;
+import com.sunty.droidparticle.ParticleSystem;
+import com.sunty.droidparticle.ParticleSystemView;
 
 import org.apache.commons.io.FileUtils;
 import org.sang.lrcview.LrcView;
@@ -107,9 +109,11 @@ public class InstrumentSingActivity extends AppCompatActivity {
     // 监听按钮提示
     Runnable hintMonitor;
 
-    // 当前常量的进度条
-
+    // 当前亮的进度条
     ProgressBar currentHint;
+    // 当前保持在顶部的粒子特效
+    ParticleSystem currentPtc;
+
     // 状态量
     // 当前歌的id
     int id;
@@ -149,7 +153,7 @@ public class InstrumentSingActivity extends AppCompatActivity {
     HashMap<String, Chord> nameToChord;
     // 将和弦映射到按钮
     HashMap<Chord, ProgressBar> chordToBtn;
-//    HashMap<Chord, ParticleSystemView> chordToPSV;
+    HashMap<Chord, ParticleSystemView> chordToPSV;
     // 下一次提示时间和对应和弦
     int nextHintTime;
     PlayChordRecord nextHintChord;
@@ -439,14 +443,12 @@ public class InstrumentSingActivity extends AppCompatActivity {
                 Chord chord  = nameToChord.get(params[0]);
                 int duration = Integer.parseInt(params[1]);
 
-                if (!lastChordTime.containsKey(chord)) {
-                    lastChordTime.put(chord, time);
-                } else {
+                if (lastChordTime.containsKey(chord)) {
                     if (time - lastChordTime.get(chord) < HINT_DURATION) {
                         HINT_DURATION = time - lastChordTime.get(chord);
                     }
-                    lastChordTime.put(chord, time);
                 }
+                lastChordTime.put(chord, time);
 
                 standardSequence.add(new PlayChordRecord(chord, time, duration));
                 time += duration;
@@ -475,7 +477,7 @@ public class InstrumentSingActivity extends AppCompatActivity {
 
             ListIterator<Chord> chordIt = chords.listIterator();
             chordToBtn = new HashMap<>();
-//            chordToPSV = new HashMap<>();
+            chordToPSV = new HashMap<>();
 
             while (chordIt.hasNext()) {
                 Chord chord = chordIt.next();
@@ -511,10 +513,10 @@ public class InstrumentSingActivity extends AppCompatActivity {
                 relativeLayout.addView(instrumentBtn);
 
                 // add particle system view
-//                ParticleSystemView particleSystemView = new ParticleSystemView();
-//                particleSystemView.setLayoutParams(params2);
-//                chordToPSV.put(chord, particleSystemView);
-//                relativeLayout.addView(particleSystemView);
+                ParticleSystemView particleSystemView = new ParticleSystemView(this);
+                particleSystemView.setLayoutParams(params2);
+                chordToPSV.put(chord, particleSystemView);
+                relativeLayout.addView(particleSystemView);
 
                 // add text view
                 AutofitTextView chordLabel = new AutofitTextView(InstrumentSingActivity.this);
@@ -615,32 +617,37 @@ public class InstrumentSingActivity extends AppCompatActivity {
 
         new Thread(() -> {
             ProgressBar progressBar = chordToBtn.get(hintChord.getChord());
-//            ParticleSystemView particleSystemView = chordToPSV.get(hintChord.getChord());
-//            ParticleSystem particleSystem = particleSystemView.createParticleSystem();
+            ParticleSystemView particleSystemView = chordToPSV.get(hintChord.getChord());
+            ParticleSystem particleSystem = particleSystemView.createParticleSystem();
 
             final int height = progressBar.getMeasuredHeight();
             final int width = progressBar.getMeasuredWidth();
 
-//            initParticleSystem(particleSystem, width / 2, 0);
+            initParticleSystem(particleSystem, width / 2, 0);
 
             int hintFinishTime = hintChord.getTime();
+            particleSystem.start();
             while (currentPosition < hintFinishTime && !(state == State.UNSTARTED)) {
                 int percentage = (currentPosition - startTime) / (HINT_DURATION / 100);
 
                 progressBar.setProgress(percentage);
-//                particleSystem.setPtcPosition(width / 2, height * percentage / 100);
+                particleSystem.setPtcPosition(width / 2, height * percentage / 100);
             }
-//
+
             if (currentHint != null) {
                 currentHint.setProgress(0);
-//                currentPtc.
+                currentPtc.stop();
             }
 
             progressBar.setProgress(100);
 
             currentHint = progressBar;
-
+            currentPtc = particleSystem;
         }).start();
+    }
+
+    private void initParticleSystem(ParticleSystem particleSystem, int x, int y) {
+
     }
 
     private void startAllPlayers() {

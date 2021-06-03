@@ -6,3 +6,5 @@ include ':Recorder'
 include ':LrcView'
 include ':app'
 rootProject.name = "Karaoke"
+include ':DroidParticle'
+include ':ExplosionView'
