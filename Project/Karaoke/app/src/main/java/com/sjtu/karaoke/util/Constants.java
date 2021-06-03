@@ -39,7 +39,7 @@ public class Constants {
 
     public static final String BASS_DIRECTORY = ACCOMPANY_INSTRUMENT_DIRECTORY + "bass/";
 
-    public static final String ORCHESTRA_DIRECORY = ACCOMPANY_INSTRUMENT_DIRECTORY + "orchestra/";
+    public static final String ORCHESTRA_DIRECTORY = ACCOMPANY_INSTRUMENT_DIRECTORY + "orchestra/";
 
     public static final String RECORD_DIRECTORY = ROOT_DIRECTORY + "record/";
 
@@ -56,6 +56,8 @@ public class Constants {
     public static final String LYRIC_INSTRUMENT_DIRECTORY = ROOT_DIRECTORY + "i_lyric/";
 
     public static final String MV_DIRECTORY = ROOT_DIRECTORY + "mv/";
+
+    public static final String RATERDATA_DIRECTORY = ROOT_DIRECTORY + "/raterdata";
 
     public static final String CHORD_TRANS_DIRECTORY = ROOT_DIRECTORY + "chord/";
 
