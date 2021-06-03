@@ -68,6 +68,8 @@ public class Particle {
     public float red;   // 1.0
     public float green; // 1.0
     public float blue;  // 1.0
+    public float gravx, gravy;//0.0
+    public double totT; //0.0
 
     public Bitmap bitmap;
     public Matrix matrix;
@@ -125,8 +127,9 @@ public class Particle {
 
         //Log.i("STY", String.format("velo__.vt %f, dt %f, dd %f", velo__.vt, dt, dd));
 
-        x += dd * Math.cos(rad);
-        y += dd * Math.sin(rad);
+        x += dd * Math.cos(rad) + gravx * totT * dtInSeconds + 0.5 * gravx * dtInSeconds * dtInSeconds;
+        y += dd * Math.sin(rad) + gravy * totT * dtInSeconds + 0.5 * gravy * dtInSeconds * dtInSeconds;
+        totT += dtInSeconds;
         theta += bias__.vt * dtInSeconds;
         rot += spin__.vt * dtInSeconds;
         scale = scale__.vt;

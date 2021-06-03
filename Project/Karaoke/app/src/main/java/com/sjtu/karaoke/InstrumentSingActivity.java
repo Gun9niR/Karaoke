@@ -653,17 +653,20 @@ public class InstrumentSingActivity extends AppCompatActivity {
     }
 
     private void initParticleSystem(ParticleSystem ptcSys, int x, int y) {
+
         BitmapDrawable drawable = (BitmapDrawable) ResourcesCompat.getDrawable(Karaoke.getRes(),
                 R.drawable.ptc16, null);
+
         Bitmap img = drawable.getBitmap();
 
         ptcSys.setPtcBlend(1);
-        ptcSys.setFps(10);
-        ptcSys.setPps(20);
+        ptcSys.setFps(30);
+        ptcSys.setPps(7);
         ptcSys.setPtcImage(img);
         ptcSys.setPtcPosition(x, y);
+
         ParticleSystemConfig config = new ParticleSystemConfig();
-        config.duration.set(500, 0);
+        config.duration.set(1000, 0);
         config.theta.set(270, 15);
         config.startVelocity.set(400, 0);
         config.endVelocity.set(400, 0);
@@ -671,16 +674,19 @@ public class InstrumentSingActivity extends AppCompatActivity {
         config.endAngularRate.set(0, 0);
         config.startSpinRate.set(360, 0);
         config.endSpinRate.set(360, 0);
-        config.startScale.set(1, 0);
-        config.endScale.set(1.5f, 0);
         config.startAlpha.set(1, 0);
-        config.endAlpha.set(0.75f, 0);
-        config.startRed.set(1, 0);
+        config.endAlpha.set(0.3f, 0);
+        config.gravx.set(0, 0);
+        config.gravy.set(1000, 0);
+        config.startScale.set(0.2f, 0);
+        config.endScale.set(0.3f, 0);
+        config.startRed.set(0, 0);
         config.endRed.set(1, 0);
         config.startGreen.set(0, 0);
-        config.endGreen.set(1, 0);
-        config.startBlue.set(0, 0);
-        config.endBlue.set(0, 0);
+        config.endGreen.set(0, 0);
+        config.startBlue.set(1, 0);
+        config.endBlue.set(1, 0);
+
         ptcSys.setConfig(config);
     }
 
