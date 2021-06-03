@@ -40,7 +40,8 @@ import okhttp3.Callback;
 import okhttp3.Response;
 
 import static com.sjtu.karaoke.util.MiscUtil.getSongInfo;
-import static com.sjtu.karaoke.util.MiscUtil.showToast;
+import static com.sjtu.karaoke.util.MiscUtil.showSuccessToast;
+import static com.sjtu.karaoke.util.MiscUtil.showWarningToast;
 
 /*
  * @ClassName: ViewSongsFragment
@@ -169,7 +170,7 @@ public class ViewSongsFragment extends Fragment {
                     public void onFailure(Call call, IOException e) {
                         e.printStackTrace();
                         if (activity != null) {
-                            showToast(activity, "从服务器获取数据失败，请重试!");
+                            showWarningToast(activity, "从服务器获取数据失败，请重试!");
                         }
                         swipeRefreshLayout.setRefreshing(false);
                     }
@@ -192,7 +193,7 @@ public class ViewSongsFragment extends Fragment {
                             setSongs(songList);
 
                         } catch (JSONException e) {
-                            showToast(activity, "从服务器获取异常数据，请重试!");
+                            showWarningToast(activity, "从服务器获取异常数据，请重试!");
                             swipeRefreshLayout.setRefreshing(false);
                             e.printStackTrace();
                         }

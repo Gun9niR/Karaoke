@@ -53,7 +53,7 @@ import static com.sjtu.karaoke.util.MediaPlayerUtil.loadAudioFileAndPrepareExoPl
 import static com.sjtu.karaoke.util.MediaPlayerUtil.terminateExoPlayer;
 import static com.sjtu.karaoke.util.MiscUtil.parseScore;
 import static com.sjtu.karaoke.util.MiscUtil.showLoadingDialog;
-import static com.sjtu.karaoke.util.MiscUtil.showToast;
+import static com.sjtu.karaoke.util.MiscUtil.showSuccessToast;
 import static com.sjtu.karaoke.util.PathUtil.getAccompanyFullPath;
 import static com.sjtu.karaoke.util.PathUtil.getAccompanyLyricFullPath;
 import static com.sjtu.karaoke.util.PathUtil.getMVFullPath;
@@ -540,7 +540,8 @@ public class AccompanySingActivity extends AppCompatActivity {
 
             AccompanySingActivity.this.runOnUiThread(() -> scoreBar.setProgress(score.getTotalScore(), true));
 
-            showToast(AccompanySingActivity.this, Integer.toString(scores[0]));
+            // fixme: change
+            showSuccessToast(AccompanySingActivity.this, Integer.toString(scores[0]));
         }).start();
     }
 

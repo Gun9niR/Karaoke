@@ -13,9 +13,7 @@ import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.util.Log;
 import android.view.Gravity;
-import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.core.app.ActivityCompat;
@@ -29,6 +27,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import es.dmoral.toasty.Toasty;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.OkHttpClient;
@@ -52,7 +51,11 @@ import static com.sjtu.karaoke.util.FileUtil.saveFileFromResponse;
  */
 
 public class MiscUtil {
-    private static Toast toast;
+    static {
+        Toasty.Config.getInstance()
+                .allowQueue(false) // optional (prevents several Toastys from queuing)
+                .apply(); // required
+    }
 
     public static Intent getChooserIntent(Uri uri, Context context) {
         List<LabeledIntent> targetedShareIntents = new ArrayList<>();
@@ -111,17 +114,23 @@ public class MiscUtil {
         }
     }
 
-    public static void showToast(Activity activity, String message) {
+    public static void showSuccessToast(Activity activity, String message) {
         activity.runOnUiThread(() -> {
-            if (toast != null) {
-                toast.cancel();
-            }
-            toast = Toast.makeText(activity, message, Toast.LENGTH_LONG);
-            ViewGroup group = (ViewGroup) toast.getView();
-            TextView tvMessage = (TextView) group.getChildAt(0);
-            tvMessage.setText(message);
-            tvMessage.setGravity(Gravity.CENTER);
+            Toasty.success(activity, message, Toast.LENGTH_SHORT, true).show();
+        });
+    }
+
+    public static void showSuccessToast(Activity activity, String message, int y) {
+        activity.runOnUiThread(() -> {
+            Toast toast = Toasty.success(activity, message, Toast.LENGTH_SHORT, true);
+            toast.setGravity(Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL, 0, y);
             toast.show();
+        });
+    }
+
+    public static void showWarningToast(Activity activity, String message) {
+        activity.runOnUiThread(() -> {
+            Toasty.warning(activity, message, Toast.LENGTH_SHORT, true).show();
         });
     }
 
