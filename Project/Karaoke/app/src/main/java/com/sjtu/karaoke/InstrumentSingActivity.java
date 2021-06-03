@@ -65,7 +65,7 @@ import static com.sjtu.karaoke.util.MediaPlayerUtil.terminateExoPlayer;
 import static com.sjtu.karaoke.util.MiscUtil.mergeNotesToChord;
 import static com.sjtu.karaoke.util.MiscUtil.parseScore;
 import static com.sjtu.karaoke.util.MiscUtil.showLoadingDialog;
-import static com.sjtu.karaoke.util.MiscUtil.showToast;
+import static com.sjtu.karaoke.util.MiscUtil.showSuccessToast;
 import static com.sjtu.karaoke.util.PathUtil.getAccompanyFullPath;
 import static com.sjtu.karaoke.util.PathUtil.getAssetFullPath;
 import static com.sjtu.karaoke.util.PathUtil.getChordTransFullPath;
@@ -775,7 +775,8 @@ public class InstrumentSingActivity extends AppCompatActivity {
             Integer[] scores = parseScore(scoreStr);
             score.update(scores);
 
-            showToast(InstrumentSingActivity.this, Integer.toString(scores[0]));
+            // fixme: change
+            showSuccessToast(InstrumentSingActivity.this, Integer.toString(scores[0]));
         });
 
         ratingThread.add(thread);

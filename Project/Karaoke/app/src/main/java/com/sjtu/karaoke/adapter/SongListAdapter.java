@@ -41,7 +41,7 @@ import static com.sjtu.karaoke.util.MiscUtil.downloadAndSetAlbumCover;
 import static com.sjtu.karaoke.util.MiscUtil.getRequestParamFromId;
 import static com.sjtu.karaoke.util.MiscUtil.setImageFromFile;
 import static com.sjtu.karaoke.util.MiscUtil.showLoadingDialog;
-import static com.sjtu.karaoke.util.MiscUtil.showToast;
+import static com.sjtu.karaoke.util.MiscUtil.showWarningToast;
 import static com.sjtu.karaoke.util.PathUtil.getAccompanyFullPath;
 import static com.sjtu.karaoke.util.PathUtil.getAccompanyLyricFullPath;
 import static com.sjtu.karaoke.util.PathUtil.getAlbumCoverFullPath;
@@ -142,7 +142,7 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.ViewHo
                         intent.putExtra("songName", selectedSong.getSongName());
                         activity.startActivity(intent);
                     } else {
-                        showToast(activity, "未能成功下载文件，请重试");
+                        showWarningToast(activity, "未能成功下载文件，请重试");
                     }
                 }).start();
             });
@@ -161,7 +161,7 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.ViewHo
                         intent.putExtra("songName", selectedSong.getSongName());
                         activity.startActivity(intent);
                     } else {
-                        showToast(activity, "未能成功下载文件，请重试");
+                        showWarningToast(activity, "未能成功下载文件，请重试");
                     }
                 }).start();
             });

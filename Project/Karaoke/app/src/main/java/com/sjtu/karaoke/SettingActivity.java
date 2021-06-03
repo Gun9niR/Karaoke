@@ -1,5 +1,6 @@
 package com.sjtu.karaoke;
 
+import android.app.Dialog;
 import android.os.Bundle;
 import android.widget.ListView;
 
@@ -8,7 +9,7 @@ import androidx.appcompat.widget.Toolbar;
 
 import com.sjtu.karaoke.adapter.SettingAdapter;
 
-import static com.sjtu.karaoke.util.MiscUtil.showToast;
+import static com.sjtu.karaoke.util.MiscUtil.showSuccessToast;
 
 /*
  * @ClassName: SettingActivity
@@ -40,10 +41,11 @@ public class SettingActivity extends AppCompatActivity {
         listView.setOnItemClickListener((adapterView, view, i, l) -> {
             switch(i) {
                 case 0:
-                    showToast(SettingActivity.this, "clear");
+                    // todo: change
+                    showSuccessToast(SettingActivity.this, "clear");
                     break;
                 case 1:
-                    showToast(SettingActivity.this, "about");
+                    Dialog aboutDialog = new Dialog(this);
                     break;
             }
         });
