@@ -1,7 +1,6 @@
 package com.sjtu.karaoke;
 
 import android.content.Intent;
-import android.content.res.ColorStateList;
 import android.graphics.Bitmap;
 import android.graphics.Typeface;
 import android.graphics.drawable.BitmapDrawable;
@@ -178,7 +177,6 @@ public class InstrumentSingActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_instrument_sing);
         initFullScreen();
-
 
         initSongName();
         initState();
@@ -526,7 +524,6 @@ public class InstrumentSingActivity extends AppCompatActivity {
                         ViewGroup.LayoutParams.MATCH_PARENT
                 );
                 params2.addRule(RelativeLayout.CENTER_IN_PARENT, RelativeLayout.TRUE);
-                instrumentBtn.setProgressBackgroundTintList(ColorStateList.valueOf(getColor(R.color.instrument_btn_background)));
                 instrumentBtn.setIndeterminateDrawable(ContextCompat.getDrawable(InstrumentSingActivity.this, R.drawable.custom_instrument_button));
                 instrumentBtn.setProgressDrawable(ContextCompat.getDrawable(InstrumentSingActivity.this, R.drawable.custom_instrument_button));
                 instrumentBtn.setLayoutParams(params2);
