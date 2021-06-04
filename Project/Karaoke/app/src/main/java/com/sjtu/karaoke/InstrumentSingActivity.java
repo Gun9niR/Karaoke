@@ -404,6 +404,7 @@ public class InstrumentSingActivity extends AppCompatActivity {
 
     private void initParticleSystem() {
         particleSystemView = findViewById(R.id.particleSystemView);
+        particleSystemView.setTranslationZ(300);
         unreleasedParticleSystems = new ConcurrentHashMap<>();
     }
 
