@@ -7,7 +7,7 @@
 
     <item android:id="@android:id/background">
         <shape>
-            <stroke android:width="6dp" android:color="@color/yellow"/>
+            <stroke android:width="2dp" android:color="@color/instrument_btn_border"/>
             <corners android:radius="5dip" />
             <solid android:color="@color/instrument_btn_background"/>
         </shape>

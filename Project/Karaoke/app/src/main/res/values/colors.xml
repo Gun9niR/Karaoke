@@ -24,7 +24,7 @@
 <!--    自弹自唱-->
     <color name="instrument_btn_foreground">#80202ef1</color>
     <color name="instrument_btn_background">#58677ACf</color>
-    <color name="instrument_btn_border">#7B202ef1</color>
+    <color name="instrument_btn_border">#7B6f74d3</color>
     <color name="instrument_lyric">#FF677ACf</color>
     <color name="instrument_chord_label">#FFFFFFFF</color>
 
