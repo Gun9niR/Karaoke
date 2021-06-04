@@ -699,16 +699,16 @@ public class InstrumentSingActivity extends AppCompatActivity {
         Bitmap img = drawable.getBitmap();
 
         ptcSys.setPtcBlend(1);
-        ptcSys.setFps(30);
-        ptcSys.setPps(7);
+        ptcSys.setFps(35);
+        ptcSys.setPps(10);
         ptcSys.setPtcImage(img);
         ptcSys.setPtcPosition(x, y);
 
         ParticleSystemConfig config = new ParticleSystemConfig();
         config.duration.set(1000, 0);
         config.theta.set(270, 15);
-        config.startVelocity.set(400, 0);
-        config.endVelocity.set(400, 0);
+        config.startVelocity.set(500, 200);
+        config.endVelocity.set(500, 200);
         config.startAngularRate.set(0, 0);
         config.endAngularRate.set(0, 0);
         config.startSpinRate.set(360, 0);
