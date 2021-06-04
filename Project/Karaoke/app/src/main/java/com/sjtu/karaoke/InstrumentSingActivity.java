@@ -195,7 +195,11 @@ public class InstrumentSingActivity extends AppCompatActivity {
         super.onStart();
 
         if (state == State.UNSTARTED) {
-            LoadingDialog loadingDialog = showLoadingDialog(this, "正在初始化", true);
+            LoadingDialog loadingDialog = showLoadingDialog(
+                    this,
+                    getString(R.string.initialize_hint),
+                    true
+            );
             loadingDialog.setCancelable(false);
             initFullScreen();
 
@@ -331,7 +335,10 @@ public class InstrumentSingActivity extends AppCompatActivity {
 
         finishButton.setOnClickListener(v -> {
             finishButton.setEnabled(false);
-            LoadingDialog loadingDialog = showLoadingDialog(this, "正在处理录音");
+            LoadingDialog loadingDialog = showLoadingDialog(
+                    this,
+                    getString(R.string.process_record_hint)
+            );
             int len = userSequence.size();
 
             new Thread(() -> {

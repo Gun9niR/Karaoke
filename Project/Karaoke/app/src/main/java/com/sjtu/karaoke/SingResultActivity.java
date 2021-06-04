@@ -216,13 +216,22 @@ public class SingResultActivity extends AppCompatActivity {
         FloatingActionButton fabSave = findViewById(R.id.fabSave);
         fabSave.setOnClickListener(view -> {
             if (isFileSaved) {
-                showSuccessToast(SingResultActivity.this, "文件已经保存", 350);
+                showSuccessToast(
+                        SingResultActivity.this,
+                        getString(R.string.save_success_hint),
+                        350
+                );
             } else {
-                LoadingDialog loadingDialog = showLoadingDialog(SingResultActivity.this, "正在生成作品...");
+                LoadingDialog loadingDialog = showLoadingDialog(SingResultActivity.this,
+                        getString(R.string.process_record_hint));
                 new Thread(() -> {
                     saveRecord(songName, playerGroup, rateResultDialog.getRankingText());
                     loadingDialog.dismiss();
-                    showSuccessToast(SingResultActivity.this, "录音已成功保存", 350);
+                    showSuccessToast(
+                            SingResultActivity.this,
+                            getString(R.string.save_success_hint),
+                            350
+                    );
                     isFileSaved = true;
                 }).start();
             }
@@ -336,7 +345,7 @@ public class SingResultActivity extends AppCompatActivity {
                         if (!isFileSaved) {
                             LoadingDialog loadingDialog = showLoadingDialog(
                                     SingResultActivity.this,
-                                    "正在生成作品...");
+                                    getString(R.string.merging_chord_hint));
                             new Thread(() -> {
                                 recordFullPath = saveRecord(
                                         songName,

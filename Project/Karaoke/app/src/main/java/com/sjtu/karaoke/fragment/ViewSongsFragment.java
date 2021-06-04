@@ -170,7 +170,7 @@ public class ViewSongsFragment extends Fragment {
                     public void onFailure(Call call, IOException e) {
                         e.printStackTrace();
                         if (activity != null) {
-                            showWarningToast(activity, "从服务器获取数据失败，请重试!");
+                            showWarningToast(activity, getString(R.string.download_fail_hint));
                         }
                         swipeRefreshLayout.setRefreshing(false);
                     }
@@ -193,7 +193,7 @@ public class ViewSongsFragment extends Fragment {
                             setSongs(songList);
 
                         } catch (JSONException e) {
-                            showWarningToast(activity, "从服务器获取异常数据，请重试!");
+                            showWarningToast(activity, getString(R.string.download_fail_hint));
                             swipeRefreshLayout.setRefreshing(false);
                             e.printStackTrace();
                         }

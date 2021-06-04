@@ -130,7 +130,7 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.ViewHo
                 AtomicBoolean isCanceled = new AtomicBoolean(false);
                 LoadingDialog loadingDialog = showLoadingDialog(
                         activity,
-                        "正在下载文件...",
+                        activity.getString(R.string.downloading_hint),
                         true);
 
                 // 如果用户点击取消键，标记下载过程为已取消，下载函数会中断下载并删除已下载文件
@@ -166,7 +166,7 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.ViewHo
                 AtomicBoolean isCanceled = new AtomicBoolean(false);
                 LoadingDialog loadingDialog = showLoadingDialog(
                         activity,
-                        "正在下载文件...",
+                        activity.getString(R.string.downloading_hint),
                         true);
 
                 // 如果用户点击取消键，标记下载过程为已取消，下载函数会中断下载并删除已下载文件
