@@ -34,11 +34,12 @@
         </el-table-column>
 
         <el-table-column align="center">
-          <template slot="header" >
+          <template slot="header" slot-scope="scope">
             <el-input
+              @change="() => {scope==undefined}"
               v-model="searchValue"
               size="mini"
-              placeholder="搜索歌曲名称或歌手"/>
+              placeholder="搜索歌曲名称或歌手" />
           </template>
           <template slot-scope="scope">
             <el-button
@@ -116,10 +117,14 @@ export default {
   computed: {
     syncSongs: function () {
       return this.$store.state.syncSongs;
-    }
+    },
   },
 
   methods: {
+    onSearchValueChange(val) {
+      console.log(val);
+    },
+
     redirectToUpload() {
       this.$router.push({path: '/upload'});
     },
@@ -177,7 +182,6 @@ export default {
       const url = process.env.VUE_APP_AJAX_URL + '/getSongs';
       axios.get(url)
         .then((response) => {
-          console.log(response.data);
           this.songData = response.data;
         })
         .catch((error) => {
