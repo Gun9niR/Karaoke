@@ -17,7 +17,7 @@ import static android.content.Context.LAYOUT_INFLATER_SERVICE;
 
 /*
  * @ClassName: SettingAdapter
- * @Author: guozh
+ * @Author: 郭志东
  * @Date: 2021/3/28
  * @Version: v1.2
  * @Description: 设置界面的选项列表生成类。根据构造时传入的设置项名称数组设置界面中显示的设置项。

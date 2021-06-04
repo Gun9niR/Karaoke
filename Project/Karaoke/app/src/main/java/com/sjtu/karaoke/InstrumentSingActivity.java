@@ -52,7 +52,6 @@ import java.util.ListIterator;
 import java.util.Locale;
 import java.util.Scanner;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Semaphore;
 import java.util.stream.Collectors;
 
@@ -104,8 +103,6 @@ public class InstrumentSingActivity extends AppCompatActivity {
     AppCompatImageButton retryButton;
     AppCompatImageButton backButton;
 
-    // 在onStart中同步stopActivity
-    CountDownLatch cdl;
     Semaphore mutex = new Semaphore(1);
     Handler handler = new Handler();
 
@@ -203,15 +200,6 @@ public class InstrumentSingActivity extends AppCompatActivity {
             initFullScreen();
 
             new Thread(() -> {
-                if (cdl != null) {
-                    try {
-                        cdl.await();
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                    cdl = null;
-                }
-
                 parseChordFile();
                 loadingDialog.setProgress(15);
 
@@ -395,7 +383,6 @@ public class InstrumentSingActivity extends AppCompatActivity {
         retryButton.setOnClickListener(v -> {
             retryButton.setEnabled(false);
             retry();
-            // enable retry button in onStart(), after recording starts
         });
 
         finishButton.setEnabled(false);
@@ -766,15 +753,12 @@ public class InstrumentSingActivity extends AppCompatActivity {
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     private void retry() {
-        new Thread(() -> {
-            cdl = new CountDownLatch(1);
-            stopActivity(false);
-            cdl.countDown();
-        });
+        stopActivity(false);
         onStart();
     }
 
     private void stopActivity(boolean shouldMergePcm) {
+        // 在stopActivity中不删除临时的pcm和wav文件，在onStart中删除
         this.state = State.UNSTARTED;
 
         handler.removeCallbacks(completionListener);
@@ -784,7 +768,7 @@ public class InstrumentSingActivity extends AppCompatActivity {
 
         terminateExoPlayer(this, accompanyPlayer);
 
-        // release all particle systems
+        // 释放所有粒子系统
         mutex.acquireUninterruptibly();
         for (ParticleSystem particleSystem : unreleasedParticleSystems.keySet()) {
             unreleasedParticleSystems.remove(particleSystem);
