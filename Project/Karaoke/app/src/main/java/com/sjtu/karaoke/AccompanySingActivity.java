@@ -82,8 +82,8 @@ import static com.sjtu.karaoke.util.WavUtil.getWAVDuration;
  */
 
 public class AccompanySingActivity extends AppCompatActivity {
-    private static final int ANIMATION_DURATION = 1000;
-    private static final int MOVE_UP_LENGTH = 100;
+    private static final int ANIMATION_DURATION = 350;
+    private static final int MOVE_UP_LENGTH = 70;
     private static final AlphaAnimation fadeInAnimation;
     private static final TranslateAnimation moveUpAnimation;
 
@@ -124,7 +124,7 @@ public class AccompanySingActivity extends AppCompatActivity {
     int currentPosition;
 
     static {
-        fadeInAnimation = new AlphaAnimation(0, 1);
+        fadeInAnimation = new AlphaAnimation(0.5f, 0.8f);
         fadeInAnimation.setDuration(ANIMATION_DURATION);
 
         moveUpAnimation = new TranslateAnimation(0, 0, 0, -MOVE_UP_LENGTH);
@@ -601,10 +601,10 @@ public class AccompanySingActivity extends AppCompatActivity {
                     textView.clearAnimation();
                     textView.setLayoutParams(layoutParams);
 
-                    // explodes after 1.5s
+                    // explodes after 700ms
                     handler.postDelayed(() -> {
                         explosionField.explode(textView);
-                    }, 1500);
+                    }, 700);
 
                     // removes textview after 2s
                     handler.postDelayed(() -> {

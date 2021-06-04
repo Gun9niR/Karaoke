@@ -47,39 +47,56 @@ Java_com_sjtu_karaoke_singrater_RatingUtil_getScore(JNIEnv *env, jobject thiz, j
     return env->NewStringUTF(getScoreWithDelay(startTimeInMicroMS / 1000.0, endTimeInMicroMS / 1000.0).c_str());
 }
 
-int getFirstScore(string s) {
+int getFirstInterger(string s) {
     stringstream ss(s);
     int x;
     ss >> x;
     return x;
 }
 
+vector<F0data> getOriginF0(double startTime, double endTime) {
+    vector<F0data> res;
+    for (int i = 0; i < originf0.size(); i++) {
+        double sttime = originf0[i].time;
+        if (sttime > endTime || sttime + splittime < startTime)   continue;
+        res.push_back(originf0[i]);
+    }
+    return res;
+}
+
 string getScoreWithDelay(double startTime, double endTime) {
     string res, tmp;
+    double correctDelay = delayLowerBound;
     for (double delay = delayLowerBound; delay <= delayUpperBound; delay += f0Shift) {
         tmp = getScore(startTime, endTime, delay);
-        if (res == "" || getFirstScore(res) < getFirstScore(tmp)) res = tmp;
+        if (res == "" || getFirstInterger(res) < getFirstInterger(tmp)) res = tmp, correctDelay = delay;
     }
+    int accuracyScore = getFirstInterger(res);
+    int emotionScore = getEmotionScore(startTime, endTime, correctDelay, accuracyScore);
+    int breathScore = getBreathScore(startTime, endTime, correctDelay, accuracyScore);
+
+    __android_log_print(ANDROID_LOG_INFO, "Rater",
+                        "accuracyScore = %d\n", accuracyScore);
+    __android_log_print(ANDROID_LOG_INFO, "Rater",
+                        "emotionScore = %d\n", emotionScore);
+    __android_log_print(ANDROID_LOG_INFO, "Rater",
+                        "breathScore = %d\n", breathScore);
+    res += " " + to_string(accuracyScore);
+    res += " " + to_string(emotionScore);
+    res += " " + to_string(breathScore);
     return res;
 }
 
 string getScore(double startTime, double endTime, double delay) {
     string res;
     int CorrectnessScore = getCorrectnessScore(startTime, endTime, delay);
-    //getEmotionScore(startTime, endTime, delay);
     if (CorrectnessScore > correctnessUpperThreshold) {
         res += to_string(CorrectnessScore);
-        res += " " + to_string(CorrectnessScore);
-        res += " " + to_string(CorrectnessScore);
-        res += " " + to_string(CorrectnessScore);
     }
     else {
         if (CorrectnessScore > correctnessLowerThreshold)
             CorrectnessScore = CorrectnessScore + (correctnessUpperThreshold - CorrectnessScore) / 3;
         res += to_string(CorrectnessScore);
-        res += " " + to_string(CorrectnessScore);
-        res += " " + to_string(CorrectnessScore);
-        res += " " + to_string(CorrectnessScore);
     }
     return res;
 }
@@ -151,23 +168,93 @@ int getCorrectnessScore(double startTime, double endTime, double delay) {
     return res;
 }
 
-int getEmotionScore(double startTime, double endTime, double delay) {
-    vector<F0data> userf0 = getUserF0(startTime, endTime, delay);
-    int last = 0;
-    double delta, minf0(INT_MAX), maxf0(INT_MIN);
-    for (int i = 0; i < userf0.size(); i++) {
-        if (userf0[last].pitchID != userf0[i].pitchID) {
-            delta = (maxf0 - minf0) / (baseFreq[userf0[last].pitchID + 1] - baseFreq[userf0[last].pitchID]);
-            __android_log_print(ANDROID_LOG_INFO, "Rater",
-                                "pitchID = %d EmotionScore = %d\n", userf0[last].pitchID, delta);
-            last = i;
-            minf0 = INT_MAX;
-            maxf0 = INT_MIN;
+int getEmotionScore(double startTime, double endTime, double delay, int accuracyScore) {
+    double userAvg = getEmotionDelta(getUserF0(startTime, endTime, delay));
+    double originAvg = getEmotionDelta(getOriginF0(startTime, endTime));
+    int emotionScore = accuracyScore +
+                       (userAvg / originAvg - STANDARD_EMOTION_RATE) * EMOTION_SCORE_SCALE + 0.5;
+    constraintScore(accuracyScore, emotionScore);
+    return emotionScore;
+}
+
+double getEmotionDelta(const vector<F0data> &F0)
+{
+    double sum = 0;
+    for (int i = 1; i < F0.size(); i++)
+        sum += fabs(F0[i].f0 - F0[i - 1].f0);
+    return sum / F0.size();
+}
+
+int getEndBlankCnt(const vector<F0data> &F0)
+{
+    int res = 0;
+    for (int i = F0.size() - 1; i >= 0; i--)
+    {
+        if (F0[i].f0)   break;
+        else    res++;
+    }
+    return res;
+}
+
+int getContinuousBlankCnt(const vector<F0data> &F0)
+{
+    int res = 0, flag = 0;
+    for (int i = 0; i < F0.size(); i++)
+    {
+        if (F0[i].f0)
+        {
+            flag = 0;
         }
-        minf0 = min(minf0, userf0[i].f0);
-        maxf0 = max(maxf0, userf0[i].f0);
+        else
+        {
+            if (!flag)  res++;
+            flag = 1;
+        }
+    }
+    return res;
+}
+
+int getBreathScore(double startTime, double endTime, double delay, int accuracyScore) {
+    int userEndBlank = getEndBlankCnt(getUserF0(startTime, endTime, delay));
+    int originEndBlank = getEndBlankCnt(getOriginF0(startTime, endTime));
+    int userContinuousBlank = getContinuousBlankCnt(getUserF0(startTime, endTime, delay));
+    int originContinuousBlank = getContinuousBlankCnt(getOriginF0(startTime, endTime));
+    int breathScore = accuracyScore;
+    breathScore += ((originEndBlank - userEndBlank) + STANDARD_END_BLANK_DELTA) * END_BLANK_SCORE_SCALE;
+    breathScore += ((originContinuousBlank - userContinuousBlank) + STANDARD_CONTINUOUS_BLANK_DELTA) *
+            CONTINUOUS_BLANK_SCORE_SCALE;
+    constraintScore(accuracyScore, breathScore);
+
+    __android_log_print(ANDROID_LOG_INFO, "Rater",
+                        "###################################\n");
+    __android_log_print(ANDROID_LOG_INFO, "Rater",
+                        "userEndBlank = %d originEndBlank = %d\n", userEndBlank, originEndBlank);
+    __android_log_print(ANDROID_LOG_INFO, "Rater",
+                        "userContinuousBlank = %d originContinuousBlank = %d\n",
+                        userContinuousBlank, originContinuousBlank);
+    __android_log_print(ANDROID_LOG_INFO, "Rater",
+                        "###################################\n");
+    return breathScore;
+}
+
+void constraintScore(int accuracyScore, int &scoreToConstraint)
+{
+    scoreToConstraint = min(scoreToConstraint, 100);
+    scoreToConstraint = max(scoreToConstraint, 0);
+    if (accuracyScore < MULTI_SCORE_START_LOWERBOUND)
+        scoreToConstraint = min(scoreToConstraint, accuracyScore);
+}
+
+void printUserF0(const vector<F0data> &userF0)
+{
+    __android_log_print(ANDROID_LOG_INFO, "Rater",
+                        "###################################\n");
+    for (auto &it: userF0)
+    {
+        __android_log_print(ANDROID_LOG_INFO, "Rater",
+                            "time = %.2lf f0 = %.2lf pitchID = %d\n", it.time, it.f0, it.pitchID);
     }
     __android_log_print(ANDROID_LOG_INFO, "Rater",
-                        "pitchID = %d EmotionScore = %d\n", userf0[last].pitchID, delta);
-    return 0;
+                        "###################################\n");
+
 }

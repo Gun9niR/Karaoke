@@ -169,8 +169,8 @@ string getScore() {
     score *= 10;
     if (chordCount <= 5)    score = min(score, 20.0);
     if (chordCount <= beatCount * 0.25 - 6)    score = min(score, 33.0);
-    if (chordCount <= beatCount * 0.5 - 6)    score = min(score, 73.0);
-    if (chordCount <= beatCount - 6)    score = min(score, 85.0);
+    if (chordCount <= beatCount * 0.5 - 6)    score = min(score, 70.0);
+    if (chordCount <= beatCount - 6)    score = min(score, 84.0);
     if (chordCount <= beatCount * 1.5 - 6)    score = min(score, 93.0);
     score += rand() % 9 - 4;
     score = max(score, 0.0);

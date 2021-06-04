@@ -34,7 +34,13 @@ string getScoreWithDelay(double startTime, double endTime);
 
 int getCorrectnessScore(double startTime, double endTime, double delay);
 
-int getEmotionScore(double startTime, double endTime, double delay);
+int getEmotionScore(double startTime, double endTime, double delay, int accuracyScore);
+
+int getBreathScore(double startTime, double endTime, double delay, int accuracyScore);
+
+int getFirstInterger(string s);
+
+void constraintScore(int accuracyScore, int &scoreToConstraint);
 
 extern "C" JNIEXPORT jstring JNICALL
 Java_com_sjtu_karaoke_singrater_RatingUtil_init(JNIEnv *env, jobject thiz, jstring filePath, jint splitTimeInMicroMS,
@@ -44,5 +50,11 @@ extern "C" JNIEXPORT jstring JNICALL
 Java_com_sjtu_karaoke_singrater_RatingUtil_getScore(JNIEnv *env, jobject thiz, jint jstartTimeInMicroMS, jint jendTimeInMicroMS);
 
 vector<F0data> getUserF0(double startTime, double endTime, double delay);
+
+vector<F0data> getOriginF0(double startTime, double endTime);
+
+void printUserF0(const vector<F0data> &userF0);
+
+double getEmotionDelta(const vector<F0data> &F0);
 
 #endif //HELLO_LIBS_GETSCORE_H

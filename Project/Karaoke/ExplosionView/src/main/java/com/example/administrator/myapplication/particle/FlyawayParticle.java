@@ -41,8 +41,8 @@ public class FlyawayParticle extends Particle{
 
     @Override
     protected void caculate(float factor) {
-        cx = cx + factor * random.nextInt(mBound.width())*random.nextFloat();
-        cy = cy - factor * random.nextInt(mBound.width())*random.nextFloat();
+        cx = cx + 1.5f * factor * random.nextInt(mBound.width()) * random.nextFloat();
+        cy = cy - 1.5f * factor * random.nextInt(mBound.width()) * random.nextFloat();
         radius = radius - factor * random.nextInt(2);
 
         alpha = (1f - factor) * (1 + random.nextFloat());
