@@ -9,13 +9,7 @@
         <shape>
             <stroke android:width="2dp" android:color="@color/instrument_btn_border"/>
             <corners android:radius="5dip" />
-            <gradient
-                android:startColor="#ff9d9e9d"
-                android:centerColor="#ff5a5d5a"
-                android:centerY="0.75"
-                android:endColor="#ff747674"
-                android:angle="180"
-                />
+            <solid android:color="@color/instrument_btn_background"/>
         </shape>
     </item>
     <item android:id="@android:id/secondaryProgress">

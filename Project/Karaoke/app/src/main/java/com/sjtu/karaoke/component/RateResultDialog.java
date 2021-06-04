@@ -17,10 +17,9 @@ import java.util.List;
 import rorbin.q.radarview.RadarData;
 import rorbin.q.radarview.RadarView;
 
-public class RateResultDialog {
+public class RateResultDialog extends Dialog {
 
     Activity activity;
-    Dialog dialog;
 
     TextView rankingTextView;
     TextView finalScoreTextView;
@@ -29,16 +28,15 @@ public class RateResultDialog {
     Rank rank;
 
     public RateResultDialog(Activity activity, Score score, String instrumentScoreStr) {
-
+        super(activity);
         this.activity = activity;
-        this.dialog = new Dialog(activity);
 
-        dialog.setContentView(R.layout.dialog_rate_result);
-        dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        setContentView(R.layout.dialog_rate_result);
+        getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
 
-        rankingTextView = dialog.findViewById(R.id.rateRanking);
-        finalScoreTextView = dialog.findViewById(R.id.rateFinalScore);
-        radarView = dialog.findViewById(R.id.rateResultRadar);
+        rankingTextView = findViewById(R.id.rateRanking);
+        finalScoreTextView = findViewById(R.id.rateFinalScore);
+        radarView = findViewById(R.id.rateResultRadar);
 
         setRankingText(score);
         setFinalScoreText(score);
@@ -46,13 +44,9 @@ public class RateResultDialog {
 
     }
 
-    public void show() { dialog.show(); }
-
-    public void dismiss() { dialog.dismiss(); }
-
     private void setRankingText(Score score) {
 
-        Integer finalScore = score.getTotalScore();
+        int finalScore = score.getPercentageScore();
 
         if (finalScore >= 95) {
             rank = Rank.SSS;
