@@ -1,6 +1,5 @@
 package com.sjtu.karaoke;
 
-import android.app.Dialog;
 import android.os.Bundle;
 import android.widget.ListView;
 
@@ -128,7 +127,23 @@ public class SettingActivity extends AppCompatActivity {
                             .show();
                     break;
                 case 1:
-                    Dialog aboutDialog = new Dialog(this);
+                    // todo
+                    new AwesomeSuccessDialog(this)
+                            .setTitle("关于")
+                            .setMessage("")
+                            .setColoredCircle(R.color.purple_500)
+                            .setDialogIconAndColor(R.drawable.ic_dialog_info, R.color.white)
+                            .setCancelable(true)
+                            .setPositiveButtonText("确认")
+                            .setPositiveButtonbackgroundColor(R.color.dialogSuccessBackgroundColor)
+                            .setPositiveButtonTextColor(R.color.white)
+                            .setPositiveButtonClick(() -> {
+                                //click
+                            })
+                            .setNegativeButtonClick(() -> {
+                                //click
+                            })
+                            .show();
                     break;
             }
         });

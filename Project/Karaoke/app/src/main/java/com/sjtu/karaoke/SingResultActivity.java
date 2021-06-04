@@ -77,7 +77,7 @@ import static com.sjtu.karaoke.util.PathUtil.getVoiceFullPath;
  */
 
 public class SingResultActivity extends AppCompatActivity {
-    final int INITIAL_OFFSET = 0;
+    final int INITIAL_OFFSET = 300;
 
     // mode dependent
     From callingActivity;

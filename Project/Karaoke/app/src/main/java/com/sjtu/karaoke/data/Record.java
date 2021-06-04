@@ -46,7 +46,7 @@ public class Record {
                 Locale.CHINA);
         Calendar calendar = new GregorianCalendar();
         calendar.setTime(format.parse(dateStr));
-        recordTime = String.format(Locale.CHINA, "%d.%d.%d %d:%d",
+        recordTime = String.format(Locale.CHINA, "%d-%02d-%02d %02d:%02d",
                 calendar.get(Calendar.YEAR),
                 calendar.get(Calendar.MONTH) + 1,
                 calendar.get(Calendar.DAY_OF_MONTH),

@@ -6,8 +6,6 @@ import android.media.MediaRecorder;
 import android.text.TextUtils;
 import android.util.Log;
 
-import org.apache.commons.io.FileUtils;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -16,11 +14,9 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
-import static com.dreamfish.record.FileUtil.TRIMMED_VOICE_WAV_DIRECTORY;
 import static com.dreamfish.record.FileUtil.deleteOneFile;
 import static com.dreamfish.record.FileUtil.getPcmFullPath;
 import static com.dreamfish.record.FileUtil.getTrimmedWavFullPath;
-import static com.dreamfish.record.PcmToWav.clearFiles;
 import static com.sjtu.karaoke.singrater.RatingUtil.f0analysis;
 
 /**
@@ -203,14 +199,6 @@ public class AudioRecorder {
                 //将多个pcm文件转化为wav文件
                 if (shouldMergePcm) {
                     mergePCMFilesToWAVFile(filePaths);
-                    new Thread(() -> {
-                        try {
-                            clearFiles(filePaths);
-                            FileUtils.cleanDirectory(new File(TRIMMED_VOICE_WAV_DIRECTORY));
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                    }).start();
                 }
 
             } else {
