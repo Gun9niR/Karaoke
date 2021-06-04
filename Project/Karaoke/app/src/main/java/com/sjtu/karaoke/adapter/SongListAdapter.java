@@ -44,7 +44,6 @@ import static com.sjtu.karaoke.util.MiscUtil.showLoadingDialog;
 import static com.sjtu.karaoke.util.MiscUtil.showWarningToast;
 import static com.sjtu.karaoke.util.PathUtil.getAccompanyFullPath;
 import static com.sjtu.karaoke.util.PathUtil.getAccompanyLyricFullPath;
-import static com.sjtu.karaoke.util.PathUtil.getAlbumCoverFullPath;
 import static com.sjtu.karaoke.util.PathUtil.getBassFullPath;
 import static com.sjtu.karaoke.util.PathUtil.getChordTransFullPath;
 import static com.sjtu.karaoke.util.PathUtil.getDrumFullPath;
@@ -100,7 +99,9 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.ViewHo
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         SongInfo songInfo = songs.get(position);
         String songName = songInfo.getSongName();
-        String albumCoverFullPath = getAlbumCoverFullPath(songName);
+
+        // null是为了让图片在下载中时不显示android图标
+        holder.image.setImageBitmap(null);
         holder.songName.setText(songName);
         holder.singer.setText(songInfo.getSinger());
 
