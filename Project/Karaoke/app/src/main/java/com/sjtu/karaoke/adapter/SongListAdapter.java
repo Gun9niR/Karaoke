@@ -23,7 +23,9 @@ import com.sjtu.karaoke.component.LoadingDialog;
 import com.sjtu.karaoke.data.SongInfo;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
+import static android.view.KeyEvent.KEYCODE_BACK;
 import static com.sjtu.karaoke.util.Constants.GET_ACCOMPANY_URL;
 import static com.sjtu.karaoke.util.Constants.GET_BASS_URL;
 import static com.sjtu.karaoke.util.Constants.GET_CHORD_URL;
@@ -34,7 +36,6 @@ import static com.sjtu.karaoke.util.Constants.GET_MV_URL;
 import static com.sjtu.karaoke.util.Constants.GET_ORCHESTRA_URL;
 import static com.sjtu.karaoke.util.Constants.GET_ORIGINAL_URL;
 import static com.sjtu.karaoke.util.Constants.GET_RATE_URL;
-import static com.sjtu.karaoke.util.FileUtil.areFilesPresent;
 import static com.sjtu.karaoke.util.FileUtil.downloadFiles;
 import static com.sjtu.karaoke.util.FileUtil.isFilePresent;
 import static com.sjtu.karaoke.util.MiscUtil.downloadAndSetAlbumCover;
@@ -131,17 +132,28 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.ViewHo
                 // 伴奏演唱模式
                 chooseModeDialog.dismiss();
 
-                LoadingDialog loadingDialog = showLoadingDialog(activity, "正在下载文件...", true);
+                AtomicBoolean isCanceled = new AtomicBoolean(false);
+                LoadingDialog loadingDialog = showLoadingDialog(
+                        activity,
+                        "正在下载文件...",
+                        true);
+
+                loadingDialog.setOnKeyListener((dialog, keyCode, event) -> {
+                    if (keyCode == KEYCODE_BACK) {
+                        isCanceled.getAndSet(true);
+                    }
+                    return false;
+                });
 
                 new Thread(() -> {
-                    boolean isSuccess = downloadAccompanySingFiles(selectedSong, loadingDialog);
+                    boolean isSuccess = downloadAccompanySingFiles(selectedSong, loadingDialog, isCanceled);
                     loadingDialog.dismiss();
                     if (isSuccess) {
                         Intent intent = new Intent(activity, AccompanySingActivity.class);
                         intent.putExtra("id", selectedSong.getId());
                         intent.putExtra("songName", selectedSong.getSongName());
                         activity.startActivity(intent);
-                    } else {
+                    } else if (!isCanceled.get()) {
                         showWarningToast(activity, "未能成功下载文件，请重试");
                     }
                 }).start();
@@ -150,17 +162,31 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.ViewHo
             btnInsMode.setOnClickListener(view13 -> {
                 chooseModeDialog.dismiss();
 
-                LoadingDialog loadingDialog = showLoadingDialog(activity, "正在下载文件...", true);
+                AtomicBoolean isCanceled = new AtomicBoolean(false);
+                LoadingDialog loadingDialog = showLoadingDialog(
+                        activity,
+                        "正在下载文件...",
+                        true);
+
+                loadingDialog.setOnKeyListener((dialog, keyCode, event) -> {
+                    if (keyCode == KEYCODE_BACK) {
+                        isCanceled.getAndSet(true);
+                    }
+                    return false;
+                });
 
                 new Thread(() -> {
-                    boolean isSuccess = downloadInstrumentSingFiles(selectedSong, loadingDialog);
+                    boolean isSuccess = downloadInstrumentSingFiles(
+                            selectedSong,
+                            loadingDialog,
+                            isCanceled);
                     loadingDialog.dismiss();
                     if (isSuccess) {
                         Intent intent = new Intent(activity, InstrumentSingActivity.class);
                         intent.putExtra("id", selectedSong.getId());
                         intent.putExtra("songName", selectedSong.getSongName());
                         activity.startActivity(intent);
-                    } else {
+                    } else if (!isCanceled.get()) {
                         showWarningToast(activity, "未能成功下载文件，请重试");
                     }
                 }).start();
@@ -185,7 +211,10 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.ViewHo
      * @param songInfo
      * @return true if success, false if some files are not downloaded successfully
      */
-    public boolean downloadAccompanySingFiles(SongInfo songInfo, LoadingDialog loadingDialog) {
+    public boolean downloadAccompanySingFiles(
+            SongInfo songInfo,
+            LoadingDialog loadingDialog,
+            AtomicBoolean isCanceled) {
         Integer id = songInfo.getId();
         String songName = songInfo.getSongName();
         String requestParam = getRequestParamFromId(id);
@@ -203,9 +232,6 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.ViewHo
                 getMVFullPath(songName),
         };
 
-        if (areFilesPresent(destFullPaths)) {
-            return true;
-        }
 
         String[] urls = {
                 GET_ORIGINAL_URL + requestParam,
@@ -215,7 +241,7 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.ViewHo
                 GET_MV_URL + requestParam,
         };
 
-        return downloadFiles(urls, destFullPaths, loadingDialog);
+        return downloadFiles(urls, destFullPaths, loadingDialog, isCanceled);
     }
 
     /**
@@ -223,7 +249,10 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.ViewHo
      * @param songInfo
      * @return true if success, false if some files are not downloaded successfully
      */
-    public boolean downloadInstrumentSingFiles(SongInfo songInfo, LoadingDialog loadingDialog) {
+    public boolean downloadInstrumentSingFiles(
+            SongInfo songInfo,
+            LoadingDialog loadingDialog,
+            AtomicBoolean isCanceled) {
         Integer id = songInfo.getId();
         String songName = songInfo.getSongName();
         String requestParam = getRequestParamFromId(id);
@@ -245,9 +274,6 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.ViewHo
                 getOrchestraFullPath(songName),
         };
 
-        if (areFilesPresent(destFullPaths)) {
-            return true;
-        }
 
         String[] urls = {
                 GET_ACCOMPANY_URL + requestParam,
@@ -259,6 +285,6 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.ViewHo
                 GET_ORCHESTRA_URL + requestParam
         };
 
-        return downloadFiles(urls, destFullPaths, loadingDialog);
+        return downloadFiles(urls, destFullPaths, loadingDialog, isCanceled);
     }
 }
