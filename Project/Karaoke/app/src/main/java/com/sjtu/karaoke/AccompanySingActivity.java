@@ -40,6 +40,7 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.sjtu.karaoke.component.LoadingDialog;
 import com.sjtu.karaoke.data.Score;
 
+import org.apache.commons.lang3.StringUtils;
 import org.sang.lrcview.LrcView;
 import org.sang.lrcview.bean.LrcBean;
 
@@ -52,6 +53,8 @@ import java.io.InputStreamReader;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.stream.Collectors;
+
+import me.grantland.widget.AutofitTextView;
 
 import static com.dreamfish.record.AudioRecorder.PCM_SPLIT_INTERVAL;
 import static com.sjtu.karaoke.singrater.RatingUtil.getScore;
@@ -96,6 +99,7 @@ public class AccompanySingActivity extends AppCompatActivity {
     FloatingActionButton fab;
     AudioRecorder voiceRecorder;
     BottomNavigationView bottomNavigationView;
+    AutofitTextView scoreLabel;
     Handler handler = new Handler();
 
     Runnable progressMonitor;
@@ -151,7 +155,7 @@ public class AccompanySingActivity extends AppCompatActivity {
         // return from sing refsult activity or from main activity, initialize all players
         if (state == State.UNSTARTED) {
             LoadingDialog loadingDialog = showLoadingDialog(this, "正在初始化", true);
-
+            loadingDialog.setCancelable(false);
             new Thread(() -> {
                 // Player-related initialization
                 accompanyPlayer = new SimpleExoPlayer.Builder(this).build();
@@ -182,7 +186,7 @@ public class AccompanySingActivity extends AppCompatActivity {
                 initVoiceRecorder();
                 initProgressBar();
                 initScore();
-                initScoreBar();
+                initScoreBarAndLabel();
 
                 loadingDialog.setProgress(90);
 
@@ -213,8 +217,7 @@ public class AccompanySingActivity extends AppCompatActivity {
                 stopActivity(false);
                 onStart();
             }
-        }
-        else {
+        } else {
             item.setEnabled(false);
             if (this.state != State.UNSTARTED) {
                 stopActivity(false);
@@ -340,14 +343,11 @@ public class AccompanySingActivity extends AppCompatActivity {
         score = new Score();
     }
 
-    /**
-     * 初始化所有分数变量和分数条
-     */
-    private void initScoreBar() {
-        scoreBar = findViewById(R.id.scoreBar);
+    private void initScoreBarAndLabel() {
         int numOfLinesToRate = 0;
+        scoreBar = findViewById(R.id.scoreBar);
 
-        for (LrcBean lrc: lrcs) {
+        for (LrcBean lrc : lrcs) {
             if (lrc.shouldRate()) {
                 ++numOfLinesToRate;
             }
@@ -356,6 +356,12 @@ public class AccompanySingActivity extends AppCompatActivity {
         scoreBar.setProgress(0);
         Drawable draw = ContextCompat.getDrawable(this, R.drawable.custom_scorebar);
         scoreBar.setProgressDrawable(draw);
+
+        scoreLabel = findViewById(R.id.singingScore);
+        this.runOnUiThread(() -> {
+            scoreLabel.setMaxLines(1);
+            scoreLabel.setText(formatScore(0));
+        });
     }
 
     private void initFab() {
@@ -522,7 +528,6 @@ public class AccompanySingActivity extends AppCompatActivity {
     }
 
     /**
-     *
      * @param shouldMergePcm
      */
     private void stopActivity(boolean shouldMergePcm) {
@@ -545,8 +550,9 @@ public class AccompanySingActivity extends AppCompatActivity {
 
     /**
      * Rate the record in a given interval
+     *
      * @param startTime Starting time of the line (ms)
-     * @param endTime End time of the line (ms)
+     * @param endTime   End time of the line (ms)
      */
     private void rate(int startTime, int endTime) {
         new Thread(() -> {
@@ -559,9 +565,15 @@ public class AccompanySingActivity extends AppCompatActivity {
             }
             String scoreStr = getScore(startTime, endTime);
             Integer[] scores = parseScore(scoreStr);
+
             score.update(scores);
 
-            AccompanySingActivity.this.runOnUiThread(() -> scoreBar.setProgress(score.getTotalScore(), true));
+
+            AccompanySingActivity.this.runOnUiThread(() -> {
+                        scoreLabel.setText(formatScore(score.getTotalScore()));
+                        scoreBar.setProgress(score.getTotalScore(), true);
+                    }
+            );
 
             displayScore(scores[0]);
         }).start();
@@ -591,7 +603,8 @@ public class AccompanySingActivity extends AppCompatActivity {
 
             animationSet.setAnimationListener(new Animation.AnimationListener() {
                 @Override
-                public void onAnimationStart(Animation animation) { }
+                public void onAnimationStart(Animation animation) {
+                }
 
                 @Override
                 public void onAnimationEnd(Animation animation) {
@@ -613,11 +626,16 @@ public class AccompanySingActivity extends AppCompatActivity {
                 }
 
                 @Override
-                public void onAnimationRepeat(Animation animation) { }
+                public void onAnimationRepeat(Animation animation) {
+                }
             });
 
             textView.startAnimation(animationSet);
         });
+    }
+
+    private String formatScore(Integer score) {
+        return StringUtils.leftPad(score.toString(), 4) + "分";
     }
 
     private enum State {

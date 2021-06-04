@@ -197,7 +197,7 @@ public class InstrumentSingActivity extends AppCompatActivity {
 
         if (state == State.UNSTARTED) {
             LoadingDialog loadingDialog = showLoadingDialog(this, "正在初始化", true);
-
+            loadingDialog.setCancelable(false);
             initFullScreen();
 
             new Thread(() -> {

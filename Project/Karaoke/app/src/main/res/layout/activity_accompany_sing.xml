@@ -67,11 +67,13 @@
         app:layout_constraintTop_toBottomOf="@+id/mvView"
         tools:ignore="MissingConstraints" />
 
-    <TextView
+    <me.grantland.widget.AutofitTextView
         android:id="@+id/singingScore"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="Score"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="16dp"
+        android:gravity="end"
         app:layout_constraintBottom_toBottomOf="@+id/scoreBar"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/scoreBar"

@@ -63,10 +63,17 @@ public class Score implements Parcelable {
 
     public void computeFinalScore() {
         if (numOfUpdate != 0) {
-            totalScore /= numOfUpdate;
             accuracyScore /= numOfUpdate;
             emotionScore /= numOfUpdate;
             breathScore /= numOfUpdate;
+        }
+    }
+
+    public int getPercentageScore() {
+        if (numOfUpdate != 0) {
+            return totalScore / numOfUpdate;
+        } else {
+            return 0;
         }
     }
 
