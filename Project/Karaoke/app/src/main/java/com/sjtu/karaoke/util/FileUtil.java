@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import okhttp3.Call;
@@ -99,14 +100,25 @@ public class FileUtil {
      * @param destFullPaths
      * @return true if all files are downloaded successfully or exist already, false otherwise
      */
-    public static boolean downloadFiles(String[] urls, String[] destFullPaths, LoadingDialog loadingDialog) {
+    public static boolean downloadFiles(
+            String[] urls,
+            String[] destFullPaths,
+            LoadingDialog loadingDialog,
+            AtomicBoolean isCanceled) {
         int numOfFilesToDownload = urls.length;
 
         CountDownLatch countDownLatch = new CountDownLatch(numOfFilesToDownload);
         AtomicInteger numOfFilesDownloaded = new AtomicInteger(0);
 
         for (int i = 0; i < numOfFilesToDownload; ++i) {
-            downloadFile(urls[i], destFullPaths[i], countDownLatch, numOfFilesDownloaded, loadingDialog, 100 / numOfFilesToDownload);
+            downloadFile(
+                    urls[i],
+                    destFullPaths[i],
+                    countDownLatch,
+                    numOfFilesDownloaded,
+                    loadingDialog,
+                    100 / numOfFilesToDownload,
+                    isCanceled);
         }
 
         try {
@@ -115,7 +127,7 @@ public class FileUtil {
             e.printStackTrace();
         }
 
-        if (numOfFilesDownloaded.get() == numOfFilesToDownload) {
+        if (numOfFilesDownloaded.get() == numOfFilesToDownload && !isCanceled.get()) {
             // eliminate inaccuracy due to integer division
             loadingDialog.setProgress(LoadingDialog.MAX_PROGRESS);
             return true;
@@ -159,7 +171,8 @@ public class FileUtil {
                                     CountDownLatch countDownLatch,
                                     AtomicInteger numOfFilesDownloaded,
                                     LoadingDialog loadingDialog,
-                                    int increment) {
+                                    int increment,
+                                    AtomicBoolean isCanceled) {
         System.out.println("========== Downloading from " + url + " to " + destFullPath + " ==========");
         getRequest(url, new Callback() {
             @Override
@@ -175,7 +188,8 @@ public class FileUtil {
             @Override
             public void onResponse(Call call, Response response) {
                 // receive and save the file
-                if (saveFileFromResponse(response, destFullPath, loadingDialog, increment)) {
+                if (!isCanceled.get() &&
+                        saveFileFromResponse(response, destFullPath, loadingDialog, increment)) {
                     // countDownLatch and numOfFilesDownloaded are absent or present at the same time
                     if (countDownLatch != null) {
                         countDownLatch.countDown();

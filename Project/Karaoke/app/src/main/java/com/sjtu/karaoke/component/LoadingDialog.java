@@ -13,45 +13,36 @@ import com.sjtu.karaoke.R;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Semaphore;
 
-public class LoadingDialog {
+public class LoadingDialog extends Dialog {
     public final static int MAX_PROGRESS = 100;
 
     Activity activity;
-    Dialog dialog;
     CircularProgressBar progressBar;
     TextView progressText;
 
     Semaphore semaphore;
 
     public LoadingDialog(Activity activity, String text, boolean showProgress) {
-        this.activity = activity;
+        super(activity);
+        setContentView(R.layout.dialog_loading);
+        setCanceledOnTouchOutside(false);
 
+        this.activity = activity;
         semaphore = new Semaphore(1);
 
-        dialog = new Dialog(activity);
-        dialog.setContentView(R.layout.dialog_loading);
-        dialog.setCanceledOnTouchOutside(false);
         if (text != null && !text.equals("")) {
-            TextView textView = (dialog.findViewById(R.id.textLoading));
+            TextView textView = (findViewById(R.id.textLoading));
             textView.setText(text);
         }
-        dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
 
-        progressBar = dialog.findViewById(R.id.circularProgressBar);
+        progressBar = findViewById(R.id.circularProgressBar);
 
-        progressText = dialog.findViewById(R.id.progressText);
+        progressText = findViewById(R.id.progressText);
         if (!showProgress) {
             progressText.setVisibility(View.INVISIBLE);
         }
         progressBar.setIndeterminateMode(true);
-    }
-
-    public void show() {
-        dialog.show();
-    }
-
-    public void dismiss() {
-        dialog.dismiss();
     }
 
     /**

@@ -23,6 +23,9 @@ import com.sjtu.karaoke.component.LoadingDialog;
 import com.sjtu.karaoke.component.RateResultDialog;
 import com.sjtu.karaoke.data.Score;
 
+import org.apache.commons.io.FileUtils;
+
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -39,7 +42,9 @@ import static com.sjtu.karaoke.util.Constants.GET_ALBUM_COVER_URL;
 import static com.sjtu.karaoke.util.Constants.GET_RECORD_AUDIO;
 import static com.sjtu.karaoke.util.Constants.GET_SONG_INFO_URL;
 import static com.sjtu.karaoke.util.Constants.PACKAGES_FOR_SHARING;
+import static com.sjtu.karaoke.util.Constants.PCM_DIRECTORY;
 import static com.sjtu.karaoke.util.Constants.PERMISSIONS_RECORDER;
+import static com.sjtu.karaoke.util.Constants.TRIMMED_VOICE_WAV_DIRECTORY;
 import static com.sjtu.karaoke.util.FileUtil.saveFileFromResponse;
 
 /*
@@ -249,4 +254,15 @@ public class MiscUtil {
     }
 
 
+    public static void clearTemporaryPcmAndWavFiles() {
+        File pcmDir = new File(PCM_DIRECTORY);
+        File trimmedWavDir = new File(TRIMMED_VOICE_WAV_DIRECTORY);
+
+        try {
+            FileUtils.cleanDirectory(pcmDir);
+            FileUtils.cleanDirectory(trimmedWavDir);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 }
