@@ -53,6 +53,7 @@ import java.util.ListIterator;
 import java.util.Locale;
 import java.util.Scanner;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Semaphore;
 import java.util.stream.Collectors;
 
@@ -68,6 +69,7 @@ import static com.sjtu.karaoke.util.Constants.RECORD_DELAY_UB;
 import static com.sjtu.karaoke.util.FileUtil.deleteOneFile;
 import static com.sjtu.karaoke.util.MediaPlayerUtil.loadAudioFileAndPrepareExoPlayer;
 import static com.sjtu.karaoke.util.MediaPlayerUtil.terminateExoPlayer;
+import static com.sjtu.karaoke.util.MiscUtil.clearTemporaryPcmAndWavFiles;
 import static com.sjtu.karaoke.util.MiscUtil.mergeNotesToChord;
 import static com.sjtu.karaoke.util.MiscUtil.parseScore;
 import static com.sjtu.karaoke.util.MiscUtil.showLoadingDialog;
@@ -103,6 +105,8 @@ public class InstrumentSingActivity extends AppCompatActivity {
     AppCompatImageButton retryButton;
     AppCompatImageButton backButton;
 
+    // 在onStart中同步stopActivity
+    CountDownLatch cdl;
     Semaphore mutex = new Semaphore(1);
     Handler handler = new Handler();
 
@@ -201,6 +205,15 @@ public class InstrumentSingActivity extends AppCompatActivity {
             initFullScreen();
 
             new Thread(() -> {
+                if (cdl != null) {
+                    try {
+                        cdl.await();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    cdl = null;
+                }
+
                 parseChordFile();
                 loadingDialog.setProgress(15);
 
@@ -220,13 +233,15 @@ public class InstrumentSingActivity extends AppCompatActivity {
                 initOnCompleteListener();
                 initLrcView();
                 loadingDialog.setProgress(80);
+
+                clearTemporaryPcmAndWavFiles();
                 initVoiceRecorder();
                 initScore();
                 loadingDialog.setProgress(90);
 
                 nextHintChord = standardSequence.remove(0);
                 nextHintTime = getHintTime(nextHintChord.getTime());
-
+                loadingDialog.setProgress(100);
                 loadingDialog.dismiss();
 
                 InstrumentSingActivity.this.runOnUiThread(this::start);
@@ -753,7 +768,11 @@ public class InstrumentSingActivity extends AppCompatActivity {
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     private void retry() {
-        stopActivity(false);
+        new Thread(() -> {
+            cdl = new CountDownLatch(1);
+            stopActivity(false);
+            cdl.countDown();
+        });
         onStart();
     }
 

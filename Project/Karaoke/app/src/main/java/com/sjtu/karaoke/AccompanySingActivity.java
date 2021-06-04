@@ -52,6 +52,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Semaphore;
 import java.util.stream.Collectors;
 
 import me.grantland.widget.AutofitTextView;
@@ -64,6 +66,7 @@ import static com.sjtu.karaoke.util.Constants.RECORD_DELAY_LB;
 import static com.sjtu.karaoke.util.Constants.RECORD_DELAY_UB;
 import static com.sjtu.karaoke.util.MediaPlayerUtil.loadAudioFileAndPrepareExoPlayer;
 import static com.sjtu.karaoke.util.MediaPlayerUtil.terminateExoPlayer;
+import static com.sjtu.karaoke.util.MiscUtil.clearTemporaryPcmAndWavFiles;
 import static com.sjtu.karaoke.util.MiscUtil.parseScore;
 import static com.sjtu.karaoke.util.MiscUtil.showLoadingDialog;
 import static com.sjtu.karaoke.util.PathUtil.getAccompanyFullPath;
@@ -100,6 +103,10 @@ public class AccompanySingActivity extends AppCompatActivity {
     AudioRecorder voiceRecorder;
     BottomNavigationView bottomNavigationView;
     AutofitTextView scoreLabel;
+
+    // 在onStart中同步stopActivity
+    CountDownLatch cdl;
+    Semaphore mutex = new Semaphore(1);
     Handler handler = new Handler();
 
     Runnable progressMonitor;
@@ -152,11 +159,20 @@ public class AccompanySingActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
+
         // return from sing refsult activity or from main activity, initialize all players
         if (state == State.UNSTARTED) {
             LoadingDialog loadingDialog = showLoadingDialog(this, "正在初始化", true);
             loadingDialog.setCancelable(false);
             new Thread(() -> {
+                if (cdl != null) {
+                    try {
+                        cdl.await();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    cdl = null;
+                }
                 // Player-related initialization
                 accompanyPlayer = new SimpleExoPlayer.Builder(this).build();
                 loadAudioFileAndPrepareExoPlayer(this, accompanyPlayer, getAccompanyFullPath(songName));
@@ -183,6 +199,7 @@ public class AccompanySingActivity extends AppCompatActivity {
 
                 loadingDialog.setProgress(80);
 
+                clearTemporaryPcmAndWavFiles();
                 initVoiceRecorder();
                 initProgressBar();
                 initScore();
@@ -193,7 +210,6 @@ public class AccompanySingActivity extends AppCompatActivity {
                 initFab();
                 initState();
                 initBottomNavbar();
-
                 muteOriginal();
 
                 loadingDialog.dismiss();
@@ -213,8 +229,11 @@ public class AccompanySingActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         if (item.getItemId() == R.id.retry) {
             if (state != State.UNSTARTED) {
-//                item.setEnabled(false);
-                stopActivity(false);
+                new Thread(() -> {
+                    cdl = new CountDownLatch(1);
+                    stopActivity(false);
+                    cdl.countDown();
+                }).start();
                 onStart();
             }
         } else {
@@ -533,7 +552,15 @@ public class AccompanySingActivity extends AppCompatActivity {
     private void stopActivity(boolean shouldMergePcm) {
         this.state = State.UNSTARTED;
 
+        this.runOnUiThread(() -> {
+            mutex.acquireUninterruptibly();
+            RelativeLayout track = findViewById(R.id.scoreTrack);
+            track.removeAllViews();
+            mutex.release();
+        });
+
         handler.removeCallbacks(progressMonitor);
+        handler.removeCallbacks(recordMonitor);
         handler.removeCallbacks(recordMonitor);
 
         terminateExoPlayer(this, mvPlayer);
@@ -575,7 +602,11 @@ public class AccompanySingActivity extends AppCompatActivity {
                     }
             );
 
-            displayScore(scores[0]);
+            mutex.acquireUninterruptibly();
+            if (state != State.UNSTARTED) {
+                displayScore(scores[0]);
+            }
+            mutex.release();
         }).start();
     }
 
@@ -616,12 +647,16 @@ public class AccompanySingActivity extends AppCompatActivity {
 
                     // explodes after 1.5s
                     handler.postDelayed(() -> {
-                        explosionField.explode(textView);
+                        if (track.getParent() != null) {
+                            explosionField.explode(textView);
+                        }
                     }, 1500);
 
                     // removes textview after 2s
                     handler.postDelayed(() -> {
-                        track.removeView(textView);
+                        if (track.getParent() != null) {
+                            track.removeView(textView);
+                        }
                     }, 2000);
                 }
 

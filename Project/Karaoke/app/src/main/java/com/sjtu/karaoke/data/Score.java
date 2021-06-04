@@ -23,6 +23,7 @@ public class Score implements Parcelable {
         setAccuracyScore(in.readInt());
         setEmotionScore(in.readInt());
         setBreathScore(in.readInt());
+        setNumOfUpdate(in.readInt());
     }
 
     public static final Creator<Score> CREATOR = new Creator<Score>() {
@@ -88,6 +89,7 @@ public class Score implements Parcelable {
         dest.writeInt(accuracyScore);
         dest.writeInt(emotionScore);
         dest.writeInt(breathScore);
+        dest.writeInt(numOfUpdate);
     }
 
     public void setTotalScore(Integer totalScore) {
@@ -104,5 +106,9 @@ public class Score implements Parcelable {
 
     public void setBreathScore(Integer breathScore) {
         this.breathScore = breathScore;
+    }
+
+    public void setNumOfUpdate(Integer numOfUpdate) {
+        this.numOfUpdate = numOfUpdate;
     }
 }

@@ -36,6 +36,7 @@ import static com.sjtu.karaoke.util.Constants.GET_MV_URL;
 import static com.sjtu.karaoke.util.Constants.GET_ORCHESTRA_URL;
 import static com.sjtu.karaoke.util.Constants.GET_ORIGINAL_URL;
 import static com.sjtu.karaoke.util.Constants.GET_RATE_URL;
+import static com.sjtu.karaoke.util.FileUtil.areFilesPresent;
 import static com.sjtu.karaoke.util.FileUtil.downloadFiles;
 import static com.sjtu.karaoke.util.FileUtil.isFilePresent;
 import static com.sjtu.karaoke.util.MiscUtil.downloadAndSetAlbumCover;
@@ -232,6 +233,9 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.ViewHo
                 getMVFullPath(songName),
         };
 
+        if (areFilesPresent(destFullPaths)) {
+            return true;
+        }
 
         String[] urls = {
                 GET_ORIGINAL_URL + requestParam,
@@ -274,6 +278,9 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.ViewHo
                 getOrchestraFullPath(songName),
         };
 
+        if (areFilesPresent(destFullPaths)) {
+            return true;
+        }
 
         String[] urls = {
                 GET_ACCOMPANY_URL + requestParam,

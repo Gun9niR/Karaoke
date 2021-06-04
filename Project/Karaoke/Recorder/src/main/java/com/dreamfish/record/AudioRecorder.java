@@ -203,10 +203,15 @@ public class AudioRecorder {
                 //将多个pcm文件转化为wav文件
                 if (shouldMergePcm) {
                     mergePCMFilesToWAVFile(filePaths);
-                } else {
-                    clearFiles(filePaths);
+                    new Thread(() -> {
+                        try {
+                            clearFiles(filePaths);
+                            FileUtils.cleanDirectory(new File(TRIMMED_VOICE_WAV_DIRECTORY));
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }).start();
                 }
-                FileUtils.cleanDirectory(new File(TRIMMED_VOICE_WAV_DIRECTORY));
 
             } else {
                 //这里由于只要录音过filesName.size都会大于0,没录音时fileName为null
