@@ -1,5 +1,4 @@
 from flask import current_app as app
-from flask_socketio import send, emit
 import os
 import shutil
 from . import socketio
@@ -10,6 +9,20 @@ from .verify import UserVerification
 from threading import Thread
 
 
+'''
+认证用户的登录信息。
+
+参数:
+    username: 用户输入的用户名。
+    password: 用户输入的登录密码。
+
+返回:
+    用户信息构成的字典。
+
+抛出:
+    UserNotExistException: 用户名不存在。
+    WrongPasswordException: 用户输入的密码错误。
+'''
 def verify_user(username, password):
     user_in_db = dao.get_user_by_username(username)
     if user_in_db is None:
@@ -23,22 +36,43 @@ def verify_user(username, password):
     return d_user
     
 
+'''
+获取数据库中的所有歌曲。
+
+返回:
+    一个包含数据库中所有歌曲的列表，每首歌曲都为字典形式。
+'''
 def get_songs():
     songs_in_db = dao.get_songs()
     return [song_in_db.as_dict() for song_in_db in songs_in_db]
 
 
+'''
+删除一首歌曲。
+
+参数:
+    song_id: 要删除的歌曲的id。
+'''
 def delete_song(song_id):
 
-    # Delete the files
+    # 删除服务器文件
     d_song = dao.get_song_by_id(song_id).as_dict()
     delete_dir = utils.generate_song_directory(d_song)
     shutil.rmtree(delete_dir)
 
-    # Delete in database
+    # 删除数据库中的歌曲信息
     dao.delete_song_by_id(song_id)
 
 
+'''
+更新歌曲信息（歌曲名称与歌手）。
+
+参数:
+    req_song: 要更新的歌曲的字典形式，包括歌曲名称、歌手与各文件的路径信息。
+
+抛出:
+    DuplicateSongException: 数据库中有另一首歌曲名称与歌手完全相同的歌曲。
+'''
 def update_song_info(req_song):
 
     song_id = req_song['id']
@@ -53,18 +87,18 @@ def update_song_info(req_song):
         if d_song['id'] != song_id:
             raise DuplicateSongException
     
-    # Get the directory of the new song
+    # 获取更新后歌曲的存储目录
     new_dir = utils.generate_song_directory(req_song)
     if os.path.exists(new_dir):
         return
 
-    # Rename the directory
+    # 重命名现有目录
     prev_song_in_db = dao.get_song_by_id(song_id)
     prev_d_song = prev_song_in_db.as_dict()
     prev_dir = utils.generate_song_directory(prev_d_song)
     os.rename(prev_dir, new_dir)
 
-    # Update song information and file paths in database
+    # 更新数据库中的歌曲信息
     new_song = {}
     inst_dir = app.config['TRIMMED_WAV_FILENAME'].split('.')[0];
     for field, info in prev_d_song.items():
@@ -88,6 +122,19 @@ def update_song_info(req_song):
     dao.update_song(song_to_save)
 
 
+'''
+上传一首新的歌曲。
+
+在以下4个节点向客户端发送socket请求:
+1. 客户端上传文件存储完毕
+2. 和弦文件解释完毕
+3. 自弹自唱相关文件转化完毕
+4. 歌曲打分文件生成完毕
+
+参数:
+    req_song: 上传的歌曲信息，包括歌曲名称与歌手。
+    req_files: 上传的歌曲文件，包括专辑图、原唱音频、伴奏音频、歌词文件、MV文件与和弦文件。
+'''
 def upload_song(req_song, req_files):
 
     real_app = app._get_current_object()
@@ -96,7 +143,7 @@ def upload_song(req_song, req_files):
     new_song['song_name'] = req_song.get('song_name')
     new_song['singer'] = req_song.get('singer')
 
-    # Remove the song if already exists
+    # 如果歌曲已经存在，则删除
     song_in_db = dao.get_song_by_song_name_and_singer(new_song['song_name'], new_song['singer'])
     if song_in_db:
         d_song = song_in_db.as_dict()
@@ -104,12 +151,13 @@ def upload_song(req_song, req_files):
         shutil.rmtree(delete_dir)
         dao.delete_song_by_id(d_song['id'])
 
-    # Create song directory
+    # 新建歌曲存储目录
     song_info = new_song['song_name'] + '-' + new_song['singer']
     song_upload_dir = os.path.join(app.config['FILE_UPLOAD_DIR'], song_info)
     if not os.path.exists(song_upload_dir):
         os.makedirs(song_upload_dir)
 
+    # 将客户端上传的文件与服务器生成的文件保存至服务器
     for file_type, upload_file in req_files.items():
 
         save_path = os.path.join(song_upload_dir, upload_file.filename)
@@ -149,6 +197,16 @@ def upload_song(req_song, req_files):
     socketio.emit('finish', song_info, namespace='/karaoke')
 
 
+'''
+更新歌曲的单个文件。
+
+参数:
+    song_id: 歌曲的id。
+    upload_files: 上传的文件。
+
+抛出:
+    UploadQuantityException: 上传的文件数量不为1。
+'''
 def upload_one_file(song_id, upload_files):
 
     real_app = app._get_current_object()
@@ -161,12 +219,12 @@ def upload_one_file(song_id, upload_files):
     upload_stuff = list(upload_files.items())[0]
     file_type, upload_file = upload_stuff[0], upload_stuff[1]
 
-    # Remove the previous file
+    # 删除原来的文件
     prev_file_path = d_song[file_type]
     if (os.path.exists(prev_file_path)):
         os.remove(prev_file_path)
 
-    # Save the file to local
+    # 将上传文件保存至服务器
     new_file_path = os.path.join(song_dir, upload_file.filename)
     upload_file.save(new_file_path)
 
@@ -176,12 +234,23 @@ def upload_one_file(song_id, upload_files):
         utils.trans_chord(real_app, new_file_path, '')
         d_song['chord'] = os.path.join(song_dir, app.config['CHORD_TRANS_FILENAME'])
 
-    # Update the file path in database
+    # 更新数据库中的文件路径信息
     song_to_save = Song.from_dict(d_song)
     song_to_save.id = d_song['id']
     dao.update_song(song_to_save)
 
 
+'''
+进行服务器端歌曲文件的同步。在文件同步成功后向客户端发送同步成功的socket请求。
+
+参数:
+    song_id: 要进行文件同步的歌曲的id。
+    song_info: 格式为“<歌曲名称>-<歌手>”的歌曲信息，用于向客户端发送socket。
+
+抛出:
+    SongNotExistException: 歌曲不存在。
+    UnmatchedSongInfoException: 数据库中的歌曲信息与参数中的歌曲信息不相符。
+'''
 def sync_files(song_id, song_info):
 
     song_in_db = dao.get_song_by_id(song_id)
@@ -209,14 +278,12 @@ def sync_files(song_id, song_info):
     socketio.emit('sync-success', song_info, namespace='/karaoke')
 
 
-def get_file_path(song_id, file_type):
-    song_in_db = dao.get_song_by_id(song_id)
-    if song_in_db is None:
-        raise SongNotExistException
-    d_song = song_in_db.as_dict()
-    return d_song[file_type]
-    
+''' 
+获取所有歌曲的信息。
 
+返回:
+    一个包含数据库内所有歌曲的id，名称和歌手的字典的列表。
+'''
 def get_song_info():
     song_infos_in_db = dao.get_song_info()
     song_infos = []
@@ -228,3 +295,25 @@ def get_song_info():
         }
         song_infos.append(song_info)
     return song_infos
+
+
+'''
+获取指定歌曲文件的存储路径。
+
+参数:
+    song_id: 歌曲的id。
+    file_type: 要发送的文件的类型（与数据库中的字段名相同）。
+
+返回:
+    相应歌曲文件的在服务器上的存储路径。
+
+抛出:
+    SongNotExistException: 歌曲不存在。
+'''
+def get_file_path(song_id, file_type):
+    song_in_db = dao.get_song_by_id(song_id)
+    if song_in_db is None:
+        raise SongNotExistException
+    d_song = song_in_db.as_dict()
+    return d_song[file_type]
+    
