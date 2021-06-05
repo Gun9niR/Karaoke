@@ -81,7 +81,9 @@ string getScoreWithDelay(double startTime, double endTime) {
     __android_log_print(ANDROID_LOG_INFO, "Rater",
                         "emotionScore = %d\n", emotionScore);
     __android_log_print(ANDROID_LOG_INFO, "Rater",
-                        "breathScore = %d\n", breathScore);*/
+                        "breathScore = %d\n", breathScore);
+    __android_log_print(ANDROID_LOG_INFO, "Rater",
+                        "totScore = %d\n", totScore);*/
     res = to_string(totScore);
     res += " " + to_string(accuracyScore);
     res += " " + to_string(emotionScore);
