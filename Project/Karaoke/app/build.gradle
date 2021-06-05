@@ -11,7 +11,7 @@ android {
         minSdkVersion 24
         targetSdkVersion 30
         versionCode 1
-        versionName "1.0"
+        versionName "1.3"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -46,6 +46,7 @@ dependencies {
     implementation project(path: ':DroidParticle')
     implementation project(path: ':DroidParticle')
     implementation project(path: ':DroidParticle')
+    implementation project(path: ':ExplosionView')
     implementation project(path: ':ExplosionView')
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.2'

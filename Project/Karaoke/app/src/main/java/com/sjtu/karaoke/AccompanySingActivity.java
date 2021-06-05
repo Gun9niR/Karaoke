@@ -78,7 +78,7 @@ import static com.sjtu.karaoke.util.WavUtil.getWAVDuration;
  * @ClassName: AccompanySingActivity
  * @Author: 郭志东
  * @Date: 2021/3/28
- * @Version: v1.2
+ * @Version: v1.3
  * @Description: 伴奏演唱界面。本类中包含了如下功能：
  *                  1. 各个组件的初始化、设置点击事件
  *                  2. 根据传入的歌曲信息，初始化MV播放器、伴奏播放器、原唱播放器、歌词滚动器
@@ -157,7 +157,7 @@ public class AccompanySingActivity extends AppCompatActivity {
     protected void onStart() {
         super.onStart();
 
-        // return from sing refsult activity or from main activity, initialize all players
+        // return from sing result activity or from main activity, initialize all players
         if (state == State.UNSTARTED) {
             LoadingDialog loadingDialog = showLoadingDialog(
                     this,
@@ -441,7 +441,7 @@ public class AccompanySingActivity extends AppCompatActivity {
         };
     }
 
-    private void initBottomNavbar() {
+    private void  initBottomNavbar() {
         bottomNavigationView = findViewById(R.id.bottomNavigationView);
         this.runOnUiThread(() -> {
             bottomNavigationView.setBackground(null);
@@ -449,7 +449,7 @@ public class AccompanySingActivity extends AppCompatActivity {
             bottomNavigationView.getMenu().getItem(0).setTitle("伴唱");
             bottomNavigationView.getMenu().getItem(1).setEnabled(false);
             // 禁用完成，因为录音还没有开始
-            disableFinishButton();
+//            disableFinishButton();
 
             bottomNavigationView.setOnNavigationItemSelectedListener(
                     item -> {

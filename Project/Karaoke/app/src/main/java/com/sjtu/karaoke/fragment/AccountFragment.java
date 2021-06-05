@@ -18,7 +18,7 @@ import com.sjtu.karaoke.SettingActivity;
  * @ClassName: AccountFragment
  * @Author: guozh
  * @Date: 2021/3/28
- * @Version: v1.2
+ * @Version: v1.3
  * @Description: 主界面(MainActivity)中“我的”界面。
  * "我的"页用于查看本地录音，以及跳转到设置页
  */
