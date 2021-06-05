@@ -4,15 +4,17 @@ import "element-ui/lib/theme-chalk/index.css";
 import App from "./App.vue";
 import router from "./router";
 import Vuex from "vuex";
-import Progress from 'vue-multiple-progress';
+import createPersistedState from 'vuex-persistedstate'
 
 Vue.use(ElementUI);
 Vue.use(Vuex);
-Vue.use(Progress);
 
 Vue.config.productionTip = false;
 
 const store = new Vuex.Store({
+  plugins: [createPersistedState({
+      storage: window.sessionStorage,
+  })],
   state: {
     loginStatus: false,
     uploadRequests: [],
