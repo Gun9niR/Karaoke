@@ -1,6 +1,9 @@
 from sqlalchemy.schema import UniqueConstraint
 from . import db
 
+'''
+数据库中的users表格所映射到的对象。
+'''
 class User(db.Model):
 
     __tablename__ = 'users'
@@ -19,7 +22,9 @@ class User(db.Model):
         return {c.name: getattr(self, c.name) for c in self.__table__.columns}
 
 
-
+'''
+数据库中的songs表格所映射到的对象。
+'''
 class Song(db.Model):
 
     __tablename__ = 'songs'

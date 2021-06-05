@@ -16,5 +16,5 @@ db.init_app(app)
 
 with app.app_context():
     from src import models
-    db.create_all()  # Create sql tables for our data models
+    db.create_all()  # 新建数据库中的表格（若已存在，则不会重新新建）
     socketio = SocketIO(app, cors_allowed_origins='*', always_connect=True)
