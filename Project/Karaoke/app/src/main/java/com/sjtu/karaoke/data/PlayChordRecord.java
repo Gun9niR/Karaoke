@@ -1,8 +1,17 @@
 package com.sjtu.karaoke.data;
 
+/*
+ * @ClassName: PlayChordRecord
+ * @Author: 郭志东
+ * @Date: 2021/6/5
+ * @Description: 和弦弹奏记录类，既可以用于存储标准的弹奏顺序，也可以存储用户的弹奏顺序
+ */
 public class PlayChordRecord {
+    // 本次弹奏弹的和弦
     Chord chord;
+    // 弹奏开始时间
     Integer time;
+    // 本次弹奏的持续时间（目前只用于决定下一次弹奏开始的时间）
     Integer duration;
 
     public Chord getChord() {

@@ -1,3 +1,9 @@
 <resources>
     <string name="app_name">天天爱K歌</string>
+    <string name="merging_chord_hint">黑科技识别中</string>
+    <string name="download_fail_hint">服务器开了点小差T^T再点一次试试哦</string>
+    <string name="initialize_hint">拼命加载中</string>
+    <string name="downloading_hint">歌曲下载中</string>
+    <string name="process_record_hint">黑科技识别中</string>
+    <string name="save_success_hint">保存成功</string>
 </resources>

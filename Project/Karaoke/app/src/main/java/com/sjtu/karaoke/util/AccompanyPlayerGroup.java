@@ -17,6 +17,12 @@ import static com.sjtu.karaoke.util.WavUtil.getWAVDuration;
 import static com.sjtu.karaoke.util.WavUtil.mergeWAVs;
 import static com.sjtu.karaoke.util.WavUtil.trimWav;
 
+/*
+ * @ClassName: AccompanyPlayerGroup
+ * @Author: 郭志东
+ * @Date: 2021/6/5
+ * @Description: 伴奏演唱模式的播放器组，播放录音和伴奏
+ */
 public class AccompanyPlayerGroup implements ExoPlayerGroup {
     private final Activity activity;
 

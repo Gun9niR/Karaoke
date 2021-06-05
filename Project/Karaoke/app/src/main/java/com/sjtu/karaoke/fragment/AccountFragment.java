@@ -3,7 +3,6 @@ package com.sjtu.karaoke.fragment;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -20,7 +19,8 @@ import com.sjtu.karaoke.SettingActivity;
  * @Author: guozh
  * @Date: 2021/3/28
  * @Version: v1.2
- * @Description: 主界面(MainActivity)中“我的”界面。本类用于初始化界面中的各个组件，设置其点击事件。
+ * @Description: 主界面(MainActivity)中“我的”界面。
+ * "我的"页用于查看本地录音，以及跳转到设置页
  */
 
 public class AccountFragment extends Fragment {
@@ -41,26 +41,20 @@ public class AccountFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_account, container, false);
-
-        // set up toolbar
         Toolbar toolbar = view.findViewById(R.id.toolbarAccount);
-        toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
-            @Override
-            public boolean onMenuItemClick(MenuItem item) {
-                // go to setting activity
-                Intent intent = new Intent(getActivity(), SettingActivity.class);
-                startActivity(intent);
-                return true;
-            }
+
+        // 用户点击设置图标时跳转到设置页
+        toolbar.setOnMenuItemClickListener(item -> {
+            Intent intent = new Intent(getActivity(), SettingActivity.class);
+            startActivity(intent);
+            return true;
         });
 
+        // 点击"本地录音"按钮时跳转到录音列表
         Button btnLocalRecord = view.findViewById(R.id.btnLocalRecord);
-        btnLocalRecord.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent intent = new Intent(getContext(), LocalRecordActivity.class);
-                startActivity(intent);
-            }
+        btnLocalRecord.setOnClickListener(view1 -> {
+            Intent intent = new Intent(getContext(), LocalRecordActivity.class);
+            startActivity(intent);
         });
         return view;
     }

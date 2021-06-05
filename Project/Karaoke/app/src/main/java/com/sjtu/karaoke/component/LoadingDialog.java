@@ -17,7 +17,6 @@ import java.util.concurrent.Semaphore;
  * @ClassName: LoadingDialog
  * @Author: 郭志东
  * @Date: 2021/6/4
- * @Version: v1.2
  * @Description: 加载对话框类，可以显示当前进度、环形加载动画及自定义说明文字
  */
 public class LoadingDialog extends Dialog {

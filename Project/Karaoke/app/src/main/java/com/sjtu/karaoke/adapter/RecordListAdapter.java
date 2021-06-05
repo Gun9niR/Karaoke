@@ -45,7 +45,6 @@ import static com.sjtu.karaoke.util.MiscUtil.setImageFromFile;
  * @ClassName: RecordListAdapter
  * @Author: 郭志东
  * @Date: 2021/3/28
- * @Version: v1.2
  * @Description: 本地录音界面的录音列表生成类。根据构造时传入的录音列表参数设置本地录音列表中每行的内容和点击事件。
  * 每个录音都保存在一个目录中，目录名为一个独特的字符串。
  * 目录中的内容包括：

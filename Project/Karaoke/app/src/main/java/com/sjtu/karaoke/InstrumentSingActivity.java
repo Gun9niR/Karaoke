@@ -195,7 +195,11 @@ public class InstrumentSingActivity extends AppCompatActivity {
         super.onStart();
 
         if (state == State.UNSTARTED) {
-            LoadingDialog loadingDialog = showLoadingDialog(this, "正在初始化", true);
+            LoadingDialog loadingDialog = showLoadingDialog(
+                    this,
+                    getString(R.string.initialize_hint),
+                    true
+            );
             loadingDialog.setCancelable(false);
             initFullScreen();
 
@@ -287,7 +291,8 @@ public class InstrumentSingActivity extends AppCompatActivity {
             @Override
             public void run() {
                 if (currentPosition >= nextPcmSplitTime) {
-                    voiceRecorder.setCurrentPcmStartTime(nextPcmSplitTime - PCM_SPLIT_INTERVAL);
+                    voiceRecorder.setLastPcmStartTime(nextPcmSplitTime - PCM_SPLIT_INTERVAL);
+                    voiceRecorder.setShouldStartNewPcm(true);
                     nextPcmSplitTime += PCM_SPLIT_INTERVAL;
 
                     if (lrcIterator.hasNext() && currentPosition > currentLrc.getEnd()) {
@@ -296,9 +301,8 @@ public class InstrumentSingActivity extends AppCompatActivity {
                         }
                         currentLrc = lrcIterator.next();
                     }
-                    voiceRecorder.setShouldStartNewPcm(true);
                 }
-                handler.postDelayed(this, 50);
+                handler.postDelayed(this, 10);
             }
         };
     }
@@ -331,7 +335,12 @@ public class InstrumentSingActivity extends AppCompatActivity {
 
         finishButton.setOnClickListener(v -> {
             finishButton.setEnabled(false);
-            LoadingDialog loadingDialog = showLoadingDialog(this, "正在处理录音");
+            LoadingDialog loadingDialog = showLoadingDialog(
+                    this,
+                    getString(R.string.process_record_hint)
+            );
+            loadingDialog.setCancelable(false);
+
             int len = userSequence.size();
 
             new Thread(() -> {
@@ -761,13 +770,6 @@ public class InstrumentSingActivity extends AppCompatActivity {
         // 在stopActivity中不删除临时的pcm和wav文件，在onStart中删除
         this.state = State.UNSTARTED;
 
-        handler.removeCallbacks(completionListener);
-        handler.removeCallbacks(progressMonitor);
-        handler.removeCallbacks(recordMonitor);
-        handler.removeCallbacks(hintMonitor);
-
-        terminateExoPlayer(this, accompanyPlayer);
-
         // 释放所有粒子系统
         mutex.acquireUninterruptibly();
         for (ParticleSystem particleSystem : unreleasedParticleSystems.keySet()) {
@@ -776,7 +778,13 @@ public class InstrumentSingActivity extends AppCompatActivity {
         }
         mutex.release();
 
+        handler.removeCallbacks(completionListener);
+        handler.removeCallbacks(progressMonitor);
+        handler.removeCallbacks(recordMonitor);
+        handler.removeCallbacks(hintMonitor);
         voiceRecorder.stopRecord(shouldMergePcm);
+
+        terminateExoPlayer(this, accompanyPlayer);
         if (shouldMergePcm) {
             mergeUserChords(userSequence);
         }

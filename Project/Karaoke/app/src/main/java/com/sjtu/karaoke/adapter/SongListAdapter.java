@@ -57,7 +57,6 @@ import static com.sjtu.karaoke.util.PathUtil.getRateFullPath;
  * @ClassName: SongListAdapter
  * @Author: 郭志东
  * @Date: 2021/3/28
- * @Version: v1.2
  * @Description: 点歌界面和歌曲搜素界面的歌曲列表生成类。根据构造时传入的歌曲列表设置歌曲列表中每行的内容和点击事件。
  */
 public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.ViewHolder> {
@@ -130,7 +129,7 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.ViewHo
                 AtomicBoolean isCanceled = new AtomicBoolean(false);
                 LoadingDialog loadingDialog = showLoadingDialog(
                         activity,
-                        "正在下载文件...",
+                        activity.getString(R.string.downloading_hint),
                         true);
 
                 // 如果用户点击取消键，标记下载过程为已取消，下载函数会中断下载并删除已下载文件
@@ -166,7 +165,7 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.ViewHo
                 AtomicBoolean isCanceled = new AtomicBoolean(false);
                 LoadingDialog loadingDialog = showLoadingDialog(
                         activity,
-                        "正在下载文件...",
+                        activity.getString(R.string.downloading_hint),
                         true);
 
                 // 如果用户点击取消键，标记下载过程为已取消，下载函数会中断下载并删除已下载文件

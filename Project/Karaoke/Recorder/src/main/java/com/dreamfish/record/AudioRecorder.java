@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.concurrent.Semaphore;
 
 import static com.dreamfish.record.FileUtil.deleteOneFile;
 import static com.dreamfish.record.FileUtil.getPcmFullPath;
@@ -28,6 +29,7 @@ import static com.sjtu.karaoke.singrater.RatingUtil.f0analysis;
 public class AudioRecorder {
     //音频输入-麦克风
     private final static int AUDIO_INPUT = MediaRecorder.AudioSource.MIC;
+
     //采用频率
     //44100是目前的标准，但是某些设备仍然支持22050，16000，11025
     //采样频率一般共分为22.05KHz、44.1KHz、48KHz三个等级
@@ -42,8 +44,9 @@ public class AudioRecorder {
     private final static int AUDIO_ENCODING = AudioFormat.ENCODING_PCM_16BIT;
     // 缓冲区字节大小
     private int bufferSizeInBytes = 0;
-
-    // 当前pcm文件的开始时间
+    // 上一个pcm文件的开始时间（已结束录音）
+    private int lastPcmStartTime;
+    // 当前正在写的pcm文件的开始时间
     private int currentPcmStartTime;
     // pcm切分时间和interval整数倍的插，例如pcm从1010ms开始切，间隔是500ms，offset就是10ms
     private int offset;
@@ -53,18 +56,19 @@ public class AudioRecorder {
     private HashSet<Integer> f0Complete;
     //录音状态
     private Status status = Status.STATUS_NO_READY;
-
     //文件名，包含后缀.wav，不包含路径
     private String fileName;
-
-    //录音文件
+    //录音所有pcm文件
     private List<String> filesName = new ArrayList<>();
 
     // 当前正在输出到的pcm文件
     FileOutputStream fos = null;
     File fo = null;
+    // 当前正在写的pcm文件
     String currentFileName= null;
-
+    // 互斥锁，用来保证在停止录音时最后一个FileOutputStream一定能被close
+    Semaphore mutex = new Semaphore(1);
+    // 是否需要将录音写到新的pcm文件
     private boolean shouldStartNewPcm = false;
     /**
      * 类级的内部类，也就是静态类的成员式内部类，该内部类的实例与外部类的实例
@@ -97,7 +101,7 @@ public class AudioRecorder {
         this.fileName = fileName;
 
         filesName.clear();
-        this.currentPcmStartTime = 0;
+        this.lastPcmStartTime = 0;
         this.offset = offset;
         f0Complete = new HashSet<>();
         // initialize file name (no extension)
@@ -139,12 +143,7 @@ public class AudioRecorder {
         }
         Log.d("AudioRecorder", "===startRecord===" + audioRecord.getState());
         audioRecord.startRecording();
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                writeDataTOFile(listener);
-            }
-        }).start();
+        new Thread(() -> writeDataTOFile(listener)).start();
     }
 
     /**
@@ -187,26 +186,23 @@ public class AudioRecorder {
         //假如有暂停录音
         try {
             if (filesName.size() > 0) {
-                List<String> filePaths = new ArrayList<>();
-                for (String fileName : filesName) {
-                    filePaths.add(FileUtil.getPcmFileAbsolutePath(fileName));
-                }
-                //清除
-                filesName.clear();
+                // 用互斥锁保护，确保最后一个FileOutputStream会被关闭
+                mutex.acquireUninterruptibly();
                 if (fos != null) {
                     fos.close();
                 }
+                mutex.release();
+
                 //将多个pcm文件转化为wav文件
                 if (shouldMergePcm) {
+                    List<String> filePaths = new ArrayList<>();
+                    for (String fileName : filesName) {
+                        filePaths.add(FileUtil.getPcmFileAbsolutePath(fileName));
+                    }
                     mergePCMFilesToWAVFile(filePaths);
                 }
 
-            } else {
-                //这里由于只要录音过filesName.size都会大于0,没录音时fileName为null
-                //会报空指针 NullPointerException
-                // 将单个pcm文件转化为wav文件
-                //Log.d("AudioRecorder", "=====makePCMFileToWAVFile======");
-                //makePCMFileToWAVFile();
+                filesName.clear();
             }
         } catch (IllegalStateException | IOException e) {
             throw new IllegalStateException(e.getMessage());
@@ -241,37 +237,67 @@ public class AudioRecorder {
         this.shouldStartNewPcm = shouldStartNewPcm;
     }
 
+    /**
+     * 如果最后一句需要打分，且录音在最后一个需要打分的pcm录完之前结束，需要调用这个方法，强制最后一个pcm直接结束
+     */
+    private void endLastPcm(int startTime) {
+        try {
+            fos.close();
+
+            // 如果这句需要打分，就将这句话转换成.wav开始打分
+            final String fileName = currentFileName;
+            new Thread(() -> {
+                String pcmFullPath = getPcmFullPath(fileName);
+                String wavFullPath = getTrimmedWavFullPath(fileName);
+                PcmToWav.makePCMFileToWAVFile(pcmFullPath, wavFullPath, false);
+
+                f0analysis(wavFullPath, lastPcmStartTime);
+                f0Complete.add(startTime);
+            }).start();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     private void writeDataTOFile(RecordStreamListener listener) {
         // new一个byte数组用来存一些字节数据，大小为缓冲区大小
         byte[] audiodata = new byte[bufferSizeInBytes];
 
         status = Status.STATUS_START;
-        while (status == Status.STATUS_START) {
-            if (shouldStartNewPcm) {
+        while (status == Status.STATUS_START || status == Status.STATUS_STOP) {
+            // 如果录音已经停止，将最后一句话打完分
+            if (shouldStartNewPcm || status == Status.STATUS_STOP) {
                 try {
-                    fos.close();
-                    // after writing an pcm
-                    // conditionally convert it to wav
-                    final int startTime = currentPcmStartTime;
+                    if (fos != null) {
+                        fos.close();
+                    }
+                    // 如果这句需要打分，就将这句话转换成.wav开始打分
+                    final int startTime = status == Status.STATUS_STOP ?
+                            currentPcmStartTime : lastPcmStartTime;
                     final String fileName = currentFileName;
-                    new Thread(new Runnable() {
-                        @Override
-                        public void run() {
-                            String pcmFullPath = getPcmFullPath(fileName);
-                            String wavFullPath = getTrimmedWavFullPath(fileName);
-                            PcmToWav.makePCMFileToWAVFile(pcmFullPath, wavFullPath, false);
+                    new Thread(() -> {
+                        String pcmFullPath = getPcmFullPath(fileName);
+                        String wavFullPath = getTrimmedWavFullPath(fileName);
+                        PcmToWav.makePCMFileToWAVFile(pcmFullPath, wavFullPath, false);
 
-                            f0analysis(wavFullPath, currentPcmStartTime);
-                            f0Complete.add(startTime);
-                        }
+                        f0analysis(wavFullPath, lastPcmStartTime);
+                        f0Complete.add(startTime);
                     }).start();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
 
+                if (status == Status.STATUS_STOP) {
+                    break;
+                }
                 currentFileName = fileName + filesName.size();
 
-                setFileOutputStream();
+                mutex.acquireUninterruptibly();
+                if (status != Status.STATUS_STOP) {
+                    setFileOutputStream();
+                }
+                mutex.release();
+
                 shouldStartNewPcm = false;
             } else {
                 int readSize = audioRecord.read(audiodata, 0, bufferSizeInBytes);
@@ -313,18 +339,15 @@ public class AudioRecorder {
      * 将单个pcm文件转化为wav文件
      */
     private void makePCMFileToWAVFile() {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                if (PcmToWav.makePCMFileToWAVFile(FileUtil.getPcmFileAbsolutePath(fileName), FileUtil.getWavFileAbsolutePath(fileName), true)) {
-                    //操作成功
-                } else {
-                    //操作失败
-                    Log.e("AudioRecorder", "makePCMFileToWAVFile fail");
-                    throw new IllegalStateException("makePCMFileToWAVFile fail");
-                }
-                fileName = null;
+        new Thread(() -> {
+            if (PcmToWav.makePCMFileToWAVFile(FileUtil.getPcmFileAbsolutePath(fileName), FileUtil.getWavFileAbsolutePath(fileName), true)) {
+                //操作成功
+            } else {
+                //操作失败
+                Log.e("AudioRecorder", "makePCMFileToWAVFile fail");
+                throw new IllegalStateException("makePCMFileToWAVFile fail");
             }
+            fileName = null;
         }).start();
     }
 
@@ -337,14 +360,16 @@ public class AudioRecorder {
         return status;
     }
 
-    public void setCurrentPcmStartTime(int currentPcmStartTime) {
-        this.currentPcmStartTime = currentPcmStartTime;
+    public void setLastPcmStartTime(int lastPcmStartTime) {
+        this.lastPcmStartTime = lastPcmStartTime;
+        this.currentPcmStartTime = lastPcmStartTime + PCM_SPLIT_INTERVAL;
     }
 
     public boolean isf0AnalysisComplete(int startTime, int endTime) {
         // 开始时间和结束时间都往前取，例如500取0
         int s = (startTime - offset) / PCM_SPLIT_INTERVAL * PCM_SPLIT_INTERVAL + offset;
         int e = (endTime - offset) / PCM_SPLIT_INTERVAL * PCM_SPLIT_INTERVAL + offset;
+        System.out.println("check f0analysis: " + s + " " + e);
         for (int i = s; i <= e; i += PCM_SPLIT_INTERVAL) {
             if (!f0Complete.contains(i)) {
                 return false;

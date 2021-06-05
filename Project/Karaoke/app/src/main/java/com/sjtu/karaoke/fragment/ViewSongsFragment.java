@@ -6,11 +6,9 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.LayoutInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -40,7 +38,6 @@ import okhttp3.Callback;
 import okhttp3.Response;
 
 import static com.sjtu.karaoke.util.MiscUtil.getSongInfo;
-import static com.sjtu.karaoke.util.MiscUtil.showSuccessToast;
 import static com.sjtu.karaoke.util.MiscUtil.showWarningToast;
 
 /*
@@ -58,8 +55,11 @@ public class ViewSongsFragment extends Fragment {
     View view;
     Activity activity;
 
+    // 走马灯
     private ViewPager2 carousel;
+    // 调用走马灯切换图片的handler
     private final Handler carouselHandler = new Handler();
+    // 使走马灯切换图片的runnable
     private final Runnable sliderRunnable = new Runnable() {
         @Override
         public void run() {
@@ -67,13 +67,17 @@ public class ViewSongsFragment extends Fragment {
         }
     };
 
+    // 使歌曲列面可以滚动
     private SwipeRefreshLayout swipeRefreshLayout;
     private SwipeRefreshLayout.OnRefreshListener refreshListener;
 
+    // 歌曲列表
     private RecyclerView songRecyclerView;
+    // 歌曲列表适配器
     private SongListAdapter adapter;
+    // 传给歌曲列表的数据
     private List<SongInfo> songList;
-
+    // 图片切换间隔
     private static final int CAROUSEL_INTERVAL = 3000;
 
     public ViewSongsFragment() { }
@@ -132,108 +136,101 @@ public class ViewSongsFragment extends Fragment {
     private void setSongs(List<SongInfo> songs) {
         Activity activity = getActivity();
         if (activity != null) {
-            activity.runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    // Stuff that updates the UI
-                    adapter.setSongs(songs);
-                    adapter.notifyDataSetChanged();
-                }
+            activity.runOnUiThread(() -> {
+                adapter.setSongs(songs);
+                // 不调用这个方法，列表不会更新
+                adapter.notifyDataSetChanged();
             });
         }
     }
 
     private void initToolbar() {
         Toolbar toolbar = view.findViewById(R.id.toolbarViewSongs);
-        toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
-            @Override
-            public boolean onMenuItemClick(MenuItem item) {
-                // go to search activity
-                // put the list of SongInfo to the intent, so that SearchSongActivity won't have to get them from server again
-                Intent intent = new Intent(activity, SearchActivity.class);
-                ArrayList<SongInfo> songs = new ArrayList<>(songList);
-                intent.putParcelableArrayListExtra("songList", songs);
-                startActivity(intent);
-                return true;
-            }
+        // 只可能跳转到搜索界面
+        toolbar.setOnMenuItemClickListener(item -> {
+            // 直接讲歌曲列表通过intent传给搜索界面，这样搜索界面就不需要再从服务器请求一次数据
+            Intent intent = new Intent(activity, SearchActivity.class);
+            ArrayList<SongInfo> songs = new ArrayList<>(songList);
+            intent.putParcelableArrayListExtra("songList", songs);
+            startActivity(intent);
+            return true;
         });
     }
 
     private void initSwipeRefreshLayout() {
         swipeRefreshLayout = view.findViewById(R.id.homepageSwipe);
-        refreshListener = new SwipeRefreshLayout.OnRefreshListener() {
+        refreshListener = () -> getSongInfo(new Callback() {
+
+            // 只要status code不以2开头就失败
             @Override
-            public void onRefresh() {
-                getSongInfo(new Callback() {
-
-                    @Override
-                    public void onFailure(Call call, IOException e) {
-                        e.printStackTrace();
-                        if (activity != null) {
-                            showWarningToast(activity, "从服务器获取数据失败，请重试!");
-                        }
-                        swipeRefreshLayout.setRefreshing(false);
-                    }
-
-                    @Override
-                    public void onResponse(Call call, Response response) throws IOException {
-                        try {
-                            String jsonString = response.body().string();
-                            JSONArray jsonArray = new JSONArray(jsonString);
-                            int length = jsonArray.length();
-
-                            songList = new ArrayList<>();
-                            for (int i = 0; i < length; ++i) {
-                                JSONObject songInfo = jsonArray.getJSONObject(i);
-                                songList.add(new SongInfo(
-                                        (Integer) songInfo.get("id"),
-                                        (String) songInfo.get("song_name"),
-                                        (String) songInfo.get("singer")));
-                            }
-                            setSongs(songList);
-
-                        } catch (JSONException e) {
-                            showWarningToast(activity, "从服务器获取异常数据，请重试!");
-                            swipeRefreshLayout.setRefreshing(false);
-                            e.printStackTrace();
-                        }
-
-                        swipeRefreshLayout.setRefreshing(false);
-                    }
-                });
+            public void onFailure(Call call, IOException e) {
+                e.printStackTrace();
+                if (activity != null) {
+                    showWarningToast(activity, getString(R.string.download_fail_hint));
+                }
+                // 取消刷新状态，否则列表会一直处在刷新状态，无法点击
+                swipeRefreshLayout.setRefreshing(false);
             }
-        };
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                try {
+                    String jsonString = response.body().string();
+                    JSONArray jsonArray = new JSONArray(jsonString);
+                    int length = jsonArray.length();
+
+                    songList = new ArrayList<>();
+                    for (int i = 0; i < length; ++i) {
+                        JSONObject songInfo = jsonArray.getJSONObject(i);
+                        songList.add(new SongInfo(
+                                (Integer) songInfo.get("id"),
+                                (String) songInfo.get("song_name"),
+                                (String) songInfo.get("singer")));
+                    }
+                    setSongs(songList);
+
+                } catch (JSONException e) {
+                    showWarningToast(activity, getString(R.string.download_fail_hint));
+                    // 取消刷新状态，否则列表会一直处在刷新状态，无法点击
+                    swipeRefreshLayout.setRefreshing(false);
+                    e.printStackTrace();
+                }
+                // 取消刷新状态，否则列表会一直处在刷新状态，无法点击
+                swipeRefreshLayout.setRefreshing(false);
+            }
+        });
         swipeRefreshLayout.setOnRefreshListener(refreshListener);
     }
 
+    /**
+     * 初始化跑马灯
+     */
     private void initCarousel() {
-        // prepare list of images from drawable
+        // 添加图片
         List<Integer> carouselImages = new ArrayList<>();
         carouselImages.add(R.drawable.carousel_attention);
         carouselImages.add(R.drawable.carousel_dangerously);
         carouselImages.add(R.drawable.carousel_back_to_december);
 
-        // set adapter
+        // 设置适配器
         carousel.setAdapter(new CarouselAdapter(carouselImages, carousel));
 
-        // set clipping effect
+        // 显示前一张和后一张图片
         carousel.setClipToPadding(false);
         carousel.setClipChildren(false);
         carousel.setOffscreenPageLimit(3);
         carousel.getChildAt(0).setOverScrollMode(RecyclerView.OVER_SCROLL_NEVER);
 
+        // 设置图片从两边到中间的大小变化
         CompositePageTransformer compositePageTransformer = new CompositePageTransformer();
         compositePageTransformer.addTransformer(new MarginPageTransformer(40));
-        compositePageTransformer.addTransformer(new ViewPager2.PageTransformer() {
-            @Override
-            public void transformPage(@NonNull View page, float position) {
-                float r = 1 - Math.abs(position);
-                page.setScaleY(0.85f + r * 0.15f);
-            }
+        compositePageTransformer.addTransformer((page, position) -> {
+            float r = 1 - Math.abs(position);
+            page.setScaleY(0.85f + r * 0.15f);
         });
-
         carousel.setPageTransformer(compositePageTransformer);
 
+        // 设置滚动
         carousel.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
             @Override
             public void onPageSelected(int position) {

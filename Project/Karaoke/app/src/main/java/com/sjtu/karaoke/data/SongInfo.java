@@ -3,9 +3,18 @@ package com.sjtu.karaoke.data;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+/*
+ * @ClassName: SongInfo
+ * @Author: 郭志东
+ * @Date: 2021/6/5
+ * @Description: 歌曲信息类，用于在首页显示歌曲信息，并且通过歌曲的ID获取相关文件
+ */
 public class SongInfo implements Parcelable {
+    // 歌曲ID
     private Integer id;
+    // 歌曲名
     private String songName;
+    // 歌手名
     private String singer;
 
     public SongInfo(Integer id, String songName, String singer) {

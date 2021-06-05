@@ -43,7 +43,7 @@
                 android:layout_marginBottom="8dp"
                 android:scaleType="centerCrop"
                 android:src="@drawable/bg_dragger"
-                android:text="调整音轨"
+                android:text="DIY伴奏"
                 android:textColor="@color/purple_500"
                 android:textSize="20sp"
                 android:textStyle="bold" />
@@ -68,7 +68,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:paddingStart="8dp"
-                    android:text="Drum音量"
+                    android:text="鼓点音量"
                     android:textColor="@color/purple_500"
                     android:textSize="15sp"
                     android:textStyle="bold" />
@@ -100,7 +100,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:paddingStart="8dp"
-                    android:text="Bass音量"
+                    android:text="贝斯音量"
                     android:textColor="@color/purple_500"
                     android:textSize="15sp"
                     android:textStyle="bold" />
@@ -133,7 +133,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:paddingStart="8dp"
-                    android:text="Orchestra音量"
+                    android:text="管弦音量"
                     android:textColor="@color/purple_500"
                     android:textSize="15sp"
                     android:textStyle="bold" />

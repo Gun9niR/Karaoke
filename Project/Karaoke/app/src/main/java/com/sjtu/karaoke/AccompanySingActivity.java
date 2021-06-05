@@ -159,7 +159,11 @@ public class AccompanySingActivity extends AppCompatActivity {
 
         // return from sing refsult activity or from main activity, initialize all players
         if (state == State.UNSTARTED) {
-            LoadingDialog loadingDialog = showLoadingDialog(this, "正在初始化", true);
+            LoadingDialog loadingDialog = showLoadingDialog(
+                    this,
+                    getString(R.string.initialize_hint),
+                    true
+            );
             loadingDialog.setCancelable(false);
             new Thread(() -> {
 
@@ -421,7 +425,7 @@ public class AccompanySingActivity extends AppCompatActivity {
             @Override
             public void run() {
                 if (currentPosition >= nextPcmSplitTime) {
-                    voiceRecorder.setCurrentPcmStartTime(nextPcmSplitTime - PCM_SPLIT_INTERVAL);
+                    voiceRecorder.setLastPcmStartTime(nextPcmSplitTime - PCM_SPLIT_INTERVAL);
                     if (lrcIterator.hasNext() && currentPosition > currentLrc.getEnd()) {
                         if (currentLrc.shouldRate()) {
                             rate((int) currentLrc.getStart(), (int) currentLrc.getEnd());
@@ -462,7 +466,10 @@ public class AccompanySingActivity extends AppCompatActivity {
                             case R.id.singingFinish:
                                 // it has to be placed here, to wait for the merging to complete
                                 disableFinishButton();
-                                LoadingDialog loadingDialog = showLoadingDialog(AccompanySingActivity.this, "正在处理录音");
+                                LoadingDialog loadingDialog = showLoadingDialog(
+                                        AccompanySingActivity.this,
+                                        getString(R.string.process_record_hint));
+                                loadingDialog.setCancelable(false);
 
                                 score.computeFinalScore();
                                 new Thread(() -> {
@@ -474,7 +481,6 @@ public class AccompanySingActivity extends AppCompatActivity {
                                     startActivityForResult(intent, 0);
                                     loadingDialog.dismiss();
                                 }).start();
-
                                 break;
                         }
                         return false;
@@ -553,9 +559,17 @@ public class AccompanySingActivity extends AppCompatActivity {
         terminateExoPlayer(this, accompanyPlayer);
         terminateExoPlayer(this, originalPlayer);
 
-        new Thread(() -> {
-            voiceRecorder.stopRecord(shouldMergePcm);
-        });
+//        // 如果不需要合成录音，那就代表用户点击重唱，将最耗时的stopRecord放在子线程中
+//        if (!shouldMergePcm) {
+//            new Thread(() -> {
+//                voiceRecorder.stopRecord(false);
+//            }).start();
+//        }
+//        // 如果需要合成，那么就要同步合成，因为太早转到演唱结果页会让录音时长计算产生null pointer exception
+//        else {
+//            voiceRecorder.stopRecord(true);
+//        }
+        voiceRecorder.stopRecord(shouldMergePcm);
 
         lrcView.alertPlayerReleased();
     }
