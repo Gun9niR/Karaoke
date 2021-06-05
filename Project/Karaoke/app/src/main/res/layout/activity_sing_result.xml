@@ -31,7 +31,6 @@
         android:layout_width="250dp"
         android:layout_height="250dp"
         android:layout_marginTop="30dp"
-        android:background="@drawable/voice_notes"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/toolbarResult"

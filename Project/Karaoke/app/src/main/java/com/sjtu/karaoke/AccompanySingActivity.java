@@ -52,7 +52,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.List;
 import java.util.ListIterator;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Semaphore;
 import java.util.stream.Collectors;
 
@@ -77,7 +76,7 @@ import static com.sjtu.karaoke.util.PathUtil.getRateFullPath;
 import static com.sjtu.karaoke.util.WavUtil.getWAVDuration;
 /*
  * @ClassName: AccompanySingActivity
- * @Author: guozh
+ * @Author: 郭志东
  * @Date: 2021/3/28
  * @Version: v1.2
  * @Description: 伴奏演唱界面。本类中包含了如下功能：
@@ -104,8 +103,6 @@ public class AccompanySingActivity extends AppCompatActivity {
     BottomNavigationView bottomNavigationView;
     AutofitTextView scoreLabel;
 
-    // 在onStart中同步stopActivity
-    CountDownLatch cdl;
     Semaphore mutex = new Semaphore(1);
     Handler handler = new Handler();
 
@@ -165,14 +162,7 @@ public class AccompanySingActivity extends AppCompatActivity {
             LoadingDialog loadingDialog = showLoadingDialog(this, "正在初始化", true);
             loadingDialog.setCancelable(false);
             new Thread(() -> {
-                if (cdl != null) {
-                    try {
-                        cdl.await();
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                    cdl = null;
-                }
+
                 // Player-related initialization
                 accompanyPlayer = new SimpleExoPlayer.Builder(this).build();
                 loadAudioFileAndPrepareExoPlayer(this, accompanyPlayer, getAccompanyFullPath(songName));
@@ -229,11 +219,7 @@ public class AccompanySingActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         if (item.getItemId() == R.id.retry) {
             if (state != State.UNSTARTED) {
-                new Thread(() -> {
-                    cdl = new CountDownLatch(1);
-                    stopActivity(false);
-                    cdl.countDown();
-                }).start();
+                stopActivity(false);
                 onStart();
             }
         } else {
@@ -567,7 +553,10 @@ public class AccompanySingActivity extends AppCompatActivity {
         terminateExoPlayer(this, accompanyPlayer);
         terminateExoPlayer(this, originalPlayer);
 
-        voiceRecorder.stopRecord(shouldMergePcm);
+        new Thread(() -> {
+            voiceRecorder.stopRecord(shouldMergePcm);
+        });
+
         lrcView.alertPlayerReleased();
     }
 

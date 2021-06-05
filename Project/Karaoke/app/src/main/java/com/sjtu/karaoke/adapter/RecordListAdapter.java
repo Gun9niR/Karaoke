@@ -43,7 +43,7 @@ import static com.sjtu.karaoke.util.MiscUtil.setImageFromFile;
 
 /*
  * @ClassName: RecordListAdapter
- * @Author: guozh
+ * @Author: 郭志东
  * @Date: 2021/3/28
  * @Version: v1.2
  * @Description: 本地录音界面的录音列表生成类。根据构造时传入的录音列表参数设置本地录音列表中每行的内容和点击事件。
@@ -77,6 +77,7 @@ public class RecordListAdapter extends RecyclerView.Adapter<RecordListAdapter.Vi
         this.activity = activity;
         List<String> recordDirFullPaths = getFullPathsInDirectory(RECORD_DIRECTORY);
 
+        // 读取录音目录下的所有文件夹
         records = new ArrayList<>();
         for (String recordDirFullPath: recordDirFullPaths) {
             try {
@@ -86,8 +87,6 @@ public class RecordListAdapter extends RecyclerView.Adapter<RecordListAdapter.Vi
                 e.printStackTrace();
             }
         }
-
-        System.out.println(records.size());
     }
 
     @NonNull
@@ -103,39 +102,47 @@ public class RecordListAdapter extends RecyclerView.Adapter<RecordListAdapter.Vi
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Record record = records.get(position);
         String songName = record.getSongName();
-        // set song name
+        // 设置歌曲名
         holder.recordName.setText(songName);
         holder.recordName.append(new SpannableString("  "));
 
+        // 设置等分等级
         holder.recordRank.setText(record.getRank().getRankingText());
         Drawable recordRankBackground = ResourcesCompat.getDrawable(Karaoke.getRes(), R.drawable.bg_rank, null);
         Objects.requireNonNull(recordRankBackground).setTint(record.getRank().getRankingColor());
         holder.recordRank.setBackground(recordRankBackground);
 
-        // set record time
+        // 设置录音时间
         holder.recordTime.setText(record.getRecordTime());
 
-        // set album cover
+        // 设置专辑封面
         activity.runOnUiThread(() -> setImageFromFile(
                 record.getAlbumCoverFullPath(),
                 holder.recordCover
                 )
         );
 
+        // 设置下拉菜单图标点击时间
         holder.btnRecordOperation.setOnClickListener(v -> {
             PopupMenu popup = new PopupMenu(activity, v);
             popup.inflate(R.menu.record_operation_menu);
             popup.setOnMenuItemClickListener(item -> {
                 int itemId = item.getItemId();
+
+                // 播放录音
                 if (itemId == R.id.menuItemPlayRecord) {
                     activity.playRecord(record);
-                } else if (itemId == R.id.menuItemShareRecord) {
+                }
+                // 分享录音
+                else if (itemId == R.id.menuItemShareRecord) {
                     File recordFile = new File(record.getRecordFullPath());
                     Uri uri = FileProvider.getUriForFile(activity, AUTHORITY, recordFile);
 
                     Intent chooserIntent = getChooserIntent(uri, activity);
                     activity.startActivity(chooserIntent);
-                } else {
+                }
+                // 删除录音
+                else {
                     String recordFullPath = record.getRecordFullPath();
                     activity.checkCurrentDeletion(recordFullPath);
                     try {
@@ -151,6 +158,7 @@ public class RecordListAdapter extends RecyclerView.Adapter<RecordListAdapter.Vi
                 return true;
             });
 
+            // 强制菜单项显示图标
             @SuppressLint("RestrictedApi") MenuPopupHelper menuPopupHelper = new MenuPopupHelper(activity, (MenuBuilder) popup.getMenu(), v);
             menuPopupHelper.setForceShowIcon(true);
             menuPopupHelper.show();

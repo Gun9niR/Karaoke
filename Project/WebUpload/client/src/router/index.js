@@ -20,7 +20,7 @@ const router = new Router({
       name: 'Upload',
       component: Upload,
       meta : {
-        requireAuth: true, 
+        requireAuth: false, 
       },
     },
     {
@@ -28,7 +28,7 @@ const router = new Router({
       name: 'Songs',
       component: Songs,
       meta : {
-        requireAuth: true, 
+        requireAuth: false, 
       },
     }
   ]
