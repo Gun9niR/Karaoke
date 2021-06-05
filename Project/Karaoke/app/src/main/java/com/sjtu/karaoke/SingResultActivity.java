@@ -68,7 +68,7 @@ import static com.sjtu.karaoke.util.PathUtil.getVoiceFullPath;
  * @ClassName: SingResultActivity
  * @Author: guozh
  * @Date: 2021/3/28
- * @Version: v1.2
+ * @Version: v1.3
  * @Description: 演唱结果界面。本类中包括了如下功能：
  *                  1. 各个组件的初始化、设置点击事件
  *                  2. 根据传入的歌曲信息、用户录音，初始化伴奏播放器、录音播放器

@@ -89,7 +89,7 @@ import static com.sjtu.karaoke.util.PathUtil.getUserPlayFullPath;
  * @ClassName: InstrumentSingActivity
  * @Author: guozh
  * @Date: 2021/3/28
- * @Version: v1.2
+ * @Version: v1.3
  * @Description: 自弹自唱界面。本类中包含了如下功能：
  *                  1. 各个组件的初始化、设置点击事件
  *                  2. 根据传入的歌曲信息，初始化伴奏播放器、歌词滚动器、音效池
