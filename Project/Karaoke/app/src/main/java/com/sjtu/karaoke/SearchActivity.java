@@ -22,7 +22,7 @@ import java.util.Objects;
  * @ClassName: SearchActivity
  * @Author: guozh
  * @Date: 2021/3/28
- * @Version: v1.2
+ * @Version: v1.3
  * @Description: 歌曲搜素界面。本类中包含了如下功能：
  *                  1. 各个组件的初始化、调用Adapter类来初始化本地录音列表
  *                  2. 播放用户选择的本地伴奏

@@ -18,7 +18,7 @@ import static com.sjtu.karaoke.util.MiscUtil.verifyAllPermissions;
  * @ClassName: MainActivity
  * @Author: guozh
  * @Date: 2021/3/28
- * @Version: v1.2
+ * @Version: v1.3
  * @Description: 应用主界面。本类中仅初始化了导航栏，导航栏所指向的界面在其对应的fragment中实现。
  */
 
