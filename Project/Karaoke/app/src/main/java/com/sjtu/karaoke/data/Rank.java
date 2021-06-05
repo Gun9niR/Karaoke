@@ -7,6 +7,12 @@ import com.sjtu.karaoke.R;
 
 import java.util.HashMap;
 
+/*
+ * @ClassName: Rank
+ * @Author: 郭志东
+ * @Date: 2021/6/5
+ * @Description: 演唱等级类，封装演唱结果的显示（文字和颜色），由于只有固定的几个等级，构造函数为私有
+ */
 public class Rank {
     final String rankingText;
     final int RankingColor;

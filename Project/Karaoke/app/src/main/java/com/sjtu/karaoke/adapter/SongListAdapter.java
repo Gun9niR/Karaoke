@@ -57,7 +57,6 @@ import static com.sjtu.karaoke.util.PathUtil.getRateFullPath;
  * @ClassName: SongListAdapter
  * @Author: 郭志东
  * @Date: 2021/3/28
- * @Version: v1.2
  * @Description: 点歌界面和歌曲搜素界面的歌曲列表生成类。根据构造时传入的歌曲列表设置歌曲列表中每行的内容和点击事件。
  */
 public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.ViewHolder> {

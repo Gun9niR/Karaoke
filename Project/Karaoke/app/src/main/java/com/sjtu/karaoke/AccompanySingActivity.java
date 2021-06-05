@@ -425,7 +425,7 @@ public class AccompanySingActivity extends AppCompatActivity {
             @Override
             public void run() {
                 if (currentPosition >= nextPcmSplitTime) {
-                    voiceRecorder.setCurrentPcmStartTime(nextPcmSplitTime - PCM_SPLIT_INTERVAL);
+                    voiceRecorder.setLastPcmStartTime(nextPcmSplitTime - PCM_SPLIT_INTERVAL);
                     if (lrcIterator.hasNext() && currentPosition > currentLrc.getEnd()) {
                         if (currentLrc.shouldRate()) {
                             rate((int) currentLrc.getStart(), (int) currentLrc.getEnd());
@@ -469,6 +469,7 @@ public class AccompanySingActivity extends AppCompatActivity {
                                 LoadingDialog loadingDialog = showLoadingDialog(
                                         AccompanySingActivity.this,
                                         getString(R.string.process_record_hint));
+                                loadingDialog.setCancelable(false);
 
                                 score.computeFinalScore();
                                 new Thread(() -> {

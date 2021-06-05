@@ -17,7 +17,6 @@ import java.util.List;
  * @ClassName: CarouselAdapter
  * @Author: 郭志东
  * @Date: 2021/3/28
- * @Version: v1.2
  * @Description: 主界面的走马灯适配器。根据构造时传入的图片参数设置走马灯中显示的内容。
  */
 public class CarouselAdapter extends RecyclerView.Adapter<CarouselAdapter.SliderViewHolder>{

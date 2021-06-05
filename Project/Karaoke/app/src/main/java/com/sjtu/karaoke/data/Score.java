@@ -3,11 +3,22 @@ package com.sjtu.karaoke.data;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+/*
+ * @ClassName: Score
+ * @Author: 郭志东
+ * @Date: 2021/6/5
+ * @Description: 演唱打分类，包括了打分算法产生的各种分数。同时记录了分数的更新次数，便于计算每句的平均得分
+ */
 public class Score implements Parcelable {
+    // 总分（加权得到）
     Integer totalScore;
+    // 音准得分
     Integer accuracyScore;
+    // 情感得分
     Integer emotionScore;
+    // 气息得分
     Integer breathScore;
+    // 分数更新的次数
     Integer numOfUpdate;
 
     public Score() {

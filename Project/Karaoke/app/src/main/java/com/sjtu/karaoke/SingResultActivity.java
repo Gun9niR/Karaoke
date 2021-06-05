@@ -224,6 +224,7 @@ public class SingResultActivity extends AppCompatActivity {
             } else {
                 LoadingDialog loadingDialog = showLoadingDialog(SingResultActivity.this,
                         getString(R.string.process_record_hint));
+                loadingDialog.setCancelable(false);
                 new Thread(() -> {
                     saveRecord(songName, playerGroup, rateResultDialog.getRankingText());
                     loadingDialog.dismiss();

@@ -4,63 +4,79 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 
 public class Constants {
-    public static final String[] PERMISSIONS_STORAGE = {
-            Manifest.permission.READ_EXTERNAL_STORAGE,
-            Manifest.permission.WRITE_EXTERNAL_STORAGE
-    };
-
-    public static final int REQUEST_EXTERNAL_STORAGE = 1;
-
+    // 权限
     public static final int GET_RECORD_AUDIO = 1;
-
     public static final String[] PERMISSIONS_RECORDER = {
             Manifest.permission.RECORD_AUDIO,
             Manifest.permission.WRITE_EXTERNAL_STORAGE,
             Manifest.permission.READ_EXTERNAL_STORAGE,
     };
 
+    // 播放进度更新间隔
     public static final int PROGRESS_UPDATE_INTERVAL = 10;
 
+    // 录音延迟下界
     public static final double RECORD_DELAY_LB = 0.2;
 
+    // 录音延迟上界
     public static final double RECORD_DELAY_UB = 0.9;
+
+    // 项目数据的根目录
     @SuppressLint("SdCardPath")
     public static final String ROOT_DIRECTORY = "/data/data/com.sjtu.karaoke/";
 
+    // 临时合成的录音目录
     public static final String VOICE_DIRECTORY = ROOT_DIRECTORY + "wav/";
 
+    // 录音时写入的pcm文件目录
     public static final String PCM_DIRECTORY = ROOT_DIRECTORY + "pcm/";
 
+    // 伴奏文件目录
     public static final String ACCOMPANY_DIRECTORY = ROOT_DIRECTORY + "accompany/";
 
+    // 自弹自唱模式的伴奏，本目录下不存储文件，只有以下3个目录
     public static final String ACCOMPANY_INSTRUMENT_DIRECTORY = ROOT_DIRECTORY + "i_accompany/";
 
+    // 鼓点文件目录
     public static final String DRUM_DIRECTORY = ACCOMPANY_INSTRUMENT_DIRECTORY + "drum/";
 
+    // 贝斯文件目录
     public static final String BASS_DIRECTORY = ACCOMPANY_INSTRUMENT_DIRECTORY + "bass/";
 
+    // 管弦文件目录
     public static final String ORCHESTRA_DIRECTORY = ACCOMPANY_INSTRUMENT_DIRECTORY + "orchestra/";
 
+    // 最后录音保存到的目录
     public static final String RECORD_DIRECTORY = ROOT_DIRECTORY + "record/";
 
+    // 原唱（无伴奏）文件目录
     public static final String ORIGINAL_DIRECTORY = ROOT_DIRECTORY + "original/";
 
+    // 打分文件目录
     public static final String RATE_DIRECTORY = ROOT_DIRECTORY + "rating/";
 
+    // 在一个唱段需要打分时，将pcm文件转化为wav文件，保存在此目录下
     public static final String TRIMMED_VOICE_WAV_DIRECTORY = VOICE_DIRECTORY + "trimmed_voice/";
 
+    // 专辑封面目录
     public static final String ALBUM_COVER_DIRECTORY = ROOT_DIRECTORY + "album_cover/";
 
+    // 伴奏演唱歌词文件目录
     public static final String LYRIC_DIRECTORY = ROOT_DIRECTORY + "lyric/";
 
+    // 自弹自唱歌词文件目录
     public static final String LYRIC_INSTRUMENT_DIRECTORY = ROOT_DIRECTORY + "i_lyric/";
 
+    // MV目录
     public static final String MV_DIRECTORY = ROOT_DIRECTORY + "mv/";
 
+    // 打分系统临时文件目录
     public static final String RATERDATA_DIRECTORY = ROOT_DIRECTORY + "/raterdata";
 
+    // 和弦文件目录
     public static final String CHORD_TRANS_DIRECTORY = ROOT_DIRECTORY + "chord/";
 
+    //
     public static final String TEMPORARY_DIRECTORY = ROOT_DIRECTORY + "temporary/";
 
     public static final String ASSET_DIRECTORY = TEMPORARY_DIRECTORY + "assets/";
