@@ -51,7 +51,7 @@ import static com.sjtu.karaoke.util.FileUtil.saveFileFromResponse;
  * @ClassName: Utils
  * @Author: guozh
  * @Date: 2021/3/28
- * @Version: v1.2
+ * @Version: v1.3
  * @Description: 工具方法类。用于减少项目中的重复代码。
  */
 

@@ -78,7 +78,7 @@ import static com.sjtu.karaoke.util.WavUtil.getWAVDuration;
  * @ClassName: AccompanySingActivity
  * @Author: 郭志东
  * @Date: 2021/3/28
- * @Version: v1.2
+ * @Version: v1.3
  * @Description: 伴奏演唱界面。本类中包含了如下功能：
  *                  1. 各个组件的初始化、设置点击事件
  *                  2. 根据传入的歌曲信息，初始化MV播放器、伴奏播放器、原唱播放器、歌词滚动器

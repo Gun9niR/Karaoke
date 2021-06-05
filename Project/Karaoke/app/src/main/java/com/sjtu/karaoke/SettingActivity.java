@@ -38,12 +38,12 @@ import static com.sjtu.karaoke.util.Constants.VOICE_DIRECTORY;
  * @ClassName: SettingActivity
  * @Author: guozh
  * @Date: 2021/3/28
- * @Version: v1.2
+ * @Version: v1.3
  * @Description: 设置界面。本类中保存了设置项名称，并调用SettingAdapter来设置设置列表中显示的内容及点击事件。
  */
 
 public class SettingActivity extends AppCompatActivity {
-    private String[] settingItems = {"清空本地缓存", "关于"};
+    private String[] settingItems = {"清空本地缓存", "关于天天爱K歌"};
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -119,10 +119,8 @@ public class SettingActivity extends AppCompatActivity {
                             .setPositiveButtonbackgroundColor(R.color.dialogSuccessBackgroundColor)
                             .setPositiveButtonTextColor(R.color.white)
                             .setPositiveButtonClick(() -> {
-                                //click
                             })
                             .setNegativeButtonClick(() -> {
-                                //click
                             })
                             .show();
                     break;
@@ -130,7 +128,7 @@ public class SettingActivity extends AppCompatActivity {
                     // todo
                     new AwesomeSuccessDialog(this)
                             .setTitle("关于")
-                            .setMessage("")
+                            .setMessage(getString(R.string.about))
                             .setColoredCircle(R.color.purple_500)
                             .setDialogIconAndColor(R.drawable.ic_dialog_info, R.color.white)
                             .setCancelable(true)

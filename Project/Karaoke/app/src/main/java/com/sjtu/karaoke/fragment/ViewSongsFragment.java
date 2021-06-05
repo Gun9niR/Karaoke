@@ -44,7 +44,7 @@ import static com.sjtu.karaoke.util.MiscUtil.showWarningToast;
  * @ClassName: ViewSongsFragment
  * @Author: guozh
  * @Date: 2021/3/28
- * @Version: v1.2
+ * @Version: v1.3
  * @Description: 主界面(MainActivity)中“点歌”界面。本类用于初始化界面中的各个组件，包括：
  *                  1. 初始化各个组件
  *                  2. 调用CarouselAdapter设置走马灯中的显示内容、点击事件
