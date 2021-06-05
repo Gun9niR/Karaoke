@@ -694,9 +694,9 @@ public class InstrumentSingActivity extends AppCompatActivity {
 
         ParticleSystemConfig config = new ParticleSystemConfig();
         config.duration.set(1000, 0);
-        config.theta.set(270, 15);
-        config.startVelocity.set(500, 200);
-        config.endVelocity.set(500, 200);
+        config.theta.set(270, 17);
+        config.startVelocity.set(480, 200);
+        config.endVelocity.set(480, 200);
         config.startAngularRate.set(0, 0);
         config.endAngularRate.set(0, 0);
         config.startSpinRate.set(360, 0);
@@ -705,14 +705,14 @@ public class InstrumentSingActivity extends AppCompatActivity {
         config.endAlpha.set(0.3f, 0);
         config.gravx.set(0, 0);
         config.gravy.set(1000, 0);
-        config.startScale.set(0.2f, 0);
-        config.endScale.set(0.3f, 0);
+        config.startScale.set(0.22f, 0);
+        config.endScale.set(0.33f, 0);
         config.startRed.set(0, 0);
-        config.endRed.set(1, 0);
+        config.endRed.set(0.6f, 0.15f);
         config.startGreen.set(0, 0);
-        config.endGreen.set(0, 0);
-        config.startBlue.set(1, 0);
-        config.endBlue.set(1, 0);
+        config.endGreen.set(0.05f, 0.05f);
+        config.startBlue.set(1, 0.2f);
+        config.endBlue.set(1, 0.2f);
 
         ptcSys.setConfig(config);
     }
