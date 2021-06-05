@@ -1,9 +1,12 @@
 package com.sjtu.karaoke;
 
+import android.app.Dialog;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.ColorDrawable;
 import android.media.SoundPool;
 import android.os.Build;
 import android.os.Bundle;
@@ -12,6 +15,7 @@ import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
@@ -20,6 +24,8 @@ import android.widget.Space;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.AppCompatImageButton;
+import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.constraintlayout.widget.Group;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.res.ResourcesCompat;
 
@@ -99,9 +105,7 @@ public class InstrumentSingActivity extends AppCompatActivity {
     LrcView lrcView;
     SoundPool chordPlayer;
     AudioRecorder voiceRecorder;
-    AppCompatImageButton finishButton;
-    AppCompatImageButton retryButton;
-    AppCompatImageButton backButton;
+    ImageButton pauseButton;
 
     Semaphore mutex = new Semaphore(1);
     Handler handler = new Handler();
@@ -180,13 +184,14 @@ public class InstrumentSingActivity extends AppCompatActivity {
         initProgressMonitor();
         initRecordMonitor();
         initHintMonitor();
-        initTopRightButtons();
+        initPauseButton();
         initParticleSystem();
     }
 
     private void initFullScreen() {
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
@@ -236,13 +241,7 @@ public class InstrumentSingActivity extends AppCompatActivity {
 
                 InstrumentSingActivity.this.runOnUiThread(this::start);
 
-                this.runOnUiThread(() -> {
-                    retryButton.setEnabled(true);
-                    finishButton.setEnabled(true);
-                });
             }).start();
-        } else if (state == State.PAUSE) {
-            start();
         }
     }
 
@@ -251,7 +250,7 @@ public class InstrumentSingActivity extends AppCompatActivity {
     protected void onStop() {
         super.onStop();
         if (this.state == State.PLAYING) {
-            pause();
+            pauseButton.callOnClick();
         }
     }
 
@@ -328,74 +327,87 @@ public class InstrumentSingActivity extends AppCompatActivity {
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
-    private void initTopRightButtons() {
-        finishButton = findViewById(R.id.instrumentFinishBtn);
-        backButton = findViewById(R.id.instrumentBackBtn);
-        retryButton = findViewById(R.id.instrumentRetryBtn);
+    private void initPauseButton() {
 
-        finishButton.setOnClickListener(v -> {
-            finishButton.setEnabled(false);
-            LoadingDialog loadingDialog = showLoadingDialog(
-                    this,
-                    getString(R.string.process_record_hint)
-            );
-            loadingDialog.setCancelable(false);
+        pauseButton = findViewById(R.id.instrumentPauseBtn);
 
-            int len = userSequence.size();
+        pauseButton.setOnClickListener(view -> {
 
-            new Thread(() -> {
-                stopActivity(true);
+            pauseButton.setEnabled(false);
 
-                double[] userTimeSequence = new double[len];
-                String[] userChordNameSequence = new String[len];
-                for (int i = 0; i < len; ++i) {
-                    PlayChordRecord r = userSequence.get(i);
-                    userTimeSequence[i] = (r.getTime() - HINT_DURATION);
-                    userChordNameSequence[i] = r.getChord().getName();
+            Dialog instrumentPauseDialog = new Dialog(this, R.style.PauseDialog);
+            instrumentPauseDialog.setContentView(R.layout.dialog_instrument_pause);
+            instrumentPauseDialog.getWindow().setLayout(WindowManager.LayoutParams.MATCH_PARENT,
+                    WindowManager.LayoutParams.MATCH_PARENT);
+
+            ImageButton backBtn = instrumentPauseDialog.findViewById(R.id.instrumentBackBtn);
+            ImageButton resumeBtn = instrumentPauseDialog.findViewById(R.id.instrumentResumeBtn);
+            ImageButton retryBtn = instrumentPauseDialog.findViewById(R.id.instrumentRetryBtn);
+            ImageButton finishBtn = instrumentPauseDialog.findViewById(R.id.instrumentFinishBtn);
+
+            ConstraintLayout backClickable = instrumentPauseDialog.findViewById(R.id.instrumentBack);
+            ConstraintLayout resumeClickable = instrumentPauseDialog.findViewById(R.id.instrumentResume);
+            ConstraintLayout retryClickable = instrumentPauseDialog.findViewById(R.id.instrumentRetry);
+            ConstraintLayout finishClickable = instrumentPauseDialog.findViewById(R.id.instrumentFinish);
+
+            backBtn.setOnClickListener(view0 -> {
+                backBtn.setEnabled(false);
+                instrumentPauseDialog.dismiss();
+                if (this.state != State.UNSTARTED) {
+                    stopActivity(false);
                 }
+                onBackPressed();
+            });
 
-                for (Thread thread: ratingThread) {
-                    try {
-                        thread.join();
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
+            resumeBtn.setOnClickListener(view1 -> {
+                resumeBtn.setEnabled(false);
+                instrumentPauseDialog.dismiss();
+
+                // 在渐隐动画结束后继续游戏
+                handler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        start();
                     }
-                }
+                }, 300);
+            });
 
-                score.computeFinalScore();
-                Intent intent = new Intent(InstrumentSingActivity.this,
-                        SingResultActivity.class);
-                intent.putExtra("id", id);
-                intent.putExtra("songName", songName);
-                intent.putExtra("score", score);
-                intent.putExtra("pianoScore",
-                        PianoRater.getScore(
-                                getChordTransFullPath(songName),
-                                len,
-                                userTimeSequence,
-                                userChordNameSequence
-                        )
-                );
-                startActivityForResult(intent, 0);
-                loadingDialog.dismiss();
-            }).start();
+            retryBtn.setOnClickListener(view2 -> {
+                retryBtn.setEnabled(false);
+                instrumentPauseDialog.dismiss();
+                retry();
+            });
+
+            finishBtn.setOnClickListener(view3 -> {
+                finishBtn.setEnabled(false);
+                instrumentPauseDialog.dismiss();
+                finishInstrumentSing();
+            });
+
+            backClickable.setOnClickListener(view00 -> {
+                backClickable.setClickable(false);
+                backBtn.callOnClick();
+            });
+
+            resumeClickable.setOnClickListener(view00 -> {
+                resumeClickable.setClickable(false);
+                resumeBtn.callOnClick();
+            });
+
+            retryClickable.setOnClickListener(view00 -> {
+                retryClickable.setClickable(false);
+                retryBtn.callOnClick();
+            });
+
+            finishClickable.setOnClickListener(view00 -> {
+                finishClickable.setClickable(false);
+                finishBtn.callOnClick();
+            });
+
+            pause();
+            instrumentPauseDialog.show();
+
         });
-
-        backButton.setOnClickListener(v -> {
-            backButton.setEnabled(false);
-            if (this.state != State.UNSTARTED) {
-                stopActivity(false);
-            }
-            onBackPressed();
-        });
-
-        retryButton.setOnClickListener(v -> {
-            retryButton.setEnabled(false);
-            retry();
-        });
-
-        finishButton.setEnabled(false);
-        retryButton.setEnabled(false);
     }
 
     private void initParticleSystem() {
@@ -592,7 +604,7 @@ public class InstrumentSingActivity extends AppCompatActivity {
             @Override
             public void run() {
                 if (currentPosition > finishTime) {
-                    finishButton.callOnClick();
+                    finishInstrumentSing();
                     return;
                 }
                 handler.postDelayed(this, 200);
@@ -740,6 +752,7 @@ public class InstrumentSingActivity extends AppCompatActivity {
         handler.postDelayed(hintMonitor, 0);
 
         voiceRecorder.startRecord(null);
+        pauseButton.setEnabled(true);
         startAllPlayers();
     }
 
@@ -764,6 +777,50 @@ public class InstrumentSingActivity extends AppCompatActivity {
     private void retry() {
         stopActivity(false);
         onStart();
+    }
+
+    private void finishInstrumentSing() {
+
+        LoadingDialog loadingDialog = showLoadingDialog(this, getString(R.string.process_record_hint));
+        int len = userSequence.size();
+
+        new Thread(() -> {
+            stopActivity(true);
+
+            double[] userTimeSequence = new double[len];
+            String[] userChordNameSequence = new String[len];
+            for (int i = 0; i < len; ++i) {
+                PlayChordRecord r = userSequence.get(i);
+                userTimeSequence[i] = (r.getTime() - HINT_DURATION);
+                userChordNameSequence[i] = r.getChord().getName();
+            }
+
+            for (Thread thread: ratingThread) {
+                try {
+                    thread.join();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            score.computeFinalScore();
+            Intent intent = new Intent(InstrumentSingActivity.this,
+                    SingResultActivity.class);
+            intent.putExtra("id", id);
+            intent.putExtra("songName", songName);
+            intent.putExtra("score", score);
+            intent.putExtra("pianoScore",
+                    PianoRater.getScore(
+                            getChordTransFullPath(songName),
+                            len,
+                            userTimeSequence,
+                            userChordNameSequence
+                    )
+            );
+            startActivityForResult(intent, 0);
+            loadingDialog.dismiss();
+
+        }).start();
     }
 
     private void stopActivity(boolean shouldMergePcm) {

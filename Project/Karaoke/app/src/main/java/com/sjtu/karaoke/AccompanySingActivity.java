@@ -157,7 +157,7 @@ public class AccompanySingActivity extends AppCompatActivity {
     protected void onStart() {
         super.onStart();
 
-        // return from sing refsult activity or from main activity, initialize all players
+        // return from sing result activity or from main activity, initialize all players
         if (state == State.UNSTARTED) {
             LoadingDialog loadingDialog = showLoadingDialog(
                     this,
@@ -441,7 +441,7 @@ public class AccompanySingActivity extends AppCompatActivity {
         };
     }
 
-    private void initBottomNavbar() {
+    private void  initBottomNavbar() {
         bottomNavigationView = findViewById(R.id.bottomNavigationView);
         this.runOnUiThread(() -> {
             bottomNavigationView.setBackground(null);
@@ -449,7 +449,7 @@ public class AccompanySingActivity extends AppCompatActivity {
             bottomNavigationView.getMenu().getItem(0).setTitle("伴唱");
             bottomNavigationView.getMenu().getItem(1).setEnabled(false);
             // 禁用完成，因为录音还没有开始
-            disableFinishButton();
+//            disableFinishButton();
 
             bottomNavigationView.setOnNavigationItemSelectedListener(
                     item -> {
