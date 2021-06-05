@@ -114,10 +114,10 @@ void classifyBeat() {
     errorCount = 0;
     for (int i = 0; i < chordCount; i++) {
         int id = chord[i] / timePerBeat;
-        __android_log_print(ANDROID_LOG_INFO, "Rater",
+        /*__android_log_print(ANDROID_LOG_INFO, "Rater",
                             "classifyBeat: chordName = %s beat[id].chordName = %s\n",
                             chordName[i].c_str(), beat[id].chordName.c_str());
-        /*__android_log_print(ANDROID_LOG_INFO, "Rater",
+        __android_log_print(ANDROID_LOG_INFO, "Rater",
                             "classifyBeat: info! chord[i] = %.2lf id = %d timePerBeat = %.2lf\n",
                             chord[i], id, timePerBeat);*/
         if (validID(id) && chordName[i] == beat[id].chordName)

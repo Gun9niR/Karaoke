@@ -74,13 +74,15 @@ string getScoreWithDelay(double startTime, double endTime) {
     int accuracyScore = getFirstInterger(res);
     int emotionScore = getEmotionScore(startTime, endTime, correctDelay, accuracyScore);
     int breathScore = getBreathScore(startTime, endTime, correctDelay, accuracyScore);
-
-    __android_log_print(ANDROID_LOG_INFO, "Rater",
+    int totScore = accuracyScore * 0.75 + emotionScore * 0.15 + breathScore * 0.15 + 0.5;
+    constraintScore(accuracyScore, totScore);
+    /*__android_log_print(ANDROID_LOG_INFO, "Rater",
                         "accuracyScore = %d\n", accuracyScore);
     __android_log_print(ANDROID_LOG_INFO, "Rater",
                         "emotionScore = %d\n", emotionScore);
     __android_log_print(ANDROID_LOG_INFO, "Rater",
-                        "breathScore = %d\n", breathScore);
+                        "breathScore = %d\n", breathScore);*/
+    res = to_string(totScore);
     res += " " + to_string(accuracyScore);
     res += " " + to_string(emotionScore);
     res += " " + to_string(breathScore);
@@ -225,7 +227,7 @@ int getBreathScore(double startTime, double endTime, double delay, int accuracyS
             CONTINUOUS_BLANK_SCORE_SCALE;
     constraintScore(accuracyScore, breathScore);
 
-    __android_log_print(ANDROID_LOG_INFO, "Rater",
+    /*__android_log_print(ANDROID_LOG_INFO, "Rater",
                         "###################################\n");
     __android_log_print(ANDROID_LOG_INFO, "Rater",
                         "userEndBlank = %d originEndBlank = %d\n", userEndBlank, originEndBlank);
@@ -233,7 +235,7 @@ int getBreathScore(double startTime, double endTime, double delay, int accuracyS
                         "userContinuousBlank = %d originContinuousBlank = %d\n",
                         userContinuousBlank, originContinuousBlank);
     __android_log_print(ANDROID_LOG_INFO, "Rater",
-                        "###################################\n");
+                        "###################################\n");*/
     return breathScore;
 }
 
