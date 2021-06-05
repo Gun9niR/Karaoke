@@ -66,6 +66,7 @@ def update_song_info(req_song):
 
     # Update song information and file paths in database
     new_song = {}
+    inst_dir = app.config['TRIMMED_WAV_FILENAME'].split('.')[0];
     for field, info in prev_d_song.items():
         if field == 'id':
             continue
@@ -76,7 +77,10 @@ def update_song_info(req_song):
         else:
             _, filename = os.path.split(info)
             if filename:
-                new_file_path = os.path.join(new_dir, filename)
+                if field == 'drum' or field == 'bass' or field == 'orchestra':
+                    new_file_path = os.path.join(new_dir, inst_dir, filename)
+                else:
+                    new_file_path = os.path.join(new_dir, filename)
                 new_song[field] = new_file_path
 
     song_to_save = Song.from_dict(new_song)
