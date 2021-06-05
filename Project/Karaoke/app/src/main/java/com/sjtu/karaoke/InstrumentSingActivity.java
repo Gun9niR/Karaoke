@@ -707,7 +707,7 @@ public class InstrumentSingActivity extends AppCompatActivity {
 
         ParticleSystemConfig config = new ParticleSystemConfig();
         config.duration.set(1000, 0);
-        config.theta.set(270, 45);
+        config.theta.set(270, 15);
         config.startVelocity.set(500, 200);
         config.endVelocity.set(500, 200);
         config.startAngularRate.set(0, 0);
