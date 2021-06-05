@@ -92,7 +92,7 @@ import static com.sjtu.karaoke.util.PathUtil.getUserPlayFullPath;
  */
 
 public class InstrumentSingActivity extends AppCompatActivity {
-    private static final float chordVolume = (float) 1.0;
+    private static final float chordVolume = (float) 0.6;
     private static Integer HINT_DURATION = 3000;
 
     SimpleExoPlayer accompanyPlayer;

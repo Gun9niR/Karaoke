@@ -74,7 +74,7 @@ string getScoreWithDelay(double startTime, double endTime) {
     int accuracyScore = getFirstInterger(res);
     int emotionScore = getEmotionScore(startTime, endTime, correctDelay, accuracyScore);
     int breathScore = getBreathScore(startTime, endTime, correctDelay, accuracyScore);
-    int totScore = accuracyScore * 0.75 + emotionScore * 0.15 + breathScore * 0.15 + 0.5;
+    int totScore = accuracyScore * 0.7 + emotionScore * 0.15 + breathScore * 0.15 + 0.5;
     constraintScore(accuracyScore, totScore);
     /*__android_log_print(ANDROID_LOG_INFO, "Rater",
                         "accuracyScore = %d\n", accuracyScore);
