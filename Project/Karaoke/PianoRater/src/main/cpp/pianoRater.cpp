@@ -8,6 +8,12 @@ double *originChord;
 int beatN, beatM;
 double startTime, endTime, timePerBeat;
 
+//JNI接口：
+//对用户的钢琴演奏进行评级。chordTransPath代表.chordTrans的文件路径，
+//chordCount代表用户演奏的和弦总数，
+//数组chordTime代表用户演奏每个和弦的时刻(以演奏片段开始为计时原点，以ms为单位)
+//数组chordName代表用户演奏每个和弦的和弦名称
+//返回一个[0,100]的正整数，代表用户的钢琴演奏评级
 extern "C"
 JNIEXPORT jstring JNICALL
 Java_com_sjtu_pianorater_PianoRater_getScore(JNIEnv *env, jclass clazz, jstring _chordTransPath,
@@ -32,10 +38,11 @@ Java_com_sjtu_pianorater_PianoRater_getScore(JNIEnv *env, jclass clazz, jstring 
     return env->NewStringUTF(runRater().c_str());
 }
 
+//运行钢琴演奏评价系统
 string runRater() {
     readFile();
     string res = "0";
-    for (int i = 0; i <= RATE_PRECISION; i++) {
+    for (int i = 0; i <= RATE_PRECISION; i++) {//枚举音频硬件延迟
         for (int j = 0; j < chordCount; j++) {
             if (i <= RATE_PRECISION * 0.5)
                 chord[j] = originChord[j] + MIK_DELAY * (i / (RATE_PRECISION * 0.5));
@@ -51,6 +58,7 @@ string runRater() {
     return res;
 }
 
+//读取和弦文件
 void readFile() {
     ifstream file(chordTransPath);
     string str;
@@ -84,6 +92,7 @@ void readFile() {
     }
 }
 
+//回收内存
 void recycleSpace() {
     delete[] chordName;
     delete[] chord;
@@ -91,6 +100,7 @@ void recycleSpace() {
     delete[] beat;
 }
 
+//把用户演奏的一个音符插入到该节拍
 void Beat::insert(double time) {
     double minval = INT_MAX;
     int id = 0;
@@ -106,10 +116,12 @@ void Beat::insert(double time) {
     else    delay[id] = minval;
 }
 
+//检测id是否合法
 bool validID(int id) {
     return id >= 0 && id < beatCount;
 }
 
+//把用户演奏的音符插入到各个节拍之中
 void classifyBeat() {
     errorCount = 0;
     for (int i = 0; i < chordCount; i++) {
@@ -138,11 +150,13 @@ void classifyBeat() {
     }
 }
 
+//利用数学函数模拟的方法获取该次演奏的得分(设计模式为策略模式)
 double Beat::calcScoreWithMath(double delay) {
     double y = -40 * pow(delay, 1.5) + 10;
     return y >= 0 ? y : 0;
 }
 
+//获取该节拍的得分
 double Beat::getScore() {
     int cnt = 0;
     double sum = 0;
@@ -155,39 +169,33 @@ double Beat::getScore() {
     return cnt == 0 ? 6 : sum / cnt;
 }
 
+//获取得分
 string getScore() {
     double score = 0;
-    for (int i = 0; i < beatCount; i++) {
+    for (int i = 0; i < beatCount; i++) {//逐节拍评分
         score += beat[i].getScore();
     }
     score /= beatCount;
-    __android_log_print(ANDROID_LOG_INFO, "Rater",
-                        "getScore: score before punish = %lf\n", score);
+    /*__android_log_print(ANDROID_LOG_INFO, "Rater",
+                        "getScore: score before punish = %lf\n", score);*/
     score -= errorCount * PER_ERR_PUNISH;
-    __android_log_print(ANDROID_LOG_INFO, "Rater",
-                        "getScore: score after punish = %lf\n", score);
+    /*__android_log_print(ANDROID_LOG_INFO, "Rater",
+                        "getScore: score after punish = %lf\n", score);*/
     score *= 10;
+    //演奏次数过少则限制得分
     if (chordCount <= 5)    score = min(score, 20.0);
     if (chordCount <= beatCount * 0.25 - 6)    score = min(score, 33.0);
     if (chordCount <= beatCount * 0.5 - 6)    score = min(score, 70.0);
     if (chordCount <= beatCount - 6)    score = min(score, 84.0);
     if (chordCount <= beatCount * 1.5 - 6)    score = min(score, 93.0);
+
+    //标准化得分
     score += rand() % 9 - 4;
     score = max(score, 0.0);
     score = min(score, 100.0);
-    __android_log_print(ANDROID_LOG_INFO, "Rater",
-                        "getScore: score after restrict = %lf\n", score);
+    /*__android_log_print(ANDROID_LOG_INFO, "Rater",
+                        "getScore: score after restrict = %lf\n", score);*/
     return to_string(int(score));
 }
-
-
-
-
-
-
-
-
-
-
 
 
