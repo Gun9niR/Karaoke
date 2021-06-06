@@ -29,6 +29,7 @@ public class FileUtil {
      * @param fullPath 绝对路径
      */
     public static void deleteOneFile(String fullPath) {
+        System.out.println("========== deleting " + fullPath);
         File file = new File(fullPath);
         if (file.exists()) {
             //noinspection ResultOfMethodCallIgnored
@@ -188,8 +189,7 @@ public class FileUtil {
             @Override
             public void onResponse(Call call, Response response) {
                 // receive and save the file
-                if (!isCanceled.get() &&
-                        saveFileFromResponse(response, destFullPath, loadingDialog, increment)) {
+                if (saveFileFromResponse(response, destFullPath, loadingDialog, increment, isCanceled)) {
                     // countDownLatch and numOfFilesDownloaded are absent or present at the same time
                     if (countDownLatch != null) {
                         countDownLatch.countDown();
@@ -241,10 +241,12 @@ public class FileUtil {
      * @param destPath 文件保存路径（包括文件名）
      * @param loadingDialog 需要更新的加载对话框
      * @param increment 本次下载需要更新的进度百分比
-     * @return Whether the file has been successfully saved
+     * @param isCanceled 本次下载是否已经被用户取消
+     * @return 当文件成功下载时返回true，如果因为网络连接或者用户取消返回false
      */
     public static boolean saveFileFromResponse(Response response, String destPath,
-                                               LoadingDialog loadingDialog, int increment) {
+                                               LoadingDialog loadingDialog, int increment,
+                                               AtomicBoolean isCanceled) {
         if (!response.isSuccessful()) {
             return false;
         }
@@ -254,24 +256,18 @@ public class FileUtil {
 
             File destFile = new File(destPath);
             String contentLength = response.header("Content-Length", null);
-            int incrementedPrgress = 0;
 
             if (destFile.exists()) {
                 destFile.delete();
             }
 
-            if (contentLength == null) {
-                BufferedSink sink;
-                sink = Okio.buffer(Okio.sink(destFile));
-                sink.writeAll(Objects.requireNonNull(response.body()).source());
-                sink.close();
-                loadingDialog.incrementProgress(increment);
-            } else {
-                byte[] buffer = new byte[4096];
+            byte[] buffer = new byte[4096];
 
-                InputStream is = Objects.requireNonNull(response.body()).byteStream();
-                FileOutputStream fos = new FileOutputStream(destFile);
-                int n;
+            InputStream is = Objects.requireNonNull(response.body()).byteStream();
+            FileOutputStream fos = new FileOutputStream(destFile);
+            int n;
+
+            if (contentLength != null) {
                 final int totalBytes = Integer.parseInt(contentLength);
                 final int bytesPerOnePercent = totalBytes / increment;
 
@@ -284,14 +280,29 @@ public class FileUtil {
                     while (bytesToCount >= bytesPerOnePercent) {
                         bytesToCount -= bytesPerOnePercent;
                         loadingDialog.incrementProgress(1);
-                        ++incrementedPrgress;
+                    }
+                    if (isCanceled.get()) {
+                        is.close();
+                        fos.close();
+                        return false;
                     }
                 }
-
-                is.close();
-                fos.close();
+            }
+            // 如果响应头没有Content-Length，无法按照1%的粒度更新进度
+            else {
+                while ((n = is.read(buffer)) != -1) {
+                    fos.write(buffer, 0, n);
+                    if (isCanceled.get()) {
+                        is.close();
+                        fos.close();
+                        return false;
+                    }
+                }
+                loadingDialog.incrementProgress(increment);
             }
 
+            is.close();
+            fos.close();
             return true;
         } catch (IOException e) {
             System.err.println("Failed to download file to " + destPath);
