@@ -76,49 +76,67 @@ public class Constants {
     // 和弦文件目录
     public static final String CHORD_TRANS_DIRECTORY = ROOT_DIRECTORY + "chord/";
 
-    //
+    // 自弹自唱模式的临时文件
     public static final String TEMPORARY_DIRECTORY = ROOT_DIRECTORY + "temporary/";
 
+    // 将asset中的单音文件提取到该目录中
     public static final String ASSET_DIRECTORY = TEMPORARY_DIRECTORY + "assets/";
 
+    // 将由单音文件合成而成的和弦文件保存到该目录
     public static final String CHORD_WAV_DIRECTORY = TEMPORARY_DIRECTORY + "chords/";
 
+    // 储存用户弹奏产生的音频文件
     public static final String USER_PLAY_DIRECTORY = TEMPORARY_DIRECTORY + "user_play/";
 
-    // package data
+    // 应用包名
     public static final String PACKAGE_NAME = "com.sjtu.karaoke";
 
+    // 分享权限
     public static final String AUTHORITY = PACKAGE_NAME + ".fileprovider";
 
-    // request URL
-    public static final String SERVER_IP = "http://192.168.1.125:5000";
+    // 发送请求的地址
+    public static final String SERVER_IP = "http://192.168.1.92:5000";
 
+    // 下载文件的根URL
     public static final String GET_FILE_ROOT_URL = SERVER_IP + "/getFile";
 
+    // 获取歌曲信息
     public static final String GET_SONG_INFO_URL = SERVER_IP + "/getSongInfo";
 
+    // 下载专辑封面
     public static final String GET_ALBUM_COVER_URL = GET_FILE_ROOT_URL + "/album";
 
+    // 下载原唱
     public static final String GET_ORIGINAL_URL = GET_FILE_ROOT_URL + "/original";
 
+    // 下载伴奏
     public static final String GET_ACCOMPANY_URL = GET_FILE_ROOT_URL + "/accompany";
 
+    // 下载鼓点伴奏
     public static final String GET_DRUM_URL = GET_FILE_ROOT_URL + "/drum";
 
+    // 下载贝斯伴奏
     public static final String GET_BASS_URL = GET_FILE_ROOT_URL + "/bass";
 
+    // 下载管弦伴奏
     public static final String GET_ORCHESTRA_URL = GET_FILE_ROOT_URL + "/orchestra";
 
+    // 下载伴奏演唱模式下的歌词
     public static final String GET_LYRIC_URL = GET_FILE_ROOT_URL + "/lyric_accompany";
 
+    // 下载自弹自唱模式下的歌词
     public static final String GET_LYRIC_INSTRUMENT_URL = GET_FILE_ROOT_URL + "/lyric_instrument";
 
+    // 下载伴奏演唱模式的打分文件
     public static final String GET_RATE_URL = GET_FILE_ROOT_URL + "/rate";
 
+    // 下载mv
     public static final String GET_MV_URL = GET_FILE_ROOT_URL + "/mv";
 
+    // 下载和弦文件
     public static final String GET_CHORD_URL = GET_FILE_ROOT_URL + "/chord";
 
+    // 支持分享录音文件到的app：qq、微信、TIM
     public static final String[] PACKAGES_FOR_SHARING = {
             "com.tencent.mobileqq",
             "com.tencent.mm",

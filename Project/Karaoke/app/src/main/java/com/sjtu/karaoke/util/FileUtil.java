@@ -25,13 +25,11 @@ import static com.sjtu.karaoke.util.MiscUtil.getRequest;
 
 public class FileUtil {
     /**
-     * Delete file at given full path.
-     * It handles deletion of nonexistent files
-     * @param fullPath
+     * 删除文件
+     * @param fullPath 绝对路径
      */
     public static void deleteOneFile(String fullPath) {
         File file = new File(fullPath);
-
         if (file.exists()) {
             //noinspection ResultOfMethodCallIgnored
             file.delete();
@@ -39,10 +37,9 @@ public class FileUtil {
     }
 
     /**
-     * Check if a file at given full path exists
-     *
-     * @param fullPath Full path to the file to be checked
-     * @return True if file exists, false otherwise
+     * 检查文件是否存在
+     * @param fullPath 绝对路径
+     * @return 文件是否存在
      */
     public static boolean isFilePresent(String fullPath) {
         File file = new File(fullPath);
@@ -60,12 +57,10 @@ public class FileUtil {
     }
 
     /**
-     * Download a bunch of files from urls to destFullPaths, which corresponde with index
-     * The function will not return until all files have been downloaded
-     * If one of the files fail to download, all the files will be deleted
-     * @param urls
-     * @param destFullPaths
-     * @return true if all files are downloaded successfully or exist already, false otherwise
+     * 批量从给定的url下载文件直到所有文件都下载完或下载失败后才返回。如果有文件下载失败，会删除所有其他文件
+     * @param urls 下载地址
+     * @param destFullPaths 存储路径，和下载地址一一对应
+     * @return 当所有文件都成功下载时返回true
      */
     public static boolean downloadFiles(String[] urls, String[] destFullPaths) {
         int numOfFilesToDownload = urls.length;
@@ -94,11 +89,12 @@ public class FileUtil {
     }
 
     /**
-     * Same effect as previous method, except update progress bar
-     *
-     * @param urls
-     * @param destFullPaths
-     * @return true if all files are downloaded successfully or exist already, false otherwise
+     * 和上述下载文件方法作用相同，但还会在下载的同时更新LoadingDialog的进度
+     * @param urls 下载地址
+     * @param destFullPaths 存储路径，和下载地址一一对应
+     * @param loadingDialog 要更新的假爱对话框
+     * @param isCanceled 下载是否被取消
+     * @return 当所有文件都成功下载时返回true
      */
     public static boolean downloadFiles(
             String[] urls,
@@ -140,10 +136,9 @@ public class FileUtil {
     }
 
     /**
-     * Download one file from url to destFullPath
-     *
-     * @param url          Url to send the request to
-     * @param destFullPath Destination to save the file
+     * 从给定url下载单个文件，如果下载失败，会删除被下载的文件
+     * @param url 下载地址
+     * @param destFullPath 文件保存地址
      */
     public static void downloadFile(String url, String destFullPath) {
         System.out.println("========== Downloading from " + url + " to " + destFullPath + " ==========");
@@ -157,6 +152,7 @@ public class FileUtil {
             public void onResponse(Call call, Response response) {
                 // receive and save the file
                 if (!saveFileFromResponse(response, destFullPath)) {
+                    deleteOneFile(destFullPath);
                     Log.e("downloadFile", "Failed to save file at " + destFullPath);
                 }
             }
@@ -164,7 +160,11 @@ public class FileUtil {
     }
 
     /**
-     * Download one file from url to destFullPath, and update loadingDialog
+     * 和上述下载文件方法作用相同，但还会在下载的同时更新LoadingDialog的进度
+     * @param url 下载地址
+     * @param destFullPath 存储路径，和下载地址一一对应
+     * @param loadingDialog 要更新的假爱对话框
+     * @param isCanceled 下载是否被取消
      */
     public static void downloadFile(String url,
                                     String destFullPath,
@@ -196,6 +196,7 @@ public class FileUtil {
                         numOfFilesDownloaded.incrementAndGet();
                     }
                 } else {
+                    deleteOneFile(destFullPath);
                     while (countDownLatch.getCount() != 0) {
                         countDownLatch.countDown();
                     }
@@ -205,10 +206,10 @@ public class FileUtil {
     }
 
     /**
-     * Save file that is stored in response body. Use BufferedSink to get maximum efficiency.
-     * @param response Response of download request
-     * @param destPath Destination path where the file is to be stored, including file name
-     * @return Whether the file has been successfully saved
+     * 从response body中保存文件
+     * @param response HTTP相应
+     * @param destPath 文件保存路径（包括文件名）
+     * @return 当文件被完整保存时返回true
      */
     public static boolean saveFileFromResponse(Response response, String destPath) {
         if (!response.isSuccessful()) {
@@ -235,9 +236,11 @@ public class FileUtil {
     }
 
     /**
-     * Save file that is stored in response body. Use BufferedSink to get maximum efficiency.
-     * @param response Response of download request
-     * @param destPath Destination path where the file is to be stored, including file name
+     * 和上述保存文件方法效果相同，但是会同时更新加载对话框
+     * @param response HTTP相应
+     * @param destPath 文件保存路径（包括文件名）
+     * @param loadingDialog 需要更新的加载对话框
+     * @param increment 本次下载需要更新的进度百分比
      * @return Whether the file has been successfully saved
      */
     public static boolean saveFileFromResponse(Response response, String destPath,
@@ -289,8 +292,6 @@ public class FileUtil {
                 fos.close();
             }
 
-            System.out.println("========== Finished file to " + destPath + " ==========");
-            System.out.println("========== Incremented progress: " + incrementedPrgress);
             return true;
         } catch (IOException e) {
             System.err.println("Failed to download file to " + destPath);
@@ -300,9 +301,9 @@ public class FileUtil {
     }
 
     /**
-     * Get all file paths in a directory
-     * @param dirPath Directory name
-     * @return The full paths to all files in the directory
+     * 获取一个目录下的所有文件的绝对路径
+     * @param dirPath 目录路径
+     * @return 所有绝对路径，包括目录和文件
      */
     public static List<String> getFullPathsInDirectory(String dirPath) {
         File dir = new File(dirPath);

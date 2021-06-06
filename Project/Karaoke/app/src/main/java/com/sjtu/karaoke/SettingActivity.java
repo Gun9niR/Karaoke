@@ -63,39 +63,40 @@ public class SettingActivity extends AppCompatActivity {
         listView.setFooterDividersEnabled(true);
         listView.setOnItemClickListener((adapterView, view, i, l) -> {
             switch(i) {
+                // 清空所有临时目录，并计算清除的文件大小
                 case 0:
                     long bytes = 0;
 
                     List<File> dirs = new ArrayList<>();
-                    // delete accompany
+                    // 删除伴奏演唱模式的伴奏
                     dirs.add(new File(ACCOMPANY_DIRECTORY));
-                    // delete album cover
+                    // 删除专辑封面
                     dirs.add(new File(ALBUM_COVER_DIRECTORY));
-                    // delete chord
+                    // 删除和弦文件
                     dirs.add(new File(CHORD_TRANS_DIRECTORY));
-                    // delete i_accompany
+                    // 删除自弹自唱模式的伴奏
                     dirs.add(new File(BASS_DIRECTORY));
                     dirs.add(new File(DRUM_DIRECTORY));
                     dirs.add(new File(ORCHESTRA_DIRECTORY));
-                    // delete i_lyric
+                    // 删除自弹自唱模式的歌词
                     dirs.add(new File(LYRIC_INSTRUMENT_DIRECTORY));
-                    // delete lyric
+                    // 删除伴奏演唱模式的歌词
                     dirs.add(new File(LYRIC_DIRECTORY));
-                    // delete mv
+                    // 删除MV
                     dirs.add(new File(MV_DIRECTORY));
-                    // delete original
+                    // 删除原唱
                     dirs.add(new File(ORIGINAL_DIRECTORY));
-                    // delete pcm
+                    // 删除录音pcm文件
                     dirs.add(new File(PCM_DIRECTORY));
-                    // delete raterdata
+                    // 删除打分系统临时文件
                     dirs.add(new File(RATERDATA_DIRECTORY));
-                    // delete rating
+                    // 删除打分文件
                     dirs.add(new File(RATE_DIRECTORY));
-                    // delete temporary
+                    // 删除自弹自唱模式的临时文件
                     dirs.add(new File(ASSET_DIRECTORY));
                     dirs.add(new File(CHORD_WAV_DIRECTORY));
                     dirs.add(new File(USER_PLAY_DIRECTORY));
-                    // delete wav
+                    // 删除用户录音临时文件
                     dirs.add(new File(VOICE_DIRECTORY));
 
                     for (File dir: dirs) {
@@ -106,8 +107,6 @@ public class SettingActivity extends AppCompatActivity {
                             }
                         }
                     }
-
-                    System.out.println(FileUtils.byteCountToDisplaySize(bytes));
 
                     new AwesomeSuccessDialog(this)
                             .setTitle("删除成功")
@@ -125,7 +124,7 @@ public class SettingActivity extends AppCompatActivity {
                             .show();
                     break;
                 case 1:
-                    // todo
+                    // 显示关于信息
                     new AwesomeSuccessDialog(this)
                             .setTitle("关于")
                             .setMessage(getString(R.string.about))
@@ -136,10 +135,8 @@ public class SettingActivity extends AppCompatActivity {
                             .setPositiveButtonbackgroundColor(R.color.dialogSuccessBackgroundColor)
                             .setPositiveButtonTextColor(R.color.white)
                             .setPositiveButtonClick(() -> {
-                                //click
                             })
                             .setNegativeButtonClick(() -> {
-                                //click
                             })
                             .show();
                     break;

@@ -11,14 +11,13 @@ import java.util.List;
 public class WavUtil {
 
     /**
-     * Merge multiple wav files into one file
-     * @param destPath          Destination path of the output file
-     * @param voiceFullPath     Full path to voice file
-     * @param voiceVolume       Volume of voice
-     * @param accompanyPaths    A list of full paths to accompany files. One file for AccompanySing,
-     *                          three for instrument
-     * @param accompanyVolumes  A list of volumes that corresponds to accompany files
-     * @param voiceOffset       Time in ms for which the voice should be delayed
+     * 将多个wav文件合并为一个文件
+     * @param destPath          输出路径
+     * @param voiceFullPath     录音音频的绝对路径
+     * @param voiceVolume       录音的音量
+     * @param accompanyPaths    伴奏文件列表。伴奏演唱模式有一个文件，自弹自唱模式有3个文件
+     * @param accompanyVolumes  伴奏文件的音量列表，与伴奏文件以下标一一对应
+     * @param voiceOffset       录音的提前量。在实现上，其实是所有伴奏增加延迟
      */
     public static void mergeWAVs(String destPath,
                                  String voiceFullPath,
@@ -51,6 +50,7 @@ public class WavUtil {
     }
 
     /**
+     * 剪切wav文件
      * @param from  原文件名，不包含路径
      * @param to    目标文件名，不包含路径
      * @param start 开始时间 ms
@@ -95,6 +95,11 @@ public class WavUtil {
 
     }
 
+    /**
+     * 获取wav文件的持续时间
+     * @param fullPath wav文件的绝对路径
+     * @return 持续时长
+     */
     public static double getWAVDuration(String fullPath) {
         WavReader wavReader = new WavReader(fullPath);
         wavReader.getHeader();

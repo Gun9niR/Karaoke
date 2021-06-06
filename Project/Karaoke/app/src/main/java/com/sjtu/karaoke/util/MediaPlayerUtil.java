@@ -1,8 +1,6 @@
 package com.sjtu.karaoke.util;
 
 import android.app.Activity;
-import android.content.Context;
-import android.content.res.AssetFileDescriptor;
 import android.media.MediaPlayer;
 import android.net.Uri;
 
@@ -13,6 +11,10 @@ import java.io.File;
 import java.io.IOException;
 
 public class MediaPlayerUtil {
+    /**
+     * 封装MediaPlayer的reset和release方法，减
+     * @param mediaPlayer 需要释放的MediaPlayer
+     */
     public static void terminateMediaPlayer(MediaPlayer mediaPlayer) {
         if (mediaPlayer != null) {
             mediaPlayer.reset();
@@ -20,37 +22,10 @@ public class MediaPlayerUtil {
         }
     }
 
-    public static void loadAndPrepareMediaplayer(Context context, MediaPlayer mediaPlayer, String fileName) {
-        // todo: change to load from local storage, discard this method
-        if (mediaPlayer == null) {
-            return;
-        }
-
-        AssetFileDescriptor afd = null;
-        try {
-            afd = context.getAssets().openFd(fileName);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        try {
-            mediaPlayer.setDataSource(afd.getFileDescriptor(), afd.getStartOffset(), afd.getLength());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        try {
-            mediaPlayer.prepare();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
     /**
-     * Set the data source of a media player and put it to prepared state
-     *
-     * @param mediaPlayer
-     * @param fullPath
+     * 为MediaPlayer设置数据源并将其状态设为准备
+     * @param mediaPlayer 需要设置的MediaPlayer
+     * @param fullPath 音频的绝对路径
      */
     public static void loadFileAndPrepareMediaPlayer(MediaPlayer mediaPlayer, String fullPath) {
         if (mediaPlayer == null) {
@@ -70,6 +45,12 @@ public class MediaPlayerUtil {
         }
     }
 
+    /**
+     * 为SimpleExoPlayer设置数据源并将其状态设为准备
+     * @param activity 调用SimpleExoPlayer的Acitivity
+     * @param exoPlayer 需要设置的播放器
+     * @param fullPath 音频绝对路径
+     */
     public static void loadAudioFileAndPrepareExoPlayer(Activity activity, SimpleExoPlayer exoPlayer, String fullPath) {
         File audioFile = new File(fullPath);
         MediaItem mediaItem = MediaItem.fromUri(Uri.fromFile(audioFile));
@@ -79,6 +60,11 @@ public class MediaPlayerUtil {
         });
     }
 
+    /**
+     * 释放SimpleExoPlayer
+     * @param activity 调用SimpleExoPlayer的Activity
+     * @param player 要释放的播放器
+     */
     public static void terminateExoPlayer(Activity activity, SimpleExoPlayer player) {
         if (player != null) {
             activity.runOnUiThread(player::release);
