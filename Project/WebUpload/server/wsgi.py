@@ -4,10 +4,22 @@ from src import services
 from src.exceptions import *
 
 
+'''
+连接客户端socket。
+'''
 @socketio.on('connect', namespace='/karaoke')
 def connect():
     print('connected!')
 
+ 
+'''
+进行服务器端歌曲文件的同步（用于上传某首歌曲单个文件之后）。若文件同步失败，则向
+客户端发送同步失败的socket请求。
+
+参数:
+    song_id: 要进行文件同步的歌曲的id。
+    song_info: 格式为“<歌曲名称>-<歌手>”的歌曲信息，用于向客户端发送socket。
+'''
 @socketio.on('sync', namespace='/karaoke')
 def sync(song_id, song_info):
     try:
@@ -16,6 +28,12 @@ def sync(song_id, song_info):
         socketio.emit('sync-fail', song_info)
 
 
+'''
+管理员登录。
+
+返回:
+    若登录成功，则返回用户信息；否则，返回状态码为400的响应。
+'''
 @app.route('/login', methods=['POST'])
 def login():
     try:
@@ -33,6 +51,13 @@ def login():
     return user
 
 
+'''
+获取数据库中的所有歌曲。
+
+返回:
+    若成功，则返回一个包含数据库中所有歌曲的列表；否则，返回状态码
+为400的响应。
+'''
 @app.route("/getSongs", methods=['GET'])
 def get_songs():
     try:
@@ -43,6 +68,12 @@ def get_songs():
     return songs
 
 
+'''
+删除一首歌曲。
+
+返回:
+    若删除成功，则返回状态码为200的响应；否则，返回状态码为400的响应。
+'''
 @app.route("/deleteSong", methods=['DELETE'])
 def delete_song():
     try:
@@ -55,6 +86,12 @@ def delete_song():
     return 'success'
 
 
+'''
+更新歌曲信息（歌曲名称与歌手）。
+
+返回:
+    若更新成功，则返回状态码为200的响应；否则，返回状态码为400的响应。
+'''
 @app.route("/updateSongInfo", methods=['POST'])
 def update_song_info():
     try:
@@ -68,6 +105,12 @@ def update_song_info():
     return 'success'
 
 
+'''
+上传一首新的歌曲。
+
+返回:
+    若上传成功，则返回状态码为200的响应；否则，返回状态码为400的响应。
+'''
 @app.route("/uploadSong", methods=['POST'])
 def upload_song():
     try:
@@ -80,6 +123,15 @@ def upload_song():
     return 'success'
 
 
+'''
+更新歌曲的单个文件。
+
+参数:
+    song_id: 歌曲的id。
+
+返回:
+    若更新成功，则返回状态码为200的响应；否则，返回状态码为400的响应。
+'''
 @app.route("/uploadOneFile/<song_id>", methods=['POST'])
 def upload_one_file(song_id):
     try:
@@ -90,11 +142,12 @@ def upload_one_file(song_id):
     return 'success'
 
 
-
 ''' 
-Returns:
-    A JSON object including the id, the name and the singer
-    of all the songs in database.
+获取所有歌曲的信息。
+
+返回:
+    若成功，则返回一个包含数据库内所有歌曲的id，名称和歌手的列表；否则，
+返回状态码为400的响应。
 '''
 @app.route("/getSongInfo", methods=['GET'])
 def get_song_info():
@@ -107,11 +160,13 @@ def get_song_info():
 
 
 '''
-Args:
-    file_type: Field name in the database which denotes the type of 
-        the file required.
-Returns:
-    The corresponding file of the requested song.
+向客户端发送指定文件。
+
+参数:
+    file_type: 要发送的文件的类型。
+
+返回:
+    若成功，则发送相应文件；否则，返回状态码为400的响应。
 '''
 @app.route("/getFile/<file_type>", methods=['GET'])
 def get_file(file_type):

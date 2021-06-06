@@ -9,7 +9,7 @@
   <div class="dialog-body">
 
     <div class="upload-dialog-note">
-    请在上传原唱音频、歌词文件或和弦文件后进行文件同步。
+      请在上传原唱音频、歌词文件或和弦文件后进行文件同步。
     </div>
 
     <el-cascader

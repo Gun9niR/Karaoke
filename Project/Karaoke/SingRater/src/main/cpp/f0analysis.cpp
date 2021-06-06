@@ -53,6 +53,10 @@ namespace {
 
 }  // namespace
 
+//JNI接口：
+//对filePath这个wav文件进行基频分析。以伴奏时钟为参考基准，其起始时间为jstartTimeInMicroMS毫秒，
+//返回算法消耗的时间。可以并行。
+//注意，不可以对同一时刻的音频多次调用该函数。filePath必须以/data/data/com.sjtu.karaoke开头。
 extern "C" JNIEXPORT jstring JNICALL
 Java_com_sjtu_karaoke_singrater_RatingUtil_f0analysis(JNIEnv *env, jobject thiz, jstring filePath, jint jstartTimeInMicroMS) {
     jboolean icCopy = 0;
