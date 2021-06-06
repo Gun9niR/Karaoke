@@ -114,7 +114,7 @@ public class LrcView extends View {
             if (getScrollY() == currentPosition * LINE_HEIGHT) {
                 lastPosition = currentPosition;
             }
-            postInvalidateDelayed(500);
+            postInvalidateDelayed(50);
         }
     }
 
@@ -176,7 +176,7 @@ public class LrcView extends View {
                 }
             }
         } catch (Exception e) {
-            postInvalidateDelayed(500);
+            postInvalidateDelayed(50);
         }
     }
 
