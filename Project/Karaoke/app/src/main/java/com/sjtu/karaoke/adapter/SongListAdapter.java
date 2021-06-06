@@ -239,10 +239,6 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.ViewHo
                 getMVFullPath(songName),
         };
 
-        if (areFilesPresent(destFullPaths)) {
-            return true;
-        }
-
         String[] urls = {
                 GET_ORIGINAL_URL + requestParam,
                 GET_ACCOMPANY_URL + requestParam,
@@ -286,9 +282,6 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.ViewHo
                 getOrchestraFullPath(songName),
         };
 
-        if (areFilesPresent(destFullPaths)) {
-            return true;
-        }
         String[] urls = {
                 GET_ACCOMPANY_URL + requestParam,
                 GET_LYRIC_INSTRUMENT_URL + requestParam,
