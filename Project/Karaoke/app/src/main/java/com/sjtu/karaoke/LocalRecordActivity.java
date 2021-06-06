@@ -60,8 +60,11 @@ public class LocalRecordActivity extends AppCompatActivity {
 
     // 录音持续时间
     private int duration;
+    // 播放停止flag
     private boolean playerReleased;
+    // 当前播放状态
     private State state = State.UNSTARTED;
+    // 当前正在播放的录音的绝对路径
     private String currentRecordFullPath;
 
     @Override
@@ -69,17 +72,16 @@ public class LocalRecordActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_local_record);
 
+        // 初始化顶部工具栏
         initToolbar();
-
+        //初始化本地录音列表
         initLocalRecordList();
-
+        // 初始化进度监听
         initRunnable();
-
+        // 初始化专辑封面的转动动画
         initAnimation();
-
+        // 初始化底部的录音播放栏
         initBottomRecordBar();
-
-
     }
 
     private void initBottomRecordBar() {
@@ -91,6 +93,9 @@ public class LocalRecordActivity extends AppCompatActivity {
         resetBottomRecordBar();
     }
 
+    /**
+     * 将底部的录音播放栏设置为暂无播放状态，包括设置提示文字、清除图片、禁用播放按钮、重置进度条
+     */
     private void resetBottomRecordBar() {
         recordSongName.setText("暂无播放");
         circleImageView.setImageBitmap(null);
@@ -138,6 +143,9 @@ public class LocalRecordActivity extends AppCompatActivity {
         getSupportActionBar().setDisplayShowTitleEnabled(false);
     }
 
+    /**
+     * 在用户退出APP时暂停播放
+     */
     @Override
     protected void onStop() {
         super.onStop();
@@ -146,6 +154,9 @@ public class LocalRecordActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * 释放播放器的资源
+     */
     @Override
     protected void onDestroy() {
         super.onDestroy();
@@ -155,6 +166,9 @@ public class LocalRecordActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * 捕获用户点击返回主页按钮的事件，调用onBackPressed()，否则返回时会返回到歌曲浏览界面
+     */
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         if (item.getItemId() == android.R.id.home) {
@@ -164,18 +178,25 @@ public class LocalRecordActivity extends AppCompatActivity {
         return false;
     }
 
+    /**
+     * 播放用户选择的录音
+     * @param record 要播放的录音
+     */
     public void playRecord(Record record) {
+        // 设置播放器的数据源
         initRecordPlayer(record.getRecordFullPath());
-
+        // 初始化进度条
         initSeekbar();
-
+        // 初始化播放按钮
         initPlayBtn();
-
+        // 初始化专辑封面
         initRecordTitleAndCover(record);
+
 
         this.state = State.PLAYING;
         currentRecordFullPath = record.getRecordFullPath();
 
+        // 在播放完成后不重复播放
         recordPlayer.setOnCompletionListener(mediaPlayer -> {
             this.state = State.UNSTARTED;
             recordPlayer.seekTo(0);
@@ -188,6 +209,9 @@ public class LocalRecordActivity extends AppCompatActivity {
         startRecordPlayer();
     }
 
+    /**
+     * 初始化进度条
+     */
     private void initSeekbar() {
         handler.removeCallbacks(progressMonitor);
         if (this.state == State.UNSTARTED) {
@@ -216,7 +240,6 @@ public class LocalRecordActivity extends AppCompatActivity {
             }
         });
 
-        // restart playing
         handler.postDelayed(progressMonitor, 0);
     }
 
@@ -283,8 +306,7 @@ public class LocalRecordActivity extends AppCompatActivity {
     }
 
     /**
-     * Called when a local record is removed, reset bottom record bar if the currently playing record
-     * is the one being deleted
+     * 如果被删除的录音就是当前正在播放的录音，那么将底部的录音播放栏重设为暂无播放状态
      */
     public void checkCurrentDeletion(String fullPath) {
         if (fullPath.equals(currentRecordFullPath)) {
