@@ -208,9 +208,9 @@ public class ViewSongsFragment extends Fragment {
     private void initCarousel() {
         // 添加图片
         List<Integer> carouselImages = new ArrayList<>();
-        carouselImages.add(R.drawable.carousel_attention);
-        carouselImages.add(R.drawable.carousel_dangerously);
-        carouselImages.add(R.drawable.carousel_back_to_december);
+        carouselImages.add(R.drawable.carousel_sjzy);
+        carouselImages.add(R.drawable.carousel_sn);
+        carouselImages.add(R.drawable.carousel_xxy);
 
         // 设置适配器
         carousel.setAdapter(new CarouselAdapter(carouselImages, carousel));
