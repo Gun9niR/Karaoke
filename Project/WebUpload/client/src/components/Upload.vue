@@ -9,7 +9,7 @@
         <el-button size="middle" @click="redirectToSongs">查看曲库</el-button>
       </div>
       <div class="header-button">
-        <el-button size="middle" @click="drawer = true">查看上传</el-button>
+        <el-button size="middle" @click="drawer = true">上传队列</el-button>
       </div>
     </el-header>
 

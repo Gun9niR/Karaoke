@@ -774,7 +774,7 @@ public class InstrumentSingActivity extends AppCompatActivity {
 
         }).start();
     }
-
+  
     /**
      * 初始化粒子特效，设置动画效果参数，以及初始位置
      * @param ptcSys 需要初始化的粒子特效
@@ -783,17 +783,19 @@ public class InstrumentSingActivity extends AppCompatActivity {
      */
     private void initParticleSystem(ParticleSystem ptcSys, int x, int y) {
 
+        //获取粒子纹理
         BitmapDrawable drawable = (BitmapDrawable) ResourcesCompat.getDrawable(Karaoke.getRes(),
                 R.drawable.note, null);
-
         Bitmap img = drawable.getBitmap();
 
+        //设置ptcSys
         ptcSys.setPtcBlend(1);
         ptcSys.setFps(35);
         ptcSys.setPps(10);
         ptcSys.setPtcImage(img);
         ptcSys.setPtcPosition(x, y);
 
+        //粒子属性的配置
         ParticleSystemConfig config = new ParticleSystemConfig();
         config.duration.set(1000, 0);
         config.theta.set(270, 17);
@@ -816,6 +818,7 @@ public class InstrumentSingActivity extends AppCompatActivity {
         config.startBlue.set(1, 0.2f);
         config.endBlue.set(1, 0.2f);
 
+        //对该粒子系统中所有粒子应用配置
         ptcSys.setConfig(config);
     }
 

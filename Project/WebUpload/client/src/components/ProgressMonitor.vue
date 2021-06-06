@@ -6,16 +6,16 @@
       <span v-else><i class="el-icon-success" /> 文件上传成功</span>
     </span>
     <span class="monitor-item">
-      <span v-if="!chordFinished"><i class="el-icon-loading" /> 和弦文件转化中</span>
-      <span v-else><i class="el-icon-success" /> 和弦文件转化成功</span>
+      <span v-if="!chordFinished"><i class="el-icon-loading" /> 正在执行和弦解释器</span>
+      <span v-else><i class="el-icon-success" /> 和弦文件解释成功</span>
     </span>
     <span class="monitor-item">
-      <span v-if="!instrumentFinished"><i class="el-icon-loading" /> 自弹自唱相关文件转化中</span>
-      <span v-else><i class="el-icon-success" /> 自弹自唱相关文件转化成功</span>
+      <span v-if="!instrumentFinished"><i class="el-icon-loading" /> 正在进行AI音轨分离</span>
+      <span v-else><i class="el-icon-success" /> AI音轨分离成功</span>
     </span>
     <span class="monitor-item">
-      <span v-if="!rateFinished"><i class="el-icon-loading" /> 打分文件文件生成中</span>
-      <span v-else><i class="el-icon-success" /> 打分文件生成成功</span>
+      <span v-if="!rateFinished"><i class="el-icon-loading" /> 正在进行人声基频分析</span>
+      <span v-else><i class="el-icon-success" /> 人声基频分析成功</span>
     </span>
   </div>
 </template>

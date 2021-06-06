@@ -1,6 +1,9 @@
 from flask_login import UserMixin 
 from werkzeug.security import check_password_hash
-# ...
+
+'''
+用于验证用户登录密码是否正确。
+'''
 class UserVerification(UserMixin):
 
     def __init__(self, user):
