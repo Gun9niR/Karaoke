@@ -94,8 +94,8 @@ public class Constants {
     // 分享权限
     public static final String AUTHORITY = PACKAGE_NAME + ".fileprovider";
 
-    // 发送请求的地址
-    public static final String SERVER_IP = "http://192.168.1.92:5000";
+    // request URL
+    public static final String SERVER_IP = "https://jyzkaraoke.cn1.utools.club";
 
     // 下载文件的根URL
     public static final String GET_FILE_ROOT_URL = SERVER_IP + "/getFile";
