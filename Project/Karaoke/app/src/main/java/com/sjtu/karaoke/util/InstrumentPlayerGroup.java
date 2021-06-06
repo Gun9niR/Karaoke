@@ -18,6 +18,12 @@ import static com.sjtu.karaoke.util.PathUtil.getVoiceFullPath;
 import static com.sjtu.karaoke.util.WavUtil.getWAVDuration;
 import static com.sjtu.karaoke.util.WavUtil.mergeWAVs;
 
+/*
+ * @ClassName: InstrumentPlayerGroup
+ * @Author: 郭志东
+ * @Date: 2021/6/5
+ * @Description: 自弹自唱模式的播放器组，播放录音、用户弹奏的钢琴、鼓点、贝斯、管弦
+ */
 public class InstrumentPlayerGroup implements ExoPlayerGroup {
     private final Activity activity;
 
@@ -99,6 +105,10 @@ public class InstrumentPlayerGroup implements ExoPlayerGroup {
         return orchestraPlayer;
     }
 
+    /**
+     * 设置人声提前量
+     * @param voiceOffset 单位为毫秒
+     */
     @Override
     public void setVoiceOffset(int voiceOffset) {
         this.voiceOffset = voiceOffset;
@@ -108,6 +118,9 @@ public class InstrumentPlayerGroup implements ExoPlayerGroup {
         voicePlayer.seekTo(Math.min(newPosition, duration));
     }
 
+    /**
+     * 在用户通过进度条对齐后0.5秒再检测一次进度差，因为进度条的值和实际的进度差不完全相等
+     */
     @Override
     public void setActualOffset() {
         Handler handler = new Handler();
@@ -160,6 +173,7 @@ public class InstrumentPlayerGroup implements ExoPlayerGroup {
         return duration;
     }
 
+
     @Override
     public void seekTo(int position) {
         pianoPlayer.seekTo(position);
@@ -191,6 +205,4 @@ public class InstrumentPlayerGroup implements ExoPlayerGroup {
 
         mergeWAVs(destPath, getVoiceFullPath(songName), voicePlayer.getVolume(), accompanyPaths, accompanyVolumes, actualOffset);
     }
-
-
 }

@@ -535,7 +535,8 @@ public class SingResultActivity extends AppCompatActivity {
 
             SeekBar seekBarTuneDrum = findViewById(R.id.seekbarTuneDrum);
             seekBarTuneDrum.setMax(100);
-            seekBarTuneDrum.setProgress(0);
+            seekBarTuneDrum.setProgress(70);
+            ((InstrumentPlayerGroup) playerGroup).getDrumPlayer().setVolume((float) 0.7);
             seekBarTuneDrum.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
                 @Override
                 public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
@@ -557,7 +558,8 @@ public class SingResultActivity extends AppCompatActivity {
 
             SeekBar seekBarTuneBass = findViewById(R.id.seekbarTuneBass);
             seekBarTuneBass.setMax(100);
-            seekBarTuneBass.setProgress(0);
+            seekBarTuneBass.setProgress(70);
+            ((InstrumentPlayerGroup) playerGroup).getBassPlayer().setVolume((float) 0.7);
             seekBarTuneBass.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
                 @Override
                 public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
@@ -579,7 +581,8 @@ public class SingResultActivity extends AppCompatActivity {
 
             SeekBar seekBarTuneOrchestra = findViewById(R.id.seekbarTuneOrchestra);
             seekBarTuneOrchestra.setMax(100);
-            seekBarTuneOrchestra.setProgress(0);
+            seekBarTuneOrchestra.setProgress(70);
+            ((InstrumentPlayerGroup) playerGroup).getOrchestraPlayer().setVolume((float) 0.7);
             seekBarTuneOrchestra.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
                 @Override
                 public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {

@@ -82,32 +82,48 @@ import static com.sjtu.karaoke.util.WavUtil.getWAVDuration;
  * @Description: 伴奏演唱界面。本类中包含了如下功能：
  *                  1. 各个组件的初始化、设置点击事件
  *                  2. 根据传入的歌曲信息，初始化MV播放器、伴奏播放器、原唱播放器、歌词滚动器
- *                  3. 在播放时监控进度、更4新进度条、得分条
+ *                  3. 在播放时监控进度、更新进度条、得分条、实时打分
  *                  4. 录音
  */
 
 public class AccompanySingActivity extends AppCompatActivity {
+    // 得分提示的显示持续时间
     private static final int ANIMATION_DURATION = 350;
+    // 得分提示向上飞的距离
     private static final int MOVE_UP_LENGTH = 70;
+    // 得分提示的渐入效果
     private static final AlphaAnimation fadeInAnimation;
+    // 得分提示的上移动画
     private static final TranslateAnimation moveUpAnimation;
 
+    // mv视频播放器
     SimpleExoPlayer mvPlayer;
+    // 歌词滚动视图
     LrcView lrcView;
+    // 伴奏播放器
     SimpleExoPlayer accompanyPlayer;
+    // 原唱播放器
     SimpleExoPlayer originalPlayer;
+    // 进度条
     ProgressBar progressBar;
+    // 得分条
     ProgressBar scoreBar;
+    // 播放/暂停按钮
     FloatingActionButton fab;
+    // 录音器
     AudioRecorder voiceRecorder;
+    // 底部导航栏
     BottomNavigationView bottomNavigationView;
+    // 得分显示文本框
     AutofitTextView scoreLabel;
 
+    // 保护分数显示的互斥锁，防止用户在点击重试/完成后分数还在显示
     Semaphore mutex = new Semaphore(1);
-    Handler handler = new Handler();
 
+    // 使用handler而非自线程来进行各种监听，因为需要在主线程中获取播放器的进度
     Runnable progressMonitor;
     Runnable recordMonitor;
+    Handler handler = new Handler();
 
     // 状态量
     // 当前歌的id
@@ -131,6 +147,7 @@ public class AccompanySingActivity extends AppCompatActivity {
     // 当前播放进度
     int currentPosition;
 
+    // 初始化分数动画
     static {
         fadeInAnimation = new AlphaAnimation(0.5f, 0.8f);
         fadeInAnimation.setDuration(ANIMATION_DURATION);
@@ -146,7 +163,7 @@ public class AccompanySingActivity extends AppCompatActivity {
         setContentView(R.layout.activity_accompany_sing);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
-        // UI-related initialization
+        // 进行UI相关，与播放无关的初始化
         initSongName();
         initToolbar();
         initState();
@@ -157,7 +174,7 @@ public class AccompanySingActivity extends AppCompatActivity {
     protected void onStart() {
         super.onStart();
 
-        // return from sing result activity or from main activity, initialize all players
+        // 在重唱或从其他界面跳转过来时需要重新进行所有和播放相关的初始化，如果是用户退出APP再重新进入什么都不需要做
         if (state == State.UNSTARTED) {
             LoadingDialog loadingDialog = showLoadingDialog(
                     this,
@@ -167,45 +184,42 @@ public class AccompanySingActivity extends AppCompatActivity {
             loadingDialog.setCancelable(false);
             new Thread(() -> {
 
-                // Player-related initialization
+                // 初始化伴奏和原唱播放器
                 accompanyPlayer = new SimpleExoPlayer.Builder(this).build();
                 loadAudioFileAndPrepareExoPlayer(this, accompanyPlayer, getAccompanyFullPath(songName));
                 originalPlayer = new SimpleExoPlayer.Builder(this).build();
                 loadAudioFileAndPrepareExoPlayer(this, originalPlayer, getOriginalFullPath(songName));
-
                 loadingDialog.setProgress(20);
 
+                // 初始化进度监听、录音监听和完成监听
                 nextPcmSplitTime = PCM_SPLIT_INTERVAL;
-
                 initProgressMonitor(originalPlayer);
                 initRecordMonitor();
-
+                initOnCompleteListener(originalPlayer);
                 loadingDialog.setProgress(40);
 
-
-                initOnCompleteListener(originalPlayer);
+                // 初始化打分系统
                 initRatingSystem();
-
                 loadingDialog.setProgress(60);
 
+                // 初始化mv播放器和歌词滚动空间
                 initMVPlayer();
                 initLrcView();
-
                 loadingDialog.setProgress(80);
 
+                // 如果用户点击重试，需要清除上一次产生的临时文件，初始化录音、进度条、分数条和标签
                 clearTemporaryPcmAndWavFiles();
                 initVoiceRecorder();
                 initProgressBar();
                 initScore();
                 initScoreBarAndLabel();
-
                 loadingDialog.setProgress(90);
 
+                // 初始化播放、暂停按钮、播放状态、底部导航栏、伴奏/原唱切换键，并默认切换到伴奏模式
                 initFab();
                 initState();
                 initBottomNavbar();
                 muteOriginal();
-
                 loadingDialog.dismiss();
             }).start();
         }
@@ -240,20 +254,21 @@ public class AccompanySingActivity extends AppCompatActivity {
     @Override
     protected void onStop() {
         super.onStop();
-        // 在播放时退出app，暂停播放和录音
+        // 在播放时如果用户退出app，暂停播放和录音
         if (this.state == State.PLAYING) {
-            // 在播放时退出app
             pause();
         }
     }
 
     /*
-     * onDestroy() is not called when hitting finish or close the app
+     * onDestroy被调用的时机不确定，但是LrcView和ExoPlayer都可以确保在被反复释放时不报错，VoiceRecorder增加了
+     * 状态检查
      */
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (voiceRecorder.getStatus() == AudioRecorder.Status.STATUS_PAUSE || voiceRecorder.getStatus() == AudioRecorder.Status.STATUS_START) {
+        if (voiceRecorder.getStatus() == AudioRecorder.Status.STATUS_PAUSE ||
+            voiceRecorder.getStatus() == AudioRecorder.Status.STATUS_START) {
             voiceRecorder.stopRecord(false);
         }
         lrcView.alertPlayerReleased();
@@ -299,7 +314,6 @@ public class AccompanySingActivity extends AppCompatActivity {
     }
 
     private void initMVPlayer() {
-        // set up mv player and the view it should attach to
         this.runOnUiThread(() -> {
             mvPlayer = new SimpleExoPlayer.Builder(AccompanySingActivity.this).build();
             File mvFile = new File(getMVFullPath(songName));
@@ -389,7 +403,7 @@ public class AccompanySingActivity extends AppCompatActivity {
     }
 
     /*
-     * Mute original, unmute accompany
+     * 静音原唱，打开伴奏音量
      */
     private void muteOriginal() {
         this.runOnUiThread(() -> {
@@ -400,7 +414,7 @@ public class AccompanySingActivity extends AppCompatActivity {
     }
 
     /**
-     * Mute accompany, unmute original
+     * 静音伴奏，打开原唱音量
      */
     private void unmuteOriginal() {
         originalPlayer.setVolume(1);
@@ -411,7 +425,6 @@ public class AccompanySingActivity extends AppCompatActivity {
         progressMonitor = new Runnable() {
             @Override
             public void run() {
-                // update progress bar
                 currentPosition = (int) player.getContentPosition();
                 progressBar.setProgress(currentPosition);
 
@@ -421,6 +434,7 @@ public class AccompanySingActivity extends AppCompatActivity {
     }
 
     private void initRecordMonitor() {
+        // 由监听器来"提醒"录音器需要切分新的pcm，因为录音器的写文件在自子线程中进行，无法直接获取播放器的进度
         recordMonitor = new Runnable() {
             @Override
             public void run() {
@@ -436,6 +450,7 @@ public class AccompanySingActivity extends AppCompatActivity {
 
                     nextPcmSplitTime += PCM_SPLIT_INTERVAL;
                 }
+                // 每50ms检查一次是否需要切分新的pcm
                 handler.postDelayed(this, 50);
             }
         };
@@ -444,12 +459,12 @@ public class AccompanySingActivity extends AppCompatActivity {
     private void  initBottomNavbar() {
         bottomNavigationView = findViewById(R.id.bottomNavigationView);
         this.runOnUiThread(() -> {
+            // 如果不设置，底部导航栏会有奇怪的阴影
             bottomNavigationView.setBackground(null);
             // 禁用中间的占位item
             bottomNavigationView.getMenu().getItem(0).setTitle("伴唱");
+            // 禁用完成按钮，因为录音还没有开始
             bottomNavigationView.getMenu().getItem(1).setEnabled(false);
-            // 禁用完成，因为录音还没有开始
-//            disableFinishButton();
 
             bottomNavigationView.setOnNavigationItemSelectedListener(
                     item -> {
@@ -464,7 +479,7 @@ public class AccompanySingActivity extends AppCompatActivity {
                                 }
                                 break;
                             case R.id.singingFinish:
-                                // it has to be placed here, to wait for the merging to complete
+                                // 防止用户狂点完成按钮
                                 disableFinishButton();
                                 LoadingDialog loadingDialog = showLoadingDialog(
                                         AccompanySingActivity.this,
@@ -474,7 +489,8 @@ public class AccompanySingActivity extends AppCompatActivity {
                                 score.computeFinalScore();
                                 new Thread(() -> {
                                     stopActivity(true);
-                                    Intent intent = new Intent(getApplicationContext(), SingResultActivity.class);
+                                    Intent intent = new Intent(getApplicationContext(),
+                                            SingResultActivity.class);
                                     intent.putExtra("id", id);
                                     intent.putExtra("score", score);
                                     intent.putExtra("songName", songName);
@@ -504,6 +520,9 @@ public class AccompanySingActivity extends AppCompatActivity {
         voiceRecorder.startRecord(null);
     }
 
+    /**
+     * 将整个activity设为播放状态，包括设置暂停图标、设置状态变量、开始监听、开始播放音频、开始录音
+     */
     private void start() {
         fab.setImageResource(R.drawable.ic_pause);
         state = State.PLAYING;
@@ -515,14 +534,19 @@ public class AccompanySingActivity extends AppCompatActivity {
         startAllPlayers();
     }
 
+    /**
+     * 所有播放器都开始播放
+     */
     private void startAllPlayers() {
         originalPlayer.play();
         accompanyPlayer.play();
         mvPlayer.play();
     }
 
+    /**
+     * 将整个activity设为暂停状态，包括设置暂停图标、设置状态变量、暂停监听、暂停播放音频、暂停录音
+     */
     private void pause() {
-        // change of state is done in pauseAllPlayers
         fab.setImageResource(R.drawable.ic_fab_play);
         state = State.PAUSE;
         handler.removeCallbacks(progressMonitor);
@@ -532,6 +556,9 @@ public class AccompanySingActivity extends AppCompatActivity {
         voiceRecorder.pauseRecord();
     }
 
+    /**
+     * 所有播放器都暂停
+     */
     private void pauseAllPlayers() {
         accompanyPlayer.pause();
         originalPlayer.pause();
@@ -539,11 +566,13 @@ public class AccompanySingActivity extends AppCompatActivity {
     }
 
     /**
-     * @param shouldMergePcm
+     * 进行各种资源的释放，包括设置状态为未开始、清除打分提示、停止监听、释放播放器、释放歌词滚动空间、释放录音器
+     * @param shouldMergePcm 是否需要合成用户的录音
      */
     private void stopActivity(boolean shouldMergePcm) {
         this.state = State.UNSTARTED;
 
+        // 删除所有分数提示标签
         this.runOnUiThread(() -> {
             mutex.acquireUninterruptibly();
             RelativeLayout track = findViewById(R.id.scoreTrack);
@@ -551,41 +580,39 @@ public class AccompanySingActivity extends AppCompatActivity {
             mutex.release();
         });
 
+        // 删除监听器
         handler.removeCallbacks(progressMonitor);
         handler.removeCallbacks(recordMonitor);
         handler.removeCallbacks(recordMonitor);
 
+        // 释放所有播放器
         terminateExoPlayer(this, mvPlayer);
         terminateExoPlayer(this, accompanyPlayer);
         terminateExoPlayer(this, originalPlayer);
 
-//        // 如果不需要合成录音，那就代表用户点击重唱，将最耗时的stopRecord放在子线程中
-//        if (!shouldMergePcm) {
-//            new Thread(() -> {
-//                voiceRecorder.stopRecord(false);
-//            }).start();
-//        }
-//        // 如果需要合成，那么就要同步合成，因为太早转到演唱结果页会让录音时长计算产生null pointer exception
-//        else {
-//            voiceRecorder.stopRecord(true);
-//        }
+        // 停止录音
         voiceRecorder.stopRecord(shouldMergePcm);
 
+        // 释放歌词滚动控件
         lrcView.alertPlayerReleased();
     }
 
+    /**
+     * 默认禁用完成按钮，否则没有文件提供给SingResultActivity
+     */
     private void disableFinishButton() {
         bottomNavigationView.getMenu().getItem(2).setEnabled(false);
     }
 
     /**
-     * Rate the record in a given interval
-     *
-     * @param startTime Starting time of the line (ms)
-     * @param endTime   End time of the line (ms)
+     * 对指定时间段内的用户录音进行打分
+     * @param startTime 开始时间（毫秒）
+     * @param endTime   结束时间（毫秒）
      */
     private void rate(int startTime, int endTime) {
         new Thread(() -> {
+            // 等待区间内的所有小片段基频分析完成，为了避免spin需要在loop中sleep，但是ScheduledExecutorService
+            // 是更好的实现方法，但由于开发进度问题只能在该版本中使用sleep
             while (!voiceRecorder.isf0AnalysisComplete(startTime, endTime)) {
                 try {
                     Thread.sleep(200);
@@ -598,13 +625,13 @@ public class AccompanySingActivity extends AppCompatActivity {
 
             score.update(scores);
 
-
             AccompanySingActivity.this.runOnUiThread(() -> {
                         scoreLabel.setText(formatScore(score.getTotalScore()));
                         scoreBar.setProgress(score.getTotalScore(), true);
                     }
             );
 
+            // 用互斥锁确保用户点击重唱后不会还有分数继续显示出来
             mutex.acquireUninterruptibly();
             if (state != State.UNSTARTED) {
                 displayScore(scores[0]);
@@ -613,28 +640,30 @@ public class AccompanySingActivity extends AppCompatActivity {
         }).start();
     }
 
+    /**
+     * 在用户唱完一句后显示该句的得分，并增加总分
+     * @param score 该句得分
+     */
     private void displayScore(Integer score) {
         this.runOnUiThread(() -> {
             RelativeLayout track = findViewById(R.id.scoreTrack);
 
+            // 设置分数标签的内容
             TextView textView = new TextView(this);
             LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT,
                     LinearLayout.LayoutParams.WRAP_CONTENT);
-
             textView.setText("+" + score);
             textView.setTextColor(ResourcesCompat.getColor(Karaoke.getRes(), R.color.score_text, null));
             textView.setGravity(Gravity.CENTER);
             textView.setLayoutParams(params);
-
-            // display textview
             track.addView(textView);
 
+            // 设置分数标签的渐入、上升和爆炸动画
             AnimationSet animationSet = new AnimationSet(true);
             animationSet.setDuration(ANIMATION_DURATION);
             animationSet.addAnimation(fadeInAnimation);
             animationSet.addAnimation(moveUpAnimation);
-
             animationSet.setAnimationListener(new Animation.AnimationListener() {
                 @Override
                 public void onAnimationStart(Animation animation) {
@@ -648,14 +677,14 @@ public class AccompanySingActivity extends AppCompatActivity {
                     textView.clearAnimation();
                     textView.setLayoutParams(layoutParams);
 
-                    // explodes after 700ms
+                    // 在上升到顶部后700ms爆炸
                     handler.postDelayed(() -> {
                         if (track.getParent() != null) {
                             explosionField.explode(textView);
                         }
                     }, 700);
 
-                    // removes textview after 2s
+                    // 在上升到顶部2s后删除TextView，防止界面中堆积太多控件
                     handler.postDelayed(() -> {
                         if (track.getParent() != null) {
                             track.removeView(textView);

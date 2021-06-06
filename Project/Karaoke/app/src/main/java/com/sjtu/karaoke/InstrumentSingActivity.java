@@ -3,10 +3,8 @@ package com.sjtu.karaoke;
 import android.app.Dialog;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.ColorDrawable;
 import android.media.SoundPool;
 import android.os.Build;
 import android.os.Bundle;
@@ -23,9 +21,7 @@ import android.widget.Space;
 
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.AppCompatImageButton;
 import androidx.constraintlayout.widget.ConstraintLayout;
-import androidx.constraintlayout.widget.Group;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.res.ResourcesCompat;
 
@@ -87,26 +83,35 @@ import static com.sjtu.karaoke.util.PathUtil.getUserPlayFullPath;
 
 /*
  * @ClassName: InstrumentSingActivity
- * @Author: guozh
+ * @Author: 郭志东
  * @Date: 2021/3/28
  * @Version: v1.3
  * @Description: 自弹自唱界面。本类中包含了如下功能：
  *                  1. 各个组件的初始化、设置点击事件
- *                  2. 根据传入的歌曲信息，初始化伴奏播放器、歌词滚动器、音效池
- *                  3. 在播放时监控进度、更新得分（不以得分条的形式显示）
+ *                  2. 根据传入的歌曲信息，初始化伴奏播放器、歌词滚动器、和弦播放器
+ *                  3. 在播放时监控进度、更新得分（但为了不干扰用户，不直接显示）、显示按键提示、播放粒子特效
  *                  4. 录音
  */
 
 public class InstrumentSingActivity extends AppCompatActivity {
+    // 和弦音量微调
     private static final float chordVolume = (float) 0.6;
+    // 按键提示动画的默认持续时间，在后续解析和弦文件时如果两个相同和弦间隔时间过短则会缩短提示时间，防止两个线程同时
+    // 控制同时控制一个进度条
     private static Integer HINT_DURATION = 3000;
 
+    // 伴奏播放器
     SimpleExoPlayer accompanyPlayer;
+    // 歌词滚动控件
     LrcView lrcView;
+    // 和弦播放器
     SoundPool chordPlayer;
+    // 录音器
     AudioRecorder voiceRecorder;
+    // 暂停按钮
     ImageButton pauseButton;
 
+    // 用互斥锁确保用户在点击重唱时粒子特效全部被释放，且不会再产生多余的粒子特效
     Semaphore mutex = new Semaphore(1);
     Handler handler = new Handler();
 
@@ -179,6 +184,7 @@ public class InstrumentSingActivity extends AppCompatActivity {
         setContentView(R.layout.activity_instrument_sing);
         initFullScreen();
 
+        // 进行UI相关，与播放无关的初始化
         initSongName();
         initState();
         initProgressMonitor();
@@ -188,6 +194,9 @@ public class InstrumentSingActivity extends AppCompatActivity {
         initParticleSystem();
     }
 
+    /**
+     * 初始化全屏模式
+     */
     private void initFullScreen() {
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
@@ -199,6 +208,7 @@ public class InstrumentSingActivity extends AppCompatActivity {
     protected void onStart() {
         super.onStart();
 
+        // 在重唱或从其他界面跳转过来时需要重新进行所有和播放相关的初始化，如果是用户退出APP再重新进入什么都不需要做
         if (state == State.UNSTARTED) {
             LoadingDialog loadingDialog = showLoadingDialog(
                     this,
@@ -209,31 +219,40 @@ public class InstrumentSingActivity extends AppCompatActivity {
             initFullScreen();
 
             new Thread(() -> {
+                // 解析和弦文件
                 parseChordFile();
                 loadingDialog.setProgress(15);
 
+                // 初始化和弦播放器
                 initSoundPool();
                 loadingDialog.setProgress(25);
 
+                // 根据和弦文件的解析结果动态生成和弦按钮
                 initInstrumentButtons();
                 loadingDialog.setProgress(40);
 
+                // 初始化伴奏播放器
                 nextPcmSplitTime = PCM_SPLIT_INTERVAL + playbackStartTime;
                 initAccompanyPlayer();
                 loadingDialog.setProgress(50);
 
+                // 初始化打分系统
                 initRatingSystem();
                 loadingDialog.setProgress(65);
 
+                // 初始化歌词滚动控件和完成监听
                 initOnCompleteListener();
                 initLrcView();
                 loadingDialog.setProgress(80);
 
+                // 如果用户点击重试，需要清除上一次产生的临时文件
                 clearTemporaryPcmAndWavFiles();
+                // 初始化录音、打分
                 initVoiceRecorder();
                 initScore();
                 loadingDialog.setProgress(90);
 
+                // 初始化和弦提示时间和需要提示的和弦
                 nextHintChord = standardSequence.remove(0);
                 nextHintTime = getHintTime(nextHintChord.getTime());
                 loadingDialog.setProgress(100);
@@ -254,6 +273,10 @@ public class InstrumentSingActivity extends AppCompatActivity {
         }
     }
 
+    /*
+     * onDestroy被调用的时机不确定，但是LrcView和ExoPlayer都可以确保在被反复释放时不报错，VoiceRecorder和
+     * SoundPool增加了状态检查
+     */
     @Override
     protected void onDestroy() {
         super.onDestroy();
@@ -262,7 +285,10 @@ public class InstrumentSingActivity extends AppCompatActivity {
         }
         lrcView.alertPlayerReleased();
         terminateExoPlayer(this, accompanyPlayer);
-        chordPlayer.release();
+        if (chordPlayer != null) {
+            chordPlayer.release();
+            chordPlayer = null;
+        }
     }
 
     private void initSongName() {
@@ -275,6 +301,9 @@ public class InstrumentSingActivity extends AppCompatActivity {
         state = State.UNSTARTED;
     }
 
+    /**
+     * 每10ms一次更新一次进度全局变量
+     */
     private void initProgressMonitor() {
         progressMonitor = new Runnable() {
             @Override
@@ -285,6 +314,9 @@ public class InstrumentSingActivity extends AppCompatActivity {
         };
     }
 
+    /**
+     * 每10ms检查录音是否需要切分
+     */
     private void initRecordMonitor() {
         recordMonitor = new Runnable() {
             @Override
@@ -306,6 +338,9 @@ public class InstrumentSingActivity extends AppCompatActivity {
         };
     }
 
+    /**
+     * 每10ms检查是否有新的按钮需要显示提示动画
+     */
     private void initHintMonitor() {
         hintMonitor = new Runnable() {
             @Override
@@ -325,6 +360,7 @@ public class InstrumentSingActivity extends AppCompatActivity {
             }
         };
     }
+
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     private void initPauseButton() {
@@ -364,12 +400,7 @@ public class InstrumentSingActivity extends AppCompatActivity {
                 instrumentPauseDialog.dismiss();
 
                 // 在渐隐动画结束后继续游戏
-                handler.postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        start();
-                    }
-                }, 300);
+                handler.postDelayed(this::start, 300);
             });
 
             retryBtn.setOnClickListener(view2 -> {
@@ -416,10 +447,17 @@ public class InstrumentSingActivity extends AppCompatActivity {
         unreleasedParticleSystems = new ConcurrentHashMap<>();
     }
 
+    /**
+     * 解析和弦文件，包括本首歌的开始，结束时间、需要弹奏的和弦、和弦的弹奏时间
+     */
     private void parseChordFile() {
+        // 本首歌的所有和弦
         chords = new ArrayList<>();
+        // 标准的弹奏顺序
         standardSequence = new ArrayList<>();
+        // 用户的弹奏顺序
         userSequence = new ArrayList<>();
+        // 将和弦名映射到和弦对象
         nameToChord = new HashMap<>();
         chordNum = 0;
 
@@ -430,47 +468,47 @@ public class InstrumentSingActivity extends AppCompatActivity {
         try {
             scanner = new Scanner(chordFile);
 
-            // skip useless data
+            // 跳过无用数据
             scanner.nextDouble();
             scanner.nextInt();
             scanner.nextInt();
 
-            // read start time and finish time
+            // 读取开始和结束时间
             startTime = scanner.nextInt();
             playbackStartTime = startTime - HINT_DURATION;
             finishTime = scanner.nextInt();
 
-            // skip empty line
+            // 跳过空行
             do {
                 line = scanner.nextLine();
             } while (line.equals(""));
 
-            // read chord info
+            // 读取和弦信息
             for (; !line.equals(""); line = scanner.nextLine()) {
                 // get chord name
                 String[] params = line.split(" ");
                 String chordName = params[0];
                 List<String> notes = new ArrayList<>();
 
-                // increment number of chords
                 ++chordNum;
 
-                // extract get path to note files
+                // 记录该和弦需要的所有单音
                 for (int i = 1; i < params.length; ++i) {
                     notes.add(getAssetFullPath(this, params[i] + ".wav"));
                 }
 
-                // // merge notes to a chord file and create chord object
+                // 用单音文件合成和弦文件
                 Chord chord = new Chord(chordName, mergeNotesToChord(chordName, notes));
                 chords.add(chord);
                 nameToChord.put(chordName, chord);
             }
 
-            // clear assets temporary file
+            // 清空asset临时目录
             FileUtils.cleanDirectory(new File(ASSET_DIRECTORY));
 
-            // generate sequence in which buttons display animation
+            // 生成标准弹奏顺序
             Integer time = startTime;
+            // 用于记录两个相同和弦之间的间隔，按钮提示动画的持续时间必须短于同一个按键的两次提示间隔
             HashMap<Chord, Integer> lastChordTime = new HashMap<>();
 
             while (scanner.hasNext()) {
@@ -505,6 +543,9 @@ public class InstrumentSingActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * 动态生成弹奏按钮
+     */
     @RequiresApi(api = Build.VERSION_CODES.O)
     private void initInstrumentButtons() {
         this.runOnUiThread(() -> {
@@ -517,7 +558,7 @@ public class InstrumentSingActivity extends AppCompatActivity {
 
             while (chordIt.hasNext()) {
                 Chord chord = chordIt.next();
-                // add relative layout
+                // 生成RelativeLayout，作为按钮和文本框的容器
                 RelativeLayout relativeLayout = new RelativeLayout(InstrumentSingActivity.this);
                 LinearLayout.LayoutParams params1 = new LinearLayout.LayoutParams(
                         0,
@@ -526,7 +567,7 @@ public class InstrumentSingActivity extends AppCompatActivity {
                 relativeLayout.setGravity(Gravity.CENTER);
                 relativeLayout.setLayoutParams(params1);
 
-                // add progress bar
+                // 生成进度条
                 ProgressBar instrumentBtn = new ProgressBar(InstrumentSingActivity.this, null, android.R.attr.progressBarStyleHorizontal);
                 RelativeLayout.LayoutParams params2 = new RelativeLayout.LayoutParams(
                         ViewGroup.LayoutParams.MATCH_PARENT,
@@ -538,7 +579,6 @@ public class InstrumentSingActivity extends AppCompatActivity {
                 instrumentBtn.setLayoutParams(params2);
                 instrumentBtn.setMax(100);
                 instrumentBtn.setProgress(0);
-                // fixme: probably set in progress monitor?
                 instrumentBtn.setOnClickListener(v -> {
                             chordPlayer.play(chord.getSoundId(), chordVolume, chordVolume, 1, 0, 1);
                             userSequence.add(new PlayChordRecord(chord, currentPosition));
@@ -547,7 +587,7 @@ public class InstrumentSingActivity extends AppCompatActivity {
                 chordToBtn.put(chord, instrumentBtn);
                 relativeLayout.addView(instrumentBtn);
 
-                // add text view
+                // 生成和弦名文本框
                 AutofitTextView chordLabel = new AutofitTextView(InstrumentSingActivity.this);
                 RelativeLayout.LayoutParams params3 = new RelativeLayout.LayoutParams(
                         ViewGroup.LayoutParams.MATCH_PARENT,
@@ -565,9 +605,10 @@ public class InstrumentSingActivity extends AppCompatActivity {
                 chordLabel.setLayoutParams(params3);
                 relativeLayout.addView(chordLabel);
 
+                // 将RelativeLayout添加到按钮容器中
                 btnContainer.addView(relativeLayout);
 
-                // add space
+                // 在两个RelativeLayout之间添加间距
                 if (chordIt.hasNext()) {
                     Space space = new Space(InstrumentSingActivity.this);
                     LinearLayout.LayoutParams params4 = new LinearLayout.LayoutParams(
@@ -583,6 +624,9 @@ public class InstrumentSingActivity extends AppCompatActivity {
 
     }
 
+    /**
+     * 初始化伴奏播放器
+     */
     private void initAccompanyPlayer() {
         accompanyPlayer = new SimpleExoPlayer.Builder(this).build();
         loadAudioFileAndPrepareExoPlayer(this, accompanyPlayer, getAccompanyFullPath(songName));
@@ -590,15 +634,26 @@ public class InstrumentSingActivity extends AppCompatActivity {
         runOnUiThread(() -> accompanyPlayer.seekTo(playbackStartTime));
     }
 
+    /**
+     * 从和弦的弹奏时间算出提示动画开始的时间
+     * @param time 和弦应该弹奏时间
+     * @return 提示动画开始显示的时间
+     */
     private Integer getHintTime(Integer time) {
         return time - HINT_DURATION;
     }
 
+    /**
+     * 初始化打分系统
+     */
     private void initRatingSystem() {
         ratingThread = new ArrayList<>();
         init(getRateFullPath(songName), PCM_SPLIT_INTERVAL, RECORD_DELAY_LB, RECORD_DELAY_UB);
     }
 
+    /**
+     * 初始化完成监听
+     */
     private void initOnCompleteListener() {
         completionListener = new Runnable() {
             @Override
@@ -612,6 +667,9 @@ public class InstrumentSingActivity extends AppCompatActivity {
         };
     }
 
+    /**
+     * 初始化歌词滚动控件
+     */
     @RequiresApi(api = Build.VERSION_CODES.N)
     private void initLrcView() {
         lrcView = findViewById(R.id.lrcRoller);
@@ -633,21 +691,33 @@ public class InstrumentSingActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * 初始化录音器
+     */
     private void initVoiceRecorder() {
         voiceRecorder = AudioRecorder.getInstance();
         voiceRecorder.createDefaultAudio(songName, playbackStartTime % PCM_SPLIT_INTERVAL);
     }
 
+    /**
+     * 清零得分
+     */
     private void initScore() {
         score = new Score();
     }
 
+    /**
+     * 显示提示动画，包括持续改变进度条进度及显示粒子特效
+     * @param startTime 提示动画的开始时间
+     * @param hintChord 需要提示的和弦及其标准弹奏时间
+     */
     private void displayHint(int startTime, PlayChordRecord hintChord) {
 
         new Thread(() -> {
             ProgressBar progressBar = chordToBtn.get(hintChord.getChord());
             ParticleSystem particleSystem = particleSystemView.createParticleSystem();
 
+            // 计算粒子特效的位置
             int[] btnLocation = new int[2];
             int[] containerLocation = new int[2];
             final int height = progressBar.getMeasuredHeight();
@@ -657,12 +727,14 @@ public class InstrumentSingActivity extends AppCompatActivity {
             final int x = btnLocation[0] - containerLocation[0] + width / 2;
             final int y = btnLocation[1] - containerLocation[1] + height;
 
+            // 开始显示粒子特效
             initParticleSystem(particleSystem, x, y);
-
-            int hintFinishTime = hintChord.getTime();
             particleSystem.start();
             unreleasedParticleSystems.put(particleSystem, true);
 
+            int hintFinishTime = hintChord.getTime();
+
+            // 更新进度条的进度，以及粒子发射点的位置，两者同步更新
             while (currentPosition < hintFinishTime && !(state == State.UNSTARTED)) {
                 int percentage = (currentPosition - startTime) / (HINT_DURATION / 100);
 
@@ -675,12 +747,15 @@ public class InstrumentSingActivity extends AppCompatActivity {
                 particleSystem.setPtcPosition(x, y - height * percentage / 100);
             }
 
+            // 当前提示动画进度涨满，说明上一个涨满的提示动画需要结束。重置上一个提示按钮的
+            // 重置进度条位置，并停止播放其粒子特效
             if (currentHint != null) {
                 currentHint.setProgress(0);
                 currentPs.stop();
 
                 ParticleSystem psSnapshot = currentPs;
                 handler.postDelayed(() -> {
+                    // 如果不加锁，在用户点击重唱时可能会有粒子特效无法被删除（因为release语句执行后才被添加）
                     mutex.acquireUninterruptibly();
                     if (unreleasedParticleSystems.contains(psSnapshot)) {
                         unreleasedParticleSystems.remove(psSnapshot);
@@ -700,6 +775,12 @@ public class InstrumentSingActivity extends AppCompatActivity {
         }).start();
     }
 
+    /**
+     * 初始化粒子特效，设置动画效果参数，以及初始位置
+     * @param ptcSys 需要初始化的粒子特效
+     * @param x 水平方向偏移量
+     * @param y 竖直方向偏移量
+     */
     private void initParticleSystem(ParticleSystem ptcSys, int x, int y) {
 
         BitmapDrawable drawable = (BitmapDrawable) ResourcesCompat.getDrawable(Karaoke.getRes(),
@@ -738,11 +819,17 @@ public class InstrumentSingActivity extends AppCompatActivity {
         ptcSys.setConfig(config);
     }
 
+    /**
+     * 所有播放器都开始播放
+     */
     private void startAllPlayers() {
         accompanyPlayer.play();
         chordPlayer.autoResume();
     }
 
+    /**
+     * 将整个activity设为播放状态，包括设置状态变量、开始监听、开始播放音频、开始录音
+     */
     private void start() {
         state = State.PLAYING;
 
@@ -756,11 +843,17 @@ public class InstrumentSingActivity extends AppCompatActivity {
         startAllPlayers();
     }
 
+    /**
+     * 所有播放器都暂停播放
+     */
     private void pauseAllPlayers() {
         accompanyPlayer.pause();
         chordPlayer.autoPause();
     }
 
+    /**
+     * 将整个activity设为暂停状态，包括设置状态变量、暂停监听、暂停播放音频、暂停录音
+     */
     private void pause() {
         state = State.PAUSE;
 
@@ -779,6 +872,9 @@ public class InstrumentSingActivity extends AppCompatActivity {
         onStart();
     }
 
+    /**
+     * 完成自弹自唱模式，释放资源、合成用户和弦、计算分数
+     */
     private void finishInstrumentSing() {
 
         LoadingDialog loadingDialog = showLoadingDialog(this, getString(R.string.process_record_hint));
@@ -823,6 +919,11 @@ public class InstrumentSingActivity extends AppCompatActivity {
         }).start();
     }
 
+    /**
+     * 进行各种资源的释放，包括设置状态为未开始、清除粒子特效、停止监听、释放播放器、释放歌词滚动控件、释放录音器、重设
+     * 弹奏按钮
+     * @param shouldMergePcm 是否需要合成用户的录音
+     */
     private void stopActivity(boolean shouldMergePcm) {
         // 在stopActivity中不删除临时的pcm和wav文件，在onStart中删除
         this.state = State.UNSTARTED;
@@ -845,23 +946,38 @@ public class InstrumentSingActivity extends AppCompatActivity {
         if (shouldMergePcm) {
             mergeUserChords(userSequence);
         }
+
+        if (chordPlayer != null) {
+            chordPlayer.release();
+            chordPlayer = null;
+        }
+
         lrcView.alertPlayerReleased();
+        // 如果不重设，用户如果在演唱结果页点重试，返回时按钮还是会有进度
         resetProgressBar();
     }
 
+    /**
+     * 将所有的按钮提示进度重设为0
+     */
     private void resetProgressBar() {
         for (ProgressBar progressBar: chordToBtn.values()) {
             progressBar.setProgress(0);
         }
     }
 
+    /**
+     * 将用户弹奏的单音合称为一个音频文件
+     * @param userSequence 用户的弹奏顺序
+     */
     private void mergeUserChords(List<PlayChordRecord> userSequence) {
         int duration = finishTime - playbackStartTime;
         String destPath = getUserPlayFullPath(songName);
         String silencePath = getUserPlayFullPath("silence");
         int labelId = 1;
         int volumeMultiply = userSequence.size() + 1;
-        // generate silent audio
+
+        // 必须要先生成空音频，否则ffmpeg就会认为最长的一段音频时长就是单音文件的时长
         StringBuilder command = new StringBuilder("-f lavfi -i anullsrc -t ");
 
         command.append(duration).append("ms ").append(silencePath);
@@ -876,6 +992,7 @@ public class InstrumentSingActivity extends AppCompatActivity {
             command.append("-i ").append(userRecord.getChord().getFilePath()).append(" ");
         }
 
+        // 音量需要增大，增大倍数为输入文件数量，因为amix会自动在合成时将所有文件的音量除以输入文件数
         command.append("-filter_complex \"");
         command.append(String.format(Locale.CHINA, "[0]volume=%d[00];", volumeMultiply));
         for (PlayChordRecord userRecord: userSequence) {
@@ -897,9 +1014,9 @@ public class InstrumentSingActivity extends AppCompatActivity {
     }
 
     /**
-     * Rate the record in a given interval
-     * @param startTime Starting time of the line (ms)
-     * @param endTime End time of the line (ms)
+     * 对指定时间段内的用户录音进行打分
+     * @param startTime 开始时间（毫秒）
+     * @param endTime   结束时间（毫秒）
      */
     private void rate(int startTime, int endTime) {
         Thread thread = new Thread(() -> {

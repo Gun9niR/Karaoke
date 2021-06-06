@@ -3,12 +3,14 @@ package com.sjtu.karaoke;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
+import android.view.MenuItem;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.ImageButton;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -28,26 +30,35 @@ import static com.sjtu.karaoke.util.PathUtil.getAlbumCoverFullPath;
 
 /*
  * @ClassName: LocalRecordActivity
- * @Author: guozh
+ * @Author: 郭志东
  * @Date: 2021/3/28
  * @Version: v1.3
  * @Description: 本地录音界面。本类中包含了如下功能：
  *                  1. 各个组件的初始化、调用RecordAdapter类来初始化本地录音列表
  *                  2. 播放用户选择的本地伴奏
- *                  3. 将本地录音分享至微信
+ *                  3. 将本地录音分享至QQ、微信、TIM
+ *                  4. 删除本地录音
  */
 
 public class LocalRecordActivity extends AppCompatActivity {
-
+    // 录音播放器
     MediaPlayer recordPlayer;
+    // 底部播放器的专辑封面
     CircleImageView circleImageView;
+    // 播放录音按钮
     ImageButton btnPlayRecord;
+    // 录音的歌名
     TextView recordSongName;
+    // 录音播放进度
     SeekBar seekbarRecordProgress;
+    // 专辑封面的旋转动画
     Animation rotateAnimation;
-    Handler handler = new Handler();
-    Runnable runnable;
 
+    // 监听进度
+    Handler handler = new Handler();
+    Runnable progressMonitor;
+
+    // 录音持续时间
     private int duration;
     private boolean playerReleased;
     private State state = State.UNSTARTED;
@@ -97,7 +108,7 @@ public class LocalRecordActivity extends AppCompatActivity {
     }
 
     private void initRunnable() {
-        runnable = new Runnable() {
+        progressMonitor = new Runnable() {
             @Override
             public void run() {
                 if (!playerReleased) {
@@ -144,6 +155,15 @@ public class LocalRecordActivity extends AppCompatActivity {
         }
     }
 
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        if (item.getItemId() == android.R.id.home) {
+            onBackPressed();
+            return true;
+        }
+        return false;
+    }
+
     public void playRecord(Record record) {
         initRecordPlayer(record.getRecordFullPath());
 
@@ -161,7 +181,7 @@ public class LocalRecordActivity extends AppCompatActivity {
             recordPlayer.seekTo(0);
             btnPlayRecord.setImageResource(R.drawable.ic_play_record);
             circleImageView.clearAnimation();
-            handler.removeCallbacks(runnable);
+            handler.removeCallbacks(progressMonitor);
             seekbarRecordProgress.setProgress(0);
         });
 
@@ -169,7 +189,7 @@ public class LocalRecordActivity extends AppCompatActivity {
     }
 
     private void initSeekbar() {
-        handler.removeCallbacks(runnable);
+        handler.removeCallbacks(progressMonitor);
         if (this.state == State.UNSTARTED) {
             seekbarRecordProgress.setEnabled(true);
         }
@@ -197,7 +217,7 @@ public class LocalRecordActivity extends AppCompatActivity {
         });
 
         // restart playing
-        handler.postDelayed(runnable, 0);
+        handler.postDelayed(progressMonitor, 0);
     }
 
     private void initRecordTitleAndCover(Record record) {
@@ -232,7 +252,7 @@ public class LocalRecordActivity extends AppCompatActivity {
     private void pauseRecordPlayer() {
         state = State.PAUSE;
         recordPlayer.pause();
-        handler.removeCallbacks(runnable);
+        handler.removeCallbacks(progressMonitor);
         btnPlayRecord.setImageResource(R.drawable.ic_play_record);
         circleImageView.clearAnimation();
     }
@@ -240,7 +260,7 @@ public class LocalRecordActivity extends AppCompatActivity {
     private void startRecordPlayer() {
         state = State.PLAYING;
         recordPlayer.start();
-        handler.postDelayed(runnable, 0);
+        handler.postDelayed(progressMonitor, 0);
         btnPlayRecord.setImageResource(R.drawable.ic_pause_record);
         circleImageView.startAnimation(rotateAnimation);
     }
@@ -248,7 +268,7 @@ public class LocalRecordActivity extends AppCompatActivity {
     private void stopRecordPlayer() {
         state = State.UNSTARTED;
         terminateMediaPlayer(recordPlayer);
-        handler.removeCallbacks(runnable);
+        handler.removeCallbacks(progressMonitor);
     }
 
     private void initRecordPlayer(String fullPath) {
