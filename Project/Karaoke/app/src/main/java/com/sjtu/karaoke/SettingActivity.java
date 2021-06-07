@@ -6,6 +6,7 @@ import android.widget.ListView;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
+import com.afollestad.materialdialogs.MaterialDialog;
 import com.awesomedialog.blennersilva.awesomedialoglibrary.AwesomeSuccessDialog;
 import com.sjtu.karaoke.adapter.SettingAdapter;
 
@@ -43,7 +44,7 @@ import static com.sjtu.karaoke.util.Constants.VOICE_DIRECTORY;
  */
 
 public class SettingActivity extends AppCompatActivity {
-    private String[] settingItems = {"清空本地缓存", "关于天天爱K歌"};
+    private String[] settingItems = {"使用帮助", "清空本地缓存", "关于天天爱K歌"};
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,39 +64,48 @@ public class SettingActivity extends AppCompatActivity {
         listView.setFooterDividersEnabled(true);
         listView.setOnItemClickListener((adapterView, view, i, l) -> {
             switch(i) {
+                // 显示使用帮助
                 case 0:
+                    MaterialDialog dialog = new MaterialDialog(this, MaterialDialog.getDEFAULT_BEHAVIOR());
+                    dialog.title(null, "使用帮助");
+                    dialog.message(null, getString(R.string.help), null);
+                    dialog.positiveButton(null, "OK", null);
+                    dialog.show();
+                    break;
+                // 清空所有临时目录，并计算清除的文件大小
+                case 1:
                     long bytes = 0;
 
                     List<File> dirs = new ArrayList<>();
-                    // delete accompany
+                    // 删除伴奏演唱模式的伴奏
                     dirs.add(new File(ACCOMPANY_DIRECTORY));
-                    // delete album cover
+                    // 删除专辑封面
                     dirs.add(new File(ALBUM_COVER_DIRECTORY));
-                    // delete chord
+                    // 删除和弦文件
                     dirs.add(new File(CHORD_TRANS_DIRECTORY));
-                    // delete i_accompany
+                    // 删除自弹自唱模式的伴奏
                     dirs.add(new File(BASS_DIRECTORY));
                     dirs.add(new File(DRUM_DIRECTORY));
                     dirs.add(new File(ORCHESTRA_DIRECTORY));
-                    // delete i_lyric
+                    // 删除自弹自唱模式的歌词
                     dirs.add(new File(LYRIC_INSTRUMENT_DIRECTORY));
-                    // delete lyric
+                    // 删除伴奏演唱模式的歌词
                     dirs.add(new File(LYRIC_DIRECTORY));
-                    // delete mv
+                    // 删除MV
                     dirs.add(new File(MV_DIRECTORY));
-                    // delete original
+                    // 删除原唱
                     dirs.add(new File(ORIGINAL_DIRECTORY));
-                    // delete pcm
+                    // 删除录音pcm文件
                     dirs.add(new File(PCM_DIRECTORY));
-                    // delete raterdata
+                    // 删除打分系统临时文件
                     dirs.add(new File(RATERDATA_DIRECTORY));
-                    // delete rating
+                    // 删除打分文件
                     dirs.add(new File(RATE_DIRECTORY));
-                    // delete temporary
+                    // 删除自弹自唱模式的临时文件
                     dirs.add(new File(ASSET_DIRECTORY));
                     dirs.add(new File(CHORD_WAV_DIRECTORY));
                     dirs.add(new File(USER_PLAY_DIRECTORY));
-                    // delete wav
+                    // 删除用户录音临时文件
                     dirs.add(new File(VOICE_DIRECTORY));
 
                     for (File dir: dirs) {
@@ -106,8 +116,6 @@ public class SettingActivity extends AppCompatActivity {
                             }
                         }
                     }
-
-                    System.out.println(FileUtils.byteCountToDisplaySize(bytes));
 
                     new AwesomeSuccessDialog(this)
                             .setTitle("删除成功")
@@ -124,8 +132,8 @@ public class SettingActivity extends AppCompatActivity {
                             })
                             .show();
                     break;
-                case 1:
-                    // todo
+                case 2:
+                    // 显示关于信息
                     new AwesomeSuccessDialog(this)
                             .setTitle("关于")
                             .setMessage(getString(R.string.about))
@@ -136,10 +144,8 @@ public class SettingActivity extends AppCompatActivity {
                             .setPositiveButtonbackgroundColor(R.color.dialogSuccessBackgroundColor)
                             .setPositiveButtonTextColor(R.color.white)
                             .setPositiveButtonClick(() -> {
-                                //click
                             })
                             .setNegativeButtonClick(() -> {
-                                //click
                             })
                             .show();
                     break;

@@ -1,9 +1,7 @@
 package com.sjtu.karaoke;
 
 import android.os.Bundle;
-import android.view.MenuItem;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 
@@ -11,8 +9,8 @@ import com.ismaeldivita.chipnavigation.ChipNavigationBar;
 import com.sjtu.karaoke.fragment.AccountFragment;
 import com.sjtu.karaoke.fragment.ViewSongsFragment;
 
-import static com.sjtu.karaoke.util.PathUtil.makeDirectories;
 import static com.sjtu.karaoke.util.MiscUtil.verifyAllPermissions;
+import static com.sjtu.karaoke.util.PathUtil.makeDirectories;
 
 /*
  * @ClassName: MainActivity
@@ -30,31 +28,27 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        // 向用户请求录音、读写权限
         verifyAllPermissions(this);
+        // 创建APP的所有目录
         makeDirectories();
 
         ChipNavigationBar chipNavigationBar = findViewById(R.id.chipNavigation);
 
-        chipNavigationBar.setOnItemSelectedListener(new ChipNavigationBar.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(int i) {
-                switch (i) {
-                    case R.id.viewSongs:
-                        fragment = new ViewSongsFragment();
-                        break;
-                    case R.id.account:
-                        fragment = new AccountFragment();
-                        break;
-                }
-                getSupportFragmentManager().beginTransaction().replace(R.id.fragmentContainer, fragment).commit();
+        chipNavigationBar.setOnItemSelectedListener(i -> {
+            switch (i) {
+                case R.id.viewSongs:
+                    fragment = new ViewSongsFragment();
+                    break;
+                case R.id.account:
+                    fragment = new AccountFragment();
+                    break;
             }
+            // 用真正的fragment替换占位的FrameLayout
+            getSupportFragmentManager().beginTransaction().replace(R.id.fragmentContainer, fragment).commit();
         });
 
+        // 默认进入浏览歌曲界面
         chipNavigationBar.setItemSelected(R.id.viewSongs, true);
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        return false;
     }
 }

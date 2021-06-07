@@ -142,6 +142,7 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.ViewHo
 
                 new Thread(() -> {
                     boolean isSuccess = downloadAccompanySingFiles(selectedSong, loadingDialog, isCanceled);
+                    //
                     loadingDialog.dismiss();
 
                     // 下载成功，转到伴奏演唱界面
@@ -289,6 +290,7 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.ViewHo
         if (areFilesPresent(destFullPaths)) {
             return true;
         }
+
         String[] urls = {
                 GET_ACCOMPANY_URL + requestParam,
                 GET_LYRIC_INSTRUMENT_URL + requestParam,

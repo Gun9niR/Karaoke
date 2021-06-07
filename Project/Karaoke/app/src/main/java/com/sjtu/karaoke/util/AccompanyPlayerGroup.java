@@ -70,6 +70,10 @@ public class AccompanyPlayerGroup implements ExoPlayerGroup {
         return accompanyPlayer;
     }
 
+    /**
+     * 设置人声提前量
+     * @param voiceOffset 单位为毫秒
+     */
     @Override
     public void setVoiceOffset(int voiceOffset) {
         this.voiceOffset = voiceOffset;
@@ -79,6 +83,9 @@ public class AccompanyPlayerGroup implements ExoPlayerGroup {
         voicePlayer.seekTo(newPosition < duration ? newPosition : duration);
     }
 
+    /**
+     * 在用户通过进度条对齐后0.5秒再检测一次进度差，因为进度条的值和实际的进度差不完全相等
+     */
     @Override
     public void setActualOffset() {
         Handler handler = new Handler();
