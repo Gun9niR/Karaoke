@@ -92,11 +92,12 @@ dependencies {
     // beautiful toast
     implementation 'com.github.GrenderG:Toasty:1.5.0'
 
-    // beautiful dialog
-    implementation 'com.github.blennerSilva:AwesomeDialog:2.0.5'
-
     // String utils
     implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.0'
+
+    implementation 'com.github.blennerSilva:AwesomeDialog:2.0.5'
+
+    implementation 'com.afollestad.material-dialogs:core:3.3.0'
 
     implementation project(path: ':Recorder')
     implementation project(path: ':WavEditor')
