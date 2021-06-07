@@ -6,6 +6,7 @@ import android.widget.ListView;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
+import com.afollestad.materialdialogs.MaterialDialog;
 import com.awesomedialog.blennersilva.awesomedialoglibrary.AwesomeSuccessDialog;
 import com.sjtu.karaoke.adapter.SettingAdapter;
 
@@ -43,7 +44,7 @@ import static com.sjtu.karaoke.util.Constants.VOICE_DIRECTORY;
  */
 
 public class SettingActivity extends AppCompatActivity {
-    private String[] settingItems = {"清空本地缓存", "关于天天爱K歌"};
+    private String[] settingItems = {"使用帮助", "清空本地缓存", "关于天天爱K歌"};
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,8 +64,16 @@ public class SettingActivity extends AppCompatActivity {
         listView.setFooterDividersEnabled(true);
         listView.setOnItemClickListener((adapterView, view, i, l) -> {
             switch(i) {
-                // 清空所有临时目录，并计算清除的文件大小
+                // 显示使用帮助
                 case 0:
+                    MaterialDialog dialog = new MaterialDialog(this, MaterialDialog.getDEFAULT_BEHAVIOR());
+                    dialog.title(null, "使用帮助");
+                    dialog.message(null, getString(R.string.help), null);
+                    dialog.positiveButton(null, "OK", null);
+                    dialog.show();
+                    break;
+                // 清空所有临时目录，并计算清除的文件大小
+                case 1:
                     long bytes = 0;
 
                     List<File> dirs = new ArrayList<>();
@@ -123,7 +132,7 @@ public class SettingActivity extends AppCompatActivity {
                             })
                             .show();
                     break;
-                case 1:
+                case 2:
                     // 显示关于信息
                     new AwesomeSuccessDialog(this)
                             .setTitle("关于")
