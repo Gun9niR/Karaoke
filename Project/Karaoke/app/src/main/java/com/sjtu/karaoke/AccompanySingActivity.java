@@ -461,11 +461,12 @@ public class AccompanySingActivity extends AppCompatActivity {
         this.runOnUiThread(() -> {
             // 如果不设置，底部导航栏会有奇怪的阴影
             bottomNavigationView.setBackground(null);
-            // 禁用中间的占位item
+            // 默认伴唱模式
             bottomNavigationView.getMenu().getItem(0).setTitle("伴唱");
-            // 禁用完成按钮，因为录音还没有开始
+            // 禁用中间的占位item
             bottomNavigationView.getMenu().getItem(1).setEnabled(false);
-
+            // 禁用完成按钮，因为录音还没有开始
+            disableFinishButton();
             bottomNavigationView.setOnNavigationItemSelectedListener(
                     item -> {
                         switch (item.getItemId()) {
