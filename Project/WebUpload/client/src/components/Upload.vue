@@ -1,7 +1,9 @@
 <template>
   <el-container>
     <el-header class="header-wrapper">
-      <h1 class="header-title">添加歌曲</h1>
+      <div>
+        <h1 class="header-title">添加歌曲</h1>
+      </div>
       <div class="header-button">
         <el-button size="middle" type="success" @click="onSubmit">上传文件</el-button>
       </div>
@@ -23,7 +25,7 @@
             <accompany-sing-form ref="accompanySing" class="upload-card" />
           </el-col>
           <el-col :span="8">
-            <instrument-sing-form ref="instrumentSing" class="upload-card" />
+            <instrument-sing-form ref="instrumentSing" class="upload-card" @show-help-dialog="showHelpDialog" />
           </el-col>
         </el-row>
       </div>
@@ -51,6 +53,61 @@
       </el-drawer>
     </el-main>
 
+    <el-dialog
+      style="border-radius: 30px;"
+      title="使用帮助"
+      :visible.sync="helpDialogVisible"
+      width="75%"
+      custom-class="help-dialog">
+      <span>
+        “和弦语言”是一款用于定义软件在“自弹自唱”模式下行为的描述性编程语言。
+        文件的第一行用以描述曲目的基本信息，接下来若干行依次描述每个被演奏的和弦名称以及持续的节拍数。
+        下面以《时间煮雨》的和弦文件为例说明其使用方法。该文件如下：<br /><br />
+        <div class="chord-scroll">
+          85 -1 4 4	107.800<br />
+          Cmaj7 2<br />
+          Dsus2 2<br />
+          Em 4<br />
+          Cmaj7 2<br />
+          Dsus2 2<br />
+          Gadd9 4<br />
+          Cmaj7 2<br />
+          Dsus2 2<br />
+          Em 2<br />
+          Cmaj7 2<br />
+          Am7 2<br />
+          D11 2<br />
+          Em 4<br />
+          Cmaj7 2<br />
+          Dsus2 2<br />
+          Em 4<br />
+          Cmaj7 2<br />
+          Dsus2 2<br />
+          Gadd9 4<br />
+          Cmaj7 2<br />
+          Dsus2 2<br />
+          Em 1<br />
+          D11 1<br />
+          Cmaj7 2<br />
+          Am7 2<br />
+          D11 2<br />
+          Gadd9 4<br />
+        </div><br />
+        根据百度上搜到的乐谱，该曲目的曲速为85，乐谱上的移调半音数为-1，以4分音符为一拍，每小节4拍，用户的演奏片段在完整乐曲中的开始时间为107.800。<br />
+        故文件的第一行为“85 -1 4 4 107.800”。其中第三个数字n和第四个数字m分别代表以n分音符为一拍，每小节m拍。<br />
+        从第107.800秒开始，乐谱上和弦为Cmaj7，持续2拍，因此第1行为Cmaj7 2。<br />
+        接着，乐谱上和弦为Dsus2，持续2拍，因此第2行为Dsus2 2。<br />
+        以此类推编写和弦文件的每一行，<br />
+        直到最后一小节，乐谱上和弦为Gadd9，持续4拍，因此最后一行为Gadd9 4。<br /><br />
+
+        <b>需要注意的是，如果该文件存在语法错误或者出现了错误的和弦名称，则乐曲将无法成功上传。</b>
+      </span>
+      <!-- <span slot="footer" class="dialog-footer">
+        <el-button type="primary" @click="helpDialogVisible = false">确 定</el-button>
+      </span> -->
+    </el-dialog>
+
+
   </el-container>
 </template>
 
@@ -73,6 +130,7 @@ export default {
       files: [],
       progress: [],
       drawer: false,
+      helpDialogVisible: false,
     };
   },
 
@@ -106,6 +164,10 @@ export default {
 
     redirectToSongs() {
       this.$router.push({path: '/songs'});
+    },
+
+    showHelpDialog() {
+      this.helpDialogVisible = true;
     },
 
     onSubmit() {
@@ -224,7 +286,6 @@ export default {
   padding-left: 10px;
 }
 
-
 #upload-wrapper {
   margin: 20px 10px;
 }
@@ -261,6 +322,12 @@ export default {
 .empty-upload {
   left: 20%;
   margin: 3% 45%;
+}
+
+
+.chord-scroll {
+  max-height: 200px;
+  overflow-y: auto;
 }
 
 </style>

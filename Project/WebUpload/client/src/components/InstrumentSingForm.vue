@@ -2,6 +2,7 @@
   <el-card shadow="never" class="box-card">
     <div slot="header" class="clearfix">
       <span>自弹自唱模式</span>
+      <el-button style="margin-left: 20px" size="small" round @click="showHelpDialog">使用帮助</el-button>
     </div>
 
     <el-form :inline="true" :model="ruleForm" :rules="rules" ref="ruleForm" label-width="100px" class="demo-ruleForm">
@@ -22,9 +23,9 @@
           <el-button size="small" type="primary">选择文件</el-button>
         </el-upload>
       </el-form-item>
-
     </el-form>
   </el-card>
+  
 </template>
 
 <script>
@@ -78,7 +79,19 @@ export default {
       this.fileListChord = [];
       this.uploadFiles = {};
     },
+    showHelpDialog() {
+      this.$emit('show-help-dialog');
+    }
   },
 };
 </script>
+
+<style scoped>
+.header-button-left {
+  float: left;
+  margin-top: 23px;
+  margin-left: 17px;
+}
+
+</style>
 
