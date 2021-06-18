@@ -69,7 +69,7 @@ public class SettingActivity extends AppCompatActivity {
                     MaterialDialog dialog = new MaterialDialog(this, MaterialDialog.getDEFAULT_BEHAVIOR());
                     dialog.title(null, "使用帮助");
                     dialog.message(null, getString(R.string.help), null);
-                    dialog.positiveButton(null, "OK", null);
+                    dialog.positiveButton(null, "我知道了", null);
                     dialog.show();
                     break;
                 // 清空所有临时目录，并计算清除的文件大小
