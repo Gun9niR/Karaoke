@@ -114,6 +114,8 @@ public class SingResultActivity extends AppCompatActivity {
     Integer id;
     // 歌曲名称
     String songName;
+    // 录音路径
+    String recordFullPath;
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
@@ -256,7 +258,7 @@ public class SingResultActivity extends AppCompatActivity {
                         getString(R.string.save_record_hint));
                 loadingDialog.setCancelable(false);
                 new Thread(() -> {
-                    saveRecord(songName, playerGroup, rateResultDialog.getRankingText());
+                    recordFullPath = saveRecord(songName, playerGroup, rateResultDialog.getRankingText());
                     loadingDialog.dismiss();
                     showSuccessToast(
                             SingResultActivity.this,
@@ -382,8 +384,6 @@ public class SingResultActivity extends AppCompatActivity {
         bottomNavbarResult.getMenu().getItem(1).setEnabled(false);
 
         bottomNavbarResult.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
-            String recordFullPath;
-
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
                 int id = item.getItemId();
