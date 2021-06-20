@@ -30,7 +30,9 @@ import static com.sjtu.karaoke.util.PathUtil.getRecordMetadataFullPath;
 public class Record {
     // 歌名
     private final String songName;
-    // 录音时间
+    //录音时间
+    Calendar calendar;
+    // 录音时间字符串
     private final String recordTime;
     // 录音等级
     private final Rank rank;
@@ -66,7 +68,7 @@ public class Record {
         SimpleDateFormat format = new SimpleDateFormat(
                 "yyyy-MM-dd-HH-mm",
                 Locale.CHINA);
-        Calendar calendar = new GregorianCalendar();
+        calendar = new GregorianCalendar();
         calendar.setTime(Objects.requireNonNull(format.parse(dateStr)));
         recordTime = String.format(Locale.CHINA, "%d-%02d-%02d %02d:%02d",
                 calendar.get(Calendar.YEAR),
@@ -95,6 +97,10 @@ public class Record {
 
     public String getRecordTime() {
         return recordTime;
+    }
+
+    public Calendar getCalendar() {
+        return calendar;
     }
 
     public Rank getRank() {

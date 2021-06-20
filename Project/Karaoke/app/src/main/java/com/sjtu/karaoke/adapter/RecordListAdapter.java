@@ -86,6 +86,7 @@ public class RecordListAdapter extends RecyclerView.Adapter<RecordListAdapter.Vi
                 e.printStackTrace();
             }
         }
+        records.sort((o1, o2) -> -o1.getCalendar().compareTo(o2.getCalendar()));
     }
 
     @NonNull
