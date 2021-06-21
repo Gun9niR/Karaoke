@@ -2,6 +2,7 @@ package com.sjtu.karaoke;
 
 import android.app.Dialog;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.Typeface;
 import android.graphics.drawable.BitmapDrawable;
@@ -29,6 +30,7 @@ import com.arthenica.mobileffmpeg.FFmpeg;
 import com.dreamfish.record.AudioRecorder;
 import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.sjtu.karaoke.component.LoadingDialog;
+import com.sjtu.karaoke.component.TutorialDialog;
 import com.sjtu.karaoke.data.Chord;
 import com.sjtu.karaoke.data.PlayChordRecord;
 import com.sjtu.karaoke.data.Score;
@@ -110,6 +112,10 @@ public class InstrumentSingActivity extends AppCompatActivity {
     AudioRecorder voiceRecorder;
     // 暂停按钮
     ImageButton pauseButton;
+    // 暂停对话框
+    Dialog instrumentPauseDialog;
+    // 教程对话框
+    TutorialDialog tutorialDialog;
 
     // 用互斥锁确保用户在点击重唱时粒子特效全部被释放，且不会再产生多余的粒子特效
     Semaphore mutex = new Semaphore(1);
@@ -209,7 +215,7 @@ public class InstrumentSingActivity extends AppCompatActivity {
         super.onStart();
 
         // 在重唱或从其他界面跳转过来时需要重新进行所有和播放相关的初始化，如果是用户退出APP再重新进入什么都不需要做
-        if (state == State.UNSTARTED) {
+        if (state == State.UNSTARTED && (tutorialDialog == null || !tutorialDialog.isShowing())) {
             LoadingDialog loadingDialog = showLoadingDialog(
                     this,
                     getString(R.string.initialize_hint),
@@ -258,8 +264,18 @@ public class InstrumentSingActivity extends AppCompatActivity {
                 loadingDialog.setProgress(100);
                 loadingDialog.dismiss();
 
-                InstrumentSingActivity.this.runOnUiThread(this::start);
-
+                // 如果是第一次启动APP，显示教程
+                SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
+                boolean firstStart = prefs.getBoolean("firstStart", true);
+                if (firstStart) {
+                    SharedPreferences.Editor editor = prefs.edit();
+                    editor.putBoolean("firstStart", false);
+                    editor.apply();
+                    InstrumentSingActivity.this.runOnUiThread(this::showTutorial);
+                } else {
+                    // 开始弹奏和录音
+                    InstrumentSingActivity.this.runOnUiThread(this::start);
+                }
             }).start();
         }
     }
@@ -270,6 +286,8 @@ public class InstrumentSingActivity extends AppCompatActivity {
         super.onStop();
         if (this.state == State.PLAYING) {
             pauseButton.callOnClick();
+        } else if (tutorialDialog != null && tutorialDialog.isShowing()) {
+            tutorialDialog.pause();
         }
     }
 
@@ -280,14 +298,21 @@ public class InstrumentSingActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        System.out.println("destroy!!");
         if (voiceRecorder.getStatus() == AudioRecorder.Status.STATUS_PAUSE || voiceRecorder.getStatus() == AudioRecorder.Status.STATUS_START) {
             voiceRecorder.stopRecord(false);
+        }
+        if (instrumentPauseDialog != null && instrumentPauseDialog.isShowing()) {
+            instrumentPauseDialog.dismiss();
         }
         lrcView.alertPlayerReleased();
         terminateExoPlayer(this, accompanyPlayer);
         if (chordPlayer != null) {
             chordPlayer.release();
             chordPlayer = null;
+        }
+        if (tutorialDialog != null && tutorialDialog.isShowing()) {
+            tutorialDialog.dismiss();
         }
     }
 
@@ -371,7 +396,7 @@ public class InstrumentSingActivity extends AppCompatActivity {
 
             pauseButton.setEnabled(false);
 
-            Dialog instrumentPauseDialog = new Dialog(this, R.style.PauseDialog);
+            instrumentPauseDialog = new Dialog(this, R.style.PauseDialog);
             instrumentPauseDialog.setContentView(R.layout.dialog_instrument_pause);
             instrumentPauseDialog.getWindow().setLayout(WindowManager.LayoutParams.MATCH_PARENT,
                     WindowManager.LayoutParams.MATCH_PARENT);
@@ -1037,6 +1062,15 @@ public class InstrumentSingActivity extends AppCompatActivity {
 
         ratingThread.add(thread);
         thread.start();
+    }
+
+    /**
+     * 显示自弹自唱模式教程
+     */
+    private void showTutorial() {
+        tutorialDialog = new TutorialDialog(this);
+        tutorialDialog.setOnDismissListener(dialog -> start());
+        tutorialDialog.show();
     }
 
     private enum State {
