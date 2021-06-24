@@ -1026,7 +1026,7 @@ public class InstrumentSingActivity extends AppCompatActivity {
         for (PlayChordRecord userRecord: userSequence) {
             int time = userRecord.getTime();
             command.append(String.format(Locale.CHINA, "[%d]volume=%d,adelay=%d|%d[0%d];",
-                    labelId, volumeMultiply, time, time, labelId));
+                    labelId, volumeMultiply, time + 120, time + 120, labelId));
             ++labelId;
         }
         for (int i = 0; i < labelId; ++i) {

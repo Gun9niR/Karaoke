@@ -50,6 +50,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.concurrent.Semaphore;
@@ -138,6 +139,8 @@ public class AccompanySingActivity extends AppCompatActivity {
     SingMode singMode;
     // 每句话的歌词
     List<LrcBean> lrcs;
+    // 打分线程
+    List<Thread> ratingThread;
     // 当前歌词迭代器
     ListIterator<LrcBean> lrcIterator;
     // 当前歌词
@@ -182,6 +185,8 @@ public class AccompanySingActivity extends AppCompatActivity {
                     true
             );
             loadingDialog.setCancelable(false);
+
+            currentPosition = 0;
             new Thread(() -> {
 
                 // 初始化伴奏和原唱播放器
@@ -310,6 +315,7 @@ public class AccompanySingActivity extends AppCompatActivity {
     }
 
     private void initRatingSystem() {
+        ratingThread = new ArrayList<>();
         init(getRateFullPath(songName), PCM_SPLIT_INTERVAL, RECORD_DELAY_LB, RECORD_DELAY_UB);
     }
 
@@ -488,6 +494,7 @@ public class AccompanySingActivity extends AppCompatActivity {
                                 loadingDialog.setCancelable(false);
 
                                 score.computeFinalScore();
+
                                 new Thread(() -> {
                                     stopActivity(true);
                                     Intent intent = new Intent(getApplicationContext(),
@@ -584,7 +591,6 @@ public class AccompanySingActivity extends AppCompatActivity {
         // 删除监听器
         handler.removeCallbacks(progressMonitor);
         handler.removeCallbacks(recordMonitor);
-        handler.removeCallbacks(recordMonitor);
 
         // 释放所有播放器
         terminateExoPlayer(this, mvPlayer);
@@ -596,6 +602,15 @@ public class AccompanySingActivity extends AppCompatActivity {
 
         // 释放歌词滚动控件
         lrcView.alertPlayerReleased();
+
+        // 等待所有打分结束
+        for (Thread thread: ratingThread) {
+            try {
+                thread.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     /**
@@ -611,7 +626,7 @@ public class AccompanySingActivity extends AppCompatActivity {
      * @param endTime   结束时间（毫秒）
      */
     private void rate(int startTime, int endTime) {
-        new Thread(() -> {
+        Thread thread = new Thread(() -> {
             // 等待区间内的所有小片段基频分析完成，为了避免spin需要在loop中sleep，但是ScheduledExecutorService
             // 是更好的实现方法，但由于开发进度问题只能在该版本中使用sleep
             while (!voiceRecorder.isf0AnalysisComplete(startTime, endTime)) {
@@ -638,7 +653,10 @@ public class AccompanySingActivity extends AppCompatActivity {
                 displayScore(scores[0]);
             }
             mutex.release();
-        }).start();
+        });
+
+        ratingThread.add(thread);
+        thread.start();
     }
 
     /**

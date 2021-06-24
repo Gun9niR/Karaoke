@@ -372,6 +372,12 @@ public class SingResultActivity extends AppCompatActivity {
         });
     }
 
+    @Override
+    public void onBackPressed() {
+        Intent intent = new Intent(this, MainActivity.class);
+        startActivity(intent);
+    }
+
     /**
      * 初始化底部导航栏
      */
@@ -390,7 +396,7 @@ public class SingResultActivity extends AppCompatActivity {
                 switch (id) {
                     // 重试
                     case R.id.resultRetry:
-                        onBackPressed();
+                        SingResultActivity.super.onBackPressed();
                         break;
                     // 用户点击分享时，先保存录音，再弹出分享界面
                     case R.id.resultShare:
