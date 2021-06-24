@@ -118,6 +118,8 @@ public class InstrumentPlayerGroup implements ExoPlayerGroup {
         voicePlayer.seekTo(Math.min(newPosition, duration));
     }
 
+    @Override
+    public void set
     /**
      * 在用户通过进度条对齐后0.5秒再检测一次进度差，因为进度条的值和实际的进度差不完全相等
      */
