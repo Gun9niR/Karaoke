@@ -468,7 +468,7 @@ public class AccompanySingActivity extends AppCompatActivity {
             // 如果不设置，底部导航栏会有奇怪的阴影
             bottomNavigationView.setBackground(null);
             // 默认伴唱模式
-            bottomNavigationView.getMenu().getItem(0).setTitle("伴唱");
+            bottomNavigationView.getMenu().getItem(0).setTitle("原唱");
             // 禁用中间的占位item
             bottomNavigationView.getMenu().getItem(1).setEnabled(false);
             // 禁用完成按钮，因为录音还没有开始
@@ -478,10 +478,10 @@ public class AccompanySingActivity extends AppCompatActivity {
                         switch (item.getItemId()) {
                             case R.id.singingMode:
                                 if (singMode == SingMode.WITH_ORIGINAL) {
-                                    item.setTitle("伴唱");
+                                    item.setTitle("原唱");
                                     withOriginalMode();
                                 } else {
-                                    item.setTitle("原唱");
+                                    item.setTitle("伴唱");
                                     withoutOriginalMode();
                                 }
                                 break;
