@@ -7,6 +7,11 @@
   >
 
   <div class="dialog-body">
+
+    <div class="upload-dialog-note">
+      请在上传原唱音频、歌词文件或和弦文件后进行文件同步。
+    </div>
+
     <el-cascader
       class="file-type-selector"
       placeholder="请选择文件类型"
@@ -87,11 +92,11 @@ export default {
               label: '原唱音频',
             },
             {
-              value: 'accompany_accompany',
+              value: 'accompany',
               label: '伴奏音频',
             },
             {
-              value: 'lyric',
+              value: 'lyric_accompany',
               label: '歌词',
             },
             {
@@ -105,22 +110,8 @@ export default {
           label: '自弹自唱模式',
           children: [
             {
-              value: 'instrument',
+              value: 'chord',
               label: '和弦',
-            },
-            {
-              value: 'accompany_instrument',
-              label: '伴奏',
-            },
-          ],
-        },
-        {
-          value: 'rating',
-          label: '歌曲打分',
-          children: [
-            {
-              value: 'rate',
-              label: '人声音频',
             },
           ],
         },
@@ -135,12 +126,10 @@ export default {
     fileSuffix: function() {
       const typeToSuffix = {
         'original': 'wav',
-        'accompany_accompany': 'wav',
+        'accompany': 'wav',
         'lyric': 'lrc',
         'mv': 'mp4',
-        'instrument': 'txt',
-        'accompany_instrument': 'wav',
-        'rate': 'wav',
+        'chord': 'txt',
       };
       if (this.field in typeToSuffix)
         return typeToSuffix[this.field];
@@ -224,6 +213,13 @@ export default {
 .file-type-selector {
   margin-bottom: 20px;
   width: 200px;
+}
+
+.upload-dialog-note {
+  color: gray; 
+  font-size: 10px;
+  margin-left: 5px;
+  margin-bottom: 5px;
 }
 
 </style>

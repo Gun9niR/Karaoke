@@ -10,6 +10,24 @@
     <color name="gainsboro">#FFDCDCDC</color>
     <color name="silver">#FFC0C0C0</color>
     <color name="gray">#FF808080</color>
+    <color name="dim_gray">#FF696969</color>
+    <color name="yellow">#FFFFFF00</color>
+    <color name="golden">#FFDFCA41</color>
+    <color name="coral">#DDF55442</color>
+    <color name="blue">#FF4263F5</color>
+    <color name="green">#FF15750d</color>
+    <color name="white_opacity_10">#E6FFFFFF</color>
+    <color name="black_opacity_10">#E6000000</color>
     <color name="color_navbar_text">#3700B3</color>
     <color name="color_navbar_button">#3700B3</color>
+
+<!--    自弹自唱-->
+    <color name="instrument_btn_foreground">#80202ef1</color>
+    <color name="instrument_btn_background">#58677ACf</color>
+    <color name="instrument_btn_border">#7B6f74d3</color>
+    <color name="instrument_lyric">#FF677ACf</color>
+    <color name="instrument_chord_label">#FFFFFFFF</color>
+
+<!--    伴奏演唱-->
+    <color name="score_text">#FF6200EE</color>
 </resources>

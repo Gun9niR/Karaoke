@@ -4,22 +4,24 @@
       <h1 class="header-title">曲库</h1>
       <div class="header-button">
         <el-button size="middle" type="success" @click="redirectToUpload">添加歌曲</el-button>
+        <logout-button />
       </div>
     </el-header>
 
     <el-main>
       <el-table
-        :data="songData"
+        :data="songData.filter(
+          song => !searchValue 
+            || song.song_name.toLowerCase().includes(searchValue.toLowerCase())
+            || song.singer.toLowerCase().includes(searchValue.toLowerCase()))"
         height="calc(100vh - 120px)"
-        border
-        style="width: 100%"
-        :header-cell-style="{textAlign: 'center'}"
-        :cell-style="{textAlign: 'center'}"
-      >
+        :border="false"
+        style="width: 100%" >
         <el-table-column
           fixed
           prop="song_name"
           label="歌曲"
+          align="center"
         >
         </el-table-column>
 
@@ -27,10 +29,18 @@
           fixed
           prop="singer"
           label="歌手"
+          align="center"
         >
         </el-table-column>
 
-        <el-table-column label="操作">
+        <el-table-column align="center">
+          <template slot="header" slot-scope="scope">
+            <el-input
+              @change="() => {scope==undefined}"
+              v-model="searchValue"
+              size="mini"
+              placeholder="搜索歌曲名称或歌手" />
+          </template>
           <template slot-scope="scope">
             <el-button
               size="mini"
@@ -39,6 +49,11 @@
               size="mini"
               type="primary"
               @click="handleUpload(scope.row)">上传文件</el-button>
+            <el-button
+              size="mini"
+              type="primary"
+              :loading="syncSongs.indexOf(scope.row.song_name + '-' + scope.row.singer) !== -1"
+              @click="handleSync(scope.row)">同步文件</el-button>
             <el-button
               size="mini"
               type="danger"
@@ -54,38 +69,85 @@
 </template>
 
 <script>
+const io = require('socket.io-client')
+
 import axios from 'axios';
 import SongInfoEditer from './SongInfoEditer';
 import SongUploadDialog from './SongUploadDialog';
+import LogoutButton from './LogoutButton';
 
 export default {
   data() {
     return {
+      socket: io('127.0.0.1:5000/karaoke', {
+        transports: ['websocket']
+      }),
       songData: [],
       editSong: {},
       editerVisible: false,
+      searchValue: '',
     };
   },
 
   components: {
     SongInfoEditer,
     SongUploadDialog,
+    LogoutButton,
+  },
+
+  mounted() {
+    this.socket.on('sync-success', (songInfo) => {
+      this.$store.commit('finishSyncSong', songInfo);
+      console.log('Successfully synchronized all the files.');
+      this.$message({
+        message: '成功同步' + songInfo + '的所有文件。',
+        type: 'success',
+      });
+    });
+    this.socket.on('sync-fail', (songInfo) => {
+      this.$store.commit('finishSyncSong', songInfo);
+      console.log('Fail to synchronize the files.');
+      this.$message({
+        message: '同步' + songInfo + '文件失败。',
+        type: 'error',
+      });
+    });
+  },
+
+  computed: {
+    syncSongs: function () {
+      return this.$store.state.syncSongs;
+    },
   },
 
   methods: {
+    onSearchValueChange(val) {
+      console.log(val);
+    },
+
     redirectToUpload() {
       this.$router.push({path: '/upload'});
     },
+
     handleEdit(row) {
       let song = JSON.parse(JSON.stringify(row));
       this.$refs.songInfoEditer.song = song;
       this.$refs.songInfoEditer.visible = true;
     },
+
     handleUpload(row) {
       let song = JSON.parse(JSON.stringify(row));
       this.$refs.songUploadDialog.song = song;
       this.$refs.songUploadDialog.visible = true;
     },
+
+    handleSync(row) {
+      let song = JSON.parse(JSON.stringify(row));
+      let song_info = song.song_name + '-' + song.singer;
+      this.$store.commit('startSyncSong', song_info);
+      this.syncSong(song.id, song_info);
+    },
+
     handleDelete(row) {
       const h = this.$createElement;
       this.$msgbox({
@@ -124,9 +186,10 @@ export default {
         })
         .catch((error) => {
           console.log(error);
-          alert("Error!");
+          this.$message.error("获取歌曲信息失败!");
         });
     },
+
     deleteSong(song, instance, done) {
       const url = process.env.VUE_APP_AJAX_URL + '/deleteSong';
       axios.delete(url, { data: { id: song.id }})
@@ -137,9 +200,10 @@ export default {
         })
         .catch((error) => {
           console.log(error);
-          alert("Error!");
+          this.$message.error("删除歌曲失败!");
         });
     },
+
     submitSongInfo(song) {
       const url = process.env.VUE_APP_AJAX_URL + '/updateSongInfo';
       axios.post(url, song)
@@ -189,6 +253,10 @@ export default {
           });
         });
     },
+
+    syncSong(song_id, song_info) {
+      this.socket.emit('sync', song_id, song_info);
+    },
   },
 
   created() {
@@ -219,7 +287,7 @@ export default {
 }
 
 .box-card {
-  max-width: 400px;
+  width: 400px;
   height: 450px;
 }
 

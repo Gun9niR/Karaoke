@@ -1,3 +1,0 @@
-C:/Academic/UnderGraduate/Sophomore-2/Principle and Practice of Software Engineering/project/android/hello-libs/app/.cxx/cmake/release/x86_64/CMakeFiles/WORLD.dir
-C:/Academic/UnderGraduate/Sophomore-2/Principle and Practice of Software Engineering/project/android/hello-libs/app/.cxx/cmake/release/x86_64/CMakeFiles/edit_cache.dir
-C:/Academic/UnderGraduate/Sophomore-2/Principle and Practice of Software Engineering/project/android/hello-libs/app/.cxx/cmake/release/x86_64/CMakeFiles/rebuild_cache.dir

@@ -4,7 +4,13 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@drawable/instrument_background"
     tools:context=".InstrumentSingActivity">
+
+    <com.sunty.droidparticle.ParticleSystemView
+        android:id="@+id/particleSystemView"
+        android:layout_height="match_parent"
+        android:layout_width="match_parent" />
 
     <LinearLayout
         android:id="@+id/componentsWrapper"
@@ -12,91 +18,96 @@
         android:layout_height="match_parent"
         android:orientation="vertical">
 
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:id="@+id/toolbarInstrumentSingWrapper"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent">
-
-            <androidx.appcompat.widget.Toolbar
-                android:id="@+id/toolbarInstrumentSing"
-                style="@style/toolbarStyle"
-                android:layout_width="match_parent"
-                android:layout_height="?attr/actionBarSize"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintHorizontal_bias="0.0"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent">
-
-                <TextView
-                    android:id="@+id/toolbarInstrumentSingTitle"
-                    style="@style/TextAppearance.AppCompat.Widget.ActionBar.Title.Inverse"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:text="Attention"
-                    android:textSize="26sp" />
-
-            </androidx.appcompat.widget.Toolbar>
-
-        </androidx.constraintlayout.widget.ConstraintLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="0dp"
+            android:layout_weight="2.5"
             android:orientation="horizontal">
 
             <Space
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
-                android:layout_weight="1.5" />
+                android:layout_weight="3.5"
+                tools:ignore="NestedWeights" />
 
             <LinearLayout
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="12"
-                android:orientation="vertical">
+                android:layout_height="match_parent"
+                android:layout_weight="8"
+                android:orientation="horizontal"
+                tools:ignore="NestedWeights"
+                android:baselineAligned="false">
 
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="0dp"
-                    android:layout_weight="2.5"
-                    android:orientation="horizontal"
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:id="@+id/lyricWrapper"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="2"
                     tools:ignore="NestedWeights">
 
-                    <Space
-                        android:layout_width="0dp"
+                    <org.sang.lrcview.LrcView
+                        android:id="@+id/lrcRoller"
+                        android:layout_width="match_parent"
                         android:layout_height="match_parent"
-                        android:layout_weight="0.5" />
+                        android:layout_marginTop="24dp"
+                        android:layout_marginBottom="16dp"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:lrcColor="@color/white"
+                        app:lrcMode="KARAOKE" />
 
-                    <androidx.constraintlayout.widget.ConstraintLayout
-                        android:id="@+id/lyricWrapper"
-                        android:layout_width="0dp"
+                </androidx.constraintlayout.widget.ConstraintLayout>
+
+            </LinearLayout>
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="3.5">
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_marginTop="24dp"
+                    android:layout_marginEnd="24dp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent">
+
+                    <ImageButton
+                        android:id="@+id/instrumentPauseBtn"
+                        android:layout_width="match_parent"
                         android:layout_height="match_parent"
-                        android:layout_weight="2"
-                        tools:ignore="NestedWeights">
+                        android:scaleType="fitCenter"
+                        android:src="@drawable/instrument_pause"
+                        android:background="@drawable/bg_instrument_button"
+                        android:padding="1dp"
+                        android:contentDescription="pause"
+                        tools:ignore="HardcodedText" />
 
-                        <org.sang.lrcview.LrcView
-                            android:id="@+id/lrcRoller"
-                            android:layout_width="match_parent"
-                            android:layout_height="85dp"
-                            app:layout_constraintBottom_toBottomOf="parent"
-                            app:layout_constraintEnd_toEndOf="parent"
-                            app:layout_constraintStart_toStartOf="parent"
-                            app:layout_constraintTop_toTopOf="parent"
-                            app:lrcMode="KARAOKE" />
+                </androidx.constraintlayout.widget.ConstraintLayout>
+            </androidx.constraintlayout.widget.ConstraintLayout>
 
-                    </androidx.constraintlayout.widget.ConstraintLayout>
+        </LinearLayout>
 
-                    <Space
-                        android:layout_width="0dp"
-                        android:layout_height="match_parent"
-                        android:layout_weight="0.5"/>
 
-                </LinearLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="3.5">
 
+            <Space
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1.5"
+                tools:ignore="NestedWeights" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="12"
+                android:orientation="vertical">
 
                 <androidx.constraintlayout.widget.ConstraintLayout
                     android:id="@+id/instrumentButtonsWrapper"
@@ -105,175 +116,13 @@
                     android:layout_weight="3">
 
                     <LinearLayout
+                        android:id="@+id/instrumentButtonsContainer"
                         android:layout_width="match_parent"
                         android:layout_height="0dp"
                         android:layout_weight="1"
-                        app:layout_constraintBottom_toBottomOf="parent">
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        android:orientation="horizontal"/>
 
-                        <RelativeLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_gravity="center"
-                            android:layout_weight="1">
-
-                            <ProgressBar
-                                android:id="@+id/instrumentButton0"
-                                style="?android:attr/progressBarStyleHorizontal"
-                                android:layout_width="match_parent"
-                                android:layout_height="match_parent"
-                                android:layout_centerInParent="true"
-                                android:indeterminateDrawable="@drawable/custom_instrument_button"
-                                android:progressBackgroundTint="@color/gainsboro" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_centerInParent="true"
-                                android:text="C#"
-                                android:textColor="@color/purple_700"
-                                android:textSize="25sp"
-                                android:textStyle="bold"
-                                tools:ignore="ObsoleteLayoutParam" />
-
-                        </RelativeLayout>
-
-
-                        <Space
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1" />
-
-
-                        <RelativeLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_gravity="center"
-                            android:layout_weight="1">
-
-                            <ProgressBar
-                                android:id="@+id/instrumentButton1"
-                                style="?android:attr/progressBarStyleHorizontal"
-                                android:layout_width="match_parent"
-                                android:layout_height="match_parent"
-                                android:layout_centerInParent="true"
-                                android:indeterminateDrawable="@drawable/custom_instrument_button"
-                                android:progressBackgroundTint="@color/gainsboro" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_centerInParent="true"
-                                android:text="C#"
-                                android:textColor="@color/purple_700"
-                                android:textSize="25sp"
-                                android:textStyle="bold"
-                                tools:ignore="ObsoleteLayoutParam" />
-
-                        </RelativeLayout>
-
-
-                        <Space
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1" />
-
-
-                        <RelativeLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_gravity="center"
-                            android:layout_weight="1">
-
-                            <ProgressBar
-                                android:id="@+id/instrumentButton2"
-                                style="?android:attr/progressBarStyleHorizontal"
-                                android:layout_width="match_parent"
-                                android:layout_height="match_parent"
-                                android:layout_centerInParent="true"
-                                android:indeterminateDrawable="@drawable/custom_instrument_button"
-                                android:progressBackgroundTint="@color/gainsboro" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_centerInParent="true"
-                                android:text="C#"
-                                android:textColor="@color/purple_700"
-                                android:textSize="25sp"
-                                android:textStyle="bold"
-                                tools:ignore="ObsoleteLayoutParam" />
-
-                        </RelativeLayout>
-
-
-                        <Space
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1" />
-
-
-                        <RelativeLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_gravity="center"
-                            android:layout_weight="1">
-
-                            <ProgressBar
-                                android:id="@+id/instrumentButton3"
-                                style="?android:attr/progressBarStyleHorizontal"
-                                android:layout_width="match_parent"
-                                android:layout_height="match_parent"
-                                android:layout_centerInParent="true"
-                                android:indeterminateDrawable="@drawable/custom_instrument_button"
-                                android:progressBackgroundTint="@color/gainsboro" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_centerInParent="true"
-                                android:text="C#"
-                                android:textColor="@color/purple_700"
-                                android:textSize="25sp"
-                                android:textStyle="bold"
-                                tools:ignore="ObsoleteLayoutParam" />
-
-                        </RelativeLayout>
-
-
-                        <Space
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1" />
-
-
-                        <RelativeLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_gravity="center"
-                            android:layout_weight="1">
-
-                            <ProgressBar
-                                android:id="@+id/instrumentButton4"
-                                style="?android:attr/progressBarStyleHorizontal"
-                                android:layout_width="match_parent"
-                                android:layout_height="match_parent"
-                                android:layout_centerInParent="true"
-                                android:indeterminateDrawable="@drawable/custom_instrument_button"
-                                android:progressBackgroundTint="@color/gainsboro" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_centerInParent="true"
-                                android:text="C#"
-                                android:textColor="@color/purple_700"
-                                android:textSize="25sp"
-                                android:textStyle="bold"
-                                tools:ignore="ObsoleteLayoutParam" />
-
-                        </RelativeLayout>
-
-                    </LinearLayout>
 
                 </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -285,14 +134,12 @@
 
             </LinearLayout>
 
-
             <Space
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1.5" />
 
         </LinearLayout>
-
     </LinearLayout>
 
 

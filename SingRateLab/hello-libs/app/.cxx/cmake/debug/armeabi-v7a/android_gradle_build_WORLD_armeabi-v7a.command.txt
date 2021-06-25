@@ -1,7 +1,0 @@
-Executable : C:\Users\66328\AppData\Local\Android\Sdk\cmake\3.10.2.4988404\bin\ninja.exe
-arguments : 
--C
-C:\Academic\UnderGraduate\Sophomore-2\Principle and Practice of Software Engineering\project\android\hello-libs\app\.cxx\cmake\debug\armeabi-v7a
-WORLD
-jvmArgs : 
-

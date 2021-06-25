@@ -1,6 +1,10 @@
+include ':RadarView'
+include ':PianoRater'
 include ':SingRater'
 include ':WavEditor'
 include ':Recorder'
 include ':LrcView'
 include ':app'
 rootProject.name = "Karaoke"
+include ':DroidParticle'
+include ':ExplosionView'

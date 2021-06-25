@@ -126,7 +126,7 @@ export default {
           this.$message.error("请选择wav格式文件！");
           this.fileListAccompany = [];
         } else {
-          this.uploadFiles['accompany_accompany'] = accompany;
+          this.uploadFiles['accompany'] = accompany;
         }
       }
     },
@@ -138,7 +138,7 @@ export default {
           this.$message.error("请选择lrc格式文件！");
           this.fileListLyric = [];
         } else {
-          this.uploadFiles['lyric'] = lyric;
+          this.uploadFiles['lyric_accompany'] = lyric;
         }
       }
     },
@@ -158,10 +158,10 @@ export default {
       delete this.uploadFiles.original;
     },
     handleAccompanyRemove() {
-      delete this.uploadFiles.accompany_accompany;
+      delete this.uploadFiles.accompany;
     },
     handleLyricRemove() {
-      delete this.uploadFiles.lyric;
+      delete this.uploadFiles.lyric_accompany;
     },
     handleMVRemove() {
       delete this.uploadFiles.mv;

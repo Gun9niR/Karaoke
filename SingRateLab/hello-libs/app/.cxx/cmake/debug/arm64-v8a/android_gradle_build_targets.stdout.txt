@@ -1,2 +1,0 @@
-ninja: Entering directory `C:\Academic\UnderGraduate\Sophomore-2\Principle and Practice of Software Engineering\project\android\hello-libs\app\.cxx\cmake\debug\arm64-v8a'
-ninja: no work to do.

@@ -67,15 +67,27 @@
         app:layout_constraintTop_toBottomOf="@+id/mvView"
         tools:ignore="MissingConstraints" />
 
-    <TextView
+    <me.grantland.widget.AutofitTextView
         android:id="@+id/singingScore"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="Score"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="16dp"
+        android:gravity="end"
         app:layout_constraintBottom_toBottomOf="@+id/scoreBar"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/scoreBar"
         tools:ignore="MissingConstraints" />
+
+    <RelativeLayout
+        android:id="@+id/scoreTrack"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:gravity="bottom"
+        app:layout_constraintBottom_toTopOf="@+id/singingScore"
+        app:layout_constraintEnd_toEndOf="@+id/singingScore"
+        app:layout_constraintStart_toStartOf="@+id/singingScore"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <org.sang.lrcview.LrcView
         android:id="@+id/lrcRoller"
@@ -93,5 +105,7 @@
         android:layout_height="wrap_content"
         app:layout_constraintBottom_toBottomOf="parent"
         tools:layout_editor_absoluteX="2dp" />
+
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

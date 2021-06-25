@@ -2,47 +2,30 @@
   <el-card shadow="never" class="box-card">
     <div slot="header" class="clearfix">
       <span>自弹自唱模式</span>
+      <el-button style="margin-left: 20px" size="small" round @click="showHelpDialog">使用帮助</el-button>
     </div>
 
     <el-form :inline="true" :model="ruleForm" :rules="rules" ref="ruleForm" label-width="100px" class="demo-ruleForm">
       
-      <el-form-item label="和弦" prop="instrument">
+      <el-form-item label="和弦" prop="chord">
         <el-upload
           class="upload-demo"
           action="https://jsonplaceholder.typicode.com/posts/"
-          :on-change="onInstrumentChange"
+          :on-change="onChordChange"
           :on-preview="handlePreview"
-          :on-remove="handleInstrumentRemove"
+          :on-remove="handleChordRemove"
           :on-exceed="handleExceed"
           :limit="1"
           :before-remove="beforeRemove"
-          :file-list="fileListInstrument"
+          :file-list="fileListChord"
           :auto-upload="false"
         >
           <el-button size="small" type="primary">选择文件</el-button>
         </el-upload>
       </el-form-item>
-
-
-      <el-form-item label="伴奏" prop="accompany">
-        <el-upload
-          class="upload-demo"
-          action="https://jsonplaceholder.typicode.com/posts/"
-          :on-change="onAccompanyChange"
-          :on-preview="handlePreview"
-          :on-remove="handleAccompanyRemove"
-          :on-exceed="handleExceed"
-          :limit="1"
-          :before-remove="beforeRemove"
-          :file-list="fileListAccompany"
-          :auto-upload="false"
-        >
-          <el-button size="small" type="primary">选择文件</el-button>
-        </el-upload>
-      </el-form-item>
-
     </el-form>
   </el-card>
+  
 </template>
 
 <script>
@@ -53,10 +36,9 @@ export default {
     return {
       uploadFiles: {},
       ruleForm: {},
-      fileListInstrument: [],
-      fileListAccompany: [],
+      fileListChord: [],
       rules: {
-          instrument: [
+          chord: [
             { required: true },
           ],
           accompany: [
@@ -67,36 +49,23 @@ export default {
   },
 
   methods: {
-    onInstrumentChange(file) {
+    onChordChange(file) {
       if (file.raw) {
-        var instrument = file.raw;
-        const fileType = getFileType(instrument);
+        var chord = file.raw;
+        const fileType = getFileType(chord);
         if (fileType !== 'txt') {
           this.$message.error("请选择txt格式文件！");
-          this.fileListInstrument = [];
+          this.fileListChord = [];
         } else {
-          this.uploadFiles['instrument'] = instrument;
+          this.uploadFiles['chord'] = chord;
         }
       }
     },
-    onAccompanyChange(file) {
-      if (file.raw) {
-        var accompany = file.raw;
-        const fileType = getFileType(accompany);
-        if (fileType !== 'wav') {
-          this.$message.error("请选择wav格式文件！");
-          this.fileListAccompany = [];
-        } else {
-          this.uploadFiles['accompany_instrument'] = accompany;
-        }
-      }
+    
+    handleChordRemove() {
+      delete this.uploadFiles.chord;
     },
-    handleInstrumentRemove() {
-      delete this.uploadFiles.instrument;
-    },
-    handleAccompanyRemove() {
-      delete this.uploadFiles.accompany_instrument;
-    },
+    
     handlePreview(file) {
       console.log(file);
     },
@@ -107,11 +76,22 @@ export default {
       return this.$confirm(`确定移除 ${ file.name }？`);
     },
     clearFiles() {
-      this.fileListInstrument = [];
-      this.fileListAccompany = [];
+      this.fileListChord = [];
       this.uploadFiles = {};
     },
+    showHelpDialog() {
+      this.$emit('show-help-dialog');
+    }
   },
 };
 </script>
+
+<style scoped>
+.header-button-left {
+  float: left;
+  margin-top: 23px;
+  margin-left: 17px;
+}
+
+</style>
 

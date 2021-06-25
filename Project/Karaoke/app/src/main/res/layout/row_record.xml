@@ -30,6 +30,21 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
+        android:id="@+id/recordRank"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Rank"
+        android:textSize="12sp"
+        android:textColor="@color/white"
+        android:background="@drawable/bg_rank"
+        android:paddingStart="4dp"
+        android:paddingEnd="4dp"
+        android:gravity="center"
+        app:layout_constraintBottom_toBottomOf="@+id/recordName"
+        app:layout_constraintStart_toEndOf="@+id/recordName"
+        app:layout_constraintTop_toTopOf="@+id/recordName" />
+
+    <TextView
         android:id="@+id/recordTime"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -40,32 +55,13 @@
         app:layout_constraintStart_toEndOf="@+id/recordCover" />
 
     <ImageButton
-        android:id="@+id/btnPlay"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:src="@drawable/ic_play"
+        android:id="@+id/btnRecordOperation"
+        android:layout_width="35dp"
+        android:layout_height="30dp"
+        android:layout_marginEnd="18dp"
         android:background="@android:color/transparent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/btnShare"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <ImageButton
-        android:id="@+id/btnShare"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:background="@android:color/transparent"
-        android:src="@drawable/ic_share"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/btnDelete"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <ImageButton
-        android:id="@+id/btnDelete"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:layout_marginEnd="24dp"
-        android:src="@drawable/ic_delete"
-        android:background="@android:color/transparent"
+        android:src="@drawable/ic_more_vert"
+        android:layout_marginStart="2dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />

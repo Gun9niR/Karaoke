@@ -6,29 +6,51 @@ import com.sjtu.karaoke.waveditor.WavReader;
 import com.sjtu.karaoke.waveditor.WavWriter;
 
 import java.io.IOException;
+import java.util.List;
 
 public class WavUtil {
+
     /**
-     * Merge multiple pcm files into one single wav file stored at <destPath>
-     * @param destPath
-     * @param trimmedAccompanyFullPath
-     * @param voiceFullPath
-     * @param accompanyVolume
-     * @param voiceVolume
-     * @param voiceOffset
+     * 将多个wav文件合并为一个文件
+     * @param destPath          输出路径
+     * @param voiceFullPath     录音音频的绝对路径
+     * @param voiceVolume       录音的音量
+     * @param accompanyPaths    伴奏文件列表。伴奏演唱模式有一个文件，自弹自唱模式有3个文件
+     * @param accompanyVolumes  伴奏文件的音量列表，与伴奏文件以下标一一对应
+     * @param voiceOffset       录音的提前量。在实现上，其实是所有伴奏增加延迟
      */
-    public static void mergeWAVs(String destPath, String trimmedAccompanyFullPath, String voiceFullPath,
-                                   float accompanyVolume, float voiceVolume, int voiceOffset) {
-        FFmpeg.execute("-y" +
-                " -i " + trimmedAccompanyFullPath +
-                " -i " + voiceFullPath +
-                " -filter_complex" +
-                " \"[0]volume=" + accompanyVolume * 2 + ", adelay=" + voiceOffset + "|" + voiceOffset + "[a];" +
-                "[1]volume=" + voiceVolume * 2 + "[b];" +
-                "[a][b]amix=inputs=2:duration=longest:dropout_transition=1\" " + destPath);
+    public static void mergeWAVs(String destPath,
+                                 String voiceFullPath,
+                                 Float voiceVolume,
+                                 List<String> accompanyPaths,
+                                 List<Float> accompanyVolumes,
+                                 int voiceOffset) {
+
+        int wavN = accompanyPaths.size() + 1;
+
+        String delayStr = ", adelay=" + voiceOffset + "|" + voiceOffset;
+        StringBuilder inputArgs = new StringBuilder(" -i " + voiceFullPath);
+        StringBuilder optionArgs = new StringBuilder("[0]volume=" + voiceVolume * wavN + "[a];");
+        StringBuilder amixPrefix = new StringBuilder("[a]");
+
+        for (int i = 1; i <= wavN - 1; ++i) {
+            inputArgs.append(" -i ").append(accompanyPaths.get(i - 1));
+            char codename = (char)((int)'a' + i);   // codename starts from 'b'
+            optionArgs.append("[").append(i).append("]volume=").append(accompanyVolumes.get(i - 1) * wavN)
+                    .append(delayStr).append("[").append(codename).append("];");
+            amixPrefix.append("[").append(codename).append("]");
+        }
+
+        StringBuilder cmd = new StringBuilder();
+        cmd.append("-y").append(inputArgs).append(" -filter_complex").append(" \"").append(optionArgs).append(amixPrefix)
+                .append("amix=inputs=").append(wavN).append(":duration=longest:dropout_transition=1\" ").append(destPath);
+        System.out.println(cmd);
+
+        FFmpeg.execute(cmd.toString());
     }
 
     /**
+     * 剪切wav文件
      * @param from  原文件名，不包含路径
      * @param to    目标文件名，不包含路径
      * @param start 开始时间 ms
@@ -71,9 +93,13 @@ public class WavUtil {
             e.printStackTrace();
         }
 
-        System.out.println("========== Trimming " + from + " finished ==========");
     }
 
+    /**
+     * 获取wav文件的持续时间
+     * @param fullPath wav文件的绝对路径
+     * @return 持续时长
+     */
     public static double getWAVDuration(String fullPath) {
         WavReader wavReader = new WavReader(fullPath);
         wavReader.getHeader();

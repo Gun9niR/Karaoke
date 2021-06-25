@@ -85,11 +85,14 @@ export default {
 
   methods: {
     verify(payload) {
-      const url = process.env.VUE_APP_AJAX_URL + '/verify';
+      const url = process.env.VUE_APP_AJAX_URL + '/login';
       axios
         .post(url, payload)
-        .then(() => {
-            this.$router.push({ path: "/upload" });
+        .then((response) => {
+            const user = response.data;
+            const user_safe = {id: user['id'], username: user['username']}
+            localStorage.setItem('user', JSON.stringify(user_safe));
+            this.$router.push({ path: "/songs" });
             this.$store.commit("login");
         })
         .catch(() => {
@@ -109,7 +112,7 @@ export default {
       this.$refs[formName].validate((valid) => {
         if (valid) {
           const payload = {
-            name: this.ruleForm.name,
+            username: this.ruleForm.name,
             password: this.ruleForm.pass,
           };
           this.verify(payload);
