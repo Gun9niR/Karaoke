@@ -47,6 +47,8 @@ vector<F0data> getUserF0(double startTime, double endTime, double delay) {
 //区间内的全部音频调用过f0analysis，且该区间内全部的f0analysis调用已经正常返回。
 extern "C" JNIEXPORT jstring JNICALL
 Java_com_sjtu_karaoke_singrater_RatingUtil_getScore(JNIEnv *env, jobject thiz, jint jstartTimeInMicroMS, jint jendTimeInMicroMS) {
+    __android_log_print(ANDROID_LOG_INFO, "Rater",
+                        "getScore start\n");
     int startTimeInMicroMS = jstartTimeInMicroMS;
     int endTimeInMicroMS = jendTimeInMicroMS;
     return env->NewStringUTF(getScoreWithDelay(startTimeInMicroMS / 1000.0, endTimeInMicroMS / 1000.0).c_str());
@@ -96,6 +98,8 @@ string getScoreWithDelay(double startTime, double endTime) {
     res += " " + to_string(accuracyScore);
     res += " " + to_string(emotionScore);
     res += " " + to_string(breathScore);
+    __android_log_print(ANDROID_LOG_INFO, "Rater",
+                        "getScore end\n");
     return res;
 }
 
@@ -123,11 +127,15 @@ string getAccuracyScore(double startTime, double endTime, double delay) {
 extern "C" JNIEXPORT jstring JNICALL
 Java_com_sjtu_karaoke_singrater_RatingUtil_init(JNIEnv *env, jobject thiz, jstring filePath, jint splitTimeInMicroMS,
                                                 jdouble _delayLowerBound, jdouble _delayUpperBound) {
+    __android_log_print(ANDROID_LOG_INFO, "Rater",
+                        "INIT start\n");
     jboolean icCopy = 0;
     string cppfilePath = env->GetStringUTFChars(filePath, &icCopy);
     delayLowerBound = _delayLowerBound;
     delayUpperBound = _delayUpperBound;
     init(cppfilePath, splitTimeInMicroMS);
+    __android_log_print(ANDROID_LOG_INFO, "Rater",
+                        "INIT end\n");
     return env->NewStringUTF("Done");
 }
 

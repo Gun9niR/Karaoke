@@ -59,6 +59,9 @@ namespace {
 //注意，不可以对同一时刻的音频多次调用该函数。filePath必须以/data/data/com.sjtu.karaoke开头。
 extern "C" JNIEXPORT jstring JNICALL
 Java_com_sjtu_karaoke_singrater_RatingUtil_f0analysis(JNIEnv *env, jobject thiz, jstring filePath, jint jstartTimeInMicroMS) {
+    __android_log_print(ANDROID_LOG_INFO, "Rater",
+                        "F0A start\n");
+
     jboolean icCopy = 0;
     string cppfilePath = env->GetStringUTFChars(filePath, &icCopy);
     timeval t1, t2;
@@ -139,6 +142,8 @@ Java_com_sjtu_karaoke_singrater_RatingUtil_f0analysis(JNIEnv *env, jobject thiz,
     delete[] argv;
     gettimeofday(&t2, NULL);
     string res = to_string(t2.tv_sec - t1.tv_sec + (t2.tv_usec - t1.tv_usec) / 1e6);
+    __android_log_print(ANDROID_LOG_INFO, "Rater",
+                        "F0A end\n");
     return env->NewStringUTF(res.c_str());
 }
 
