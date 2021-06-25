@@ -1,8 +1,10 @@
 package com.sjtu.karaoke;
 
 import android.os.Bundle;
+import android.view.MenuItem;
 import android.widget.ListView;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
@@ -45,6 +47,18 @@ import static com.sjtu.karaoke.util.Constants.VOICE_DIRECTORY;
 
 public class SettingActivity extends AppCompatActivity {
     private String[] settingItems = {"使用帮助", "清空本地缓存", "关于天天爱K歌"};
+
+    /**
+     * 捕获用户点击返回主页按钮的事件，调用onBackPressed()，否则返回时会返回到歌曲浏览界面
+     */
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        if (item.getItemId() == android.R.id.home) {
+            onBackPressed();
+            return true;
+        }
+        return false;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
