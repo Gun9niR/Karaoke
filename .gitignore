@@ -13,4 +13,6 @@ Project/WebUpload/server/utils/chordTranslator/chordTranslator.exe
 Project/WebUpload/server/.vscode
 Project/WebUpload/server/utils/pretrained_models/
 Project/WebUpload/server/config.py
+Project/WebUpload/server/test/__pycache__/
+Project/WebUpload/server/test/report/
 
