@@ -1,0 +1,250 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/singResultWrapper"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbarResult"
+        style="@style/toolbarStyle"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <TextView
+            android:id="@+id/toolbarResultTitle"
+            style="@style/TextAppearance.AppCompat.Widget.ActionBar.Title.Inverse"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="" />
+
+    </androidx.appcompat.widget.Toolbar>
+
+    <ImageView
+        android:id="@+id/albumCover"
+        android:layout_width="250dp"
+        android:layout_height="250dp"
+        android:layout_marginTop="30dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/toolbarResult"
+        tools:ignore="MissingConstraints" />
+
+    <LinearLayout
+        android:id="@+id/progressBarResult"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="12dp"
+        android:gravity="center_vertical"
+        app:layout_constraintTop_toBottomOf="@+id/albumCover"
+        tools:ignore="MissingConstraints">
+
+        <ImageView
+            android:id="@+id/resultPause"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:src="@drawable/ic_pause_circle" />
+
+        <ImageView
+            android:id="@+id/resultPlay"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:src="@drawable/ic_play_circle" />
+
+        <TextView
+            android:id="@+id/playerPosition"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="00:00"
+            android:textColor="@color/purple_500"
+            android:textStyle="bold"
+            android:paddingLeft="8dp" />
+
+        <SeekBar
+            android:id="@+id/seekbarResultProgress"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:thumbTint="@color/purple_500"
+            android:progressBackgroundTint="@color/purple_200"
+            android:progressTint="@color/purple_700"
+            android:paddingEnd="16dp"
+            android:paddingStart="16dp"
+            tools:visibility="visible" />
+
+        <TextView
+            android:id="@+id/playerDuration"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="00:00"
+            android:textColor="@color/purple_500"
+            android:textStyle="bold" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/tuneWrapper"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintTop_toBottomOf="@+id/progressBarResult">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:padding="8dp"
+            tools:ignore="MissingConstraints">
+            <TextView
+                android:id="@+id/alignVoice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="人声对齐"
+                android:textColor="@color/purple_500"
+                android:textStyle="bold"
+                android:textSize="15sp"
+                android:paddingStart="8dp" />
+
+            <SeekBar
+                android:id="@+id/seekbarAlignVoice"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:thumbTint="@color/purple_500"
+                android:progressBackgroundTint="@color/purple_500"
+                android:progressTint="@color/purple_700"
+                android:paddingEnd="16dp"
+                android:paddingStart="16dp"
+                tools:visibility="visible" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/wrapperTuneVoice"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:padding="8dp"
+            tools:ignore="MissingConstraints">
+
+            <TextView
+                android:id="@+id/tuneVoice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="人声音量"
+                android:textColor="@color/purple_500"
+                android:textStyle="bold"
+                android:textSize="15sp"
+                android:paddingStart="8dp" />
+
+            <SeekBar
+                android:id="@+id/seekbarTuneVoice"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:thumbTint="@color/purple_500"
+                android:progressBackgroundTint="@color/purple_500"
+                android:progressTint="@color/purple_700"
+                android:paddingEnd="16dp"
+                android:paddingStart="16dp"
+                tools:visibility="visible" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/wrapperTuneAccompany"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:padding="8dp"
+            tools:ignore="MissingConstraints">
+
+            <TextView
+                android:id="@+id/tuneAccompany"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="伴奏音量"
+                android:textColor="@color/purple_500"
+                android:textStyle="bold"
+                android:textSize="15sp"
+                android:paddingStart="8dp" />
+
+            <SeekBar
+                android:id="@+id/seekbarTuneAccompany"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:thumbTint="@color/purple_500"
+                android:progressBackgroundTint="@color/purple_500"
+                android:progressTint="@color/purple_700"
+                android:paddingEnd="16dp"
+                android:paddingStart="16dp"
+                tools:visibility="visible" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/wrapperTunePiano"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:padding="8dp"
+            tools:ignore="MissingConstraints">
+
+            <TextView
+                android:id="@+id/tunePiano"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="弹奏音量"
+                android:textColor="@color/purple_500"
+                android:textStyle="bold"
+                android:textSize="15sp"
+                android:paddingStart="8dp" />
+
+            <SeekBar
+                android:id="@+id/seekbarTunePiano"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:thumbTint="@color/purple_500"
+                android:progressBackgroundTint="@color/purple_500"
+                android:progressTint="@color/purple_700"
+                android:paddingEnd="16dp"
+                android:paddingStart="16dp"
+                tools:visibility="visible" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <FrameLayout
+        android:id="@+id/singResultBackgroundDummy"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/black"
+        android:alpha="0"/>
+
+    <include
+        layout="@layout/bottom_sheet_track"
+        android:id="@+id/bottomSheetWrapper"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
+    <include
+        android:id="@+id/bottomNavbarResult"
+        layout="@layout/bottom_navbar_result"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>
