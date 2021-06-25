@@ -44,10 +44,12 @@
           <template slot-scope="scope">
             <el-button
               size="mini"
+              :disabled="syncSongs.indexOf(scope.row.song_name + '-' + scope.row.singer) !== -1"
               @click="handleEdit(scope.row)">编辑</el-button>
             <el-button
               size="mini"
               type="primary"
+              :disabled="syncSongs.indexOf(scope.row.song_name + '-' + scope.row.singer) !== -1"
               @click="handleUpload(scope.row)">上传文件</el-button>
             <el-button
               size="mini"
@@ -57,6 +59,7 @@
             <el-button
               size="mini"
               type="danger"
+              :disabled="syncSongs.indexOf(scope.row.song_name + '-' + scope.row.singer) !== -1"
               @click="handleDelete(scope.row)">删除</el-button>
           </template>
         </el-table-column>
