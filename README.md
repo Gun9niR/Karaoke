@@ -21,7 +21,36 @@
 └── README.md         // 本README文件
 ```
 
-# 3. git提交prefix规范
+# 3. 安装方法
+
+本项目并未购买云服务器，因此管理员系统后端需要部署在自己的计算机上。
+
+1. 克隆本仓库
+
+```
+git clone https://github.com/Gun9niR/Karaoke.git
+```
+2. 运行管理员系统后端
+
+```
+cd FinalRelease/code/WebUpload/server
+pip install -r requirements.txt
+mysql.server start
+python wsgi.py
+```
+3. 运行管理员系统前端
+
+```
+cd ../client
+npm install
+npm run serve
+```
+4. 安装手机端APP
+
+首先，需要修改服务器地址为本机地址。
+
+
+# 4. git提交prefix规范
 
 - 新增功能: `feat`
 - 修复bug：`fix`
