@@ -8,7 +8,7 @@ class UserVerification(UserMixin):
 
     def __init__(self, user):
         self.id = user['id']
-        self.username = user['username']9
+        self.username = user['username']
         
         self.password_hash = user['password']
 
